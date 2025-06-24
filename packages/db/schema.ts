@@ -101,3 +101,9 @@ export const invitation = pgTable('invitation', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
 });
+
+export const waitlist = pgTable('waitlist', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  createdAt: timestamp('created_at').notNull(),
+});
