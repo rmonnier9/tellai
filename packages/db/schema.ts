@@ -4,6 +4,7 @@ import {
   timestamp,
   boolean,
   integer,
+  uuid,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
@@ -103,7 +104,6 @@ export const invitation = pgTable('invitation', {
 });
 
 export const waitlist = pgTable('waitlist', {
-  id: text('id').primaryKey(),
   email: text('email').notNull().unique(),
-  createdAt: timestamp('created_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
 });
