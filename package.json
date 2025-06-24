@@ -1,12 +1,15 @@
 {
-  "name": "shadcn-ui-monorepo",
+  "name": "lovadesk",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:generate": "pnpm --filter @workspace/db generate",
+    "db:migrate": "pnpm --filter @workspace/db migrate",
+    "db:studio": "pnpm --filter @workspace/db studio"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
