@@ -1,4 +1,4 @@
-import { AppSidebar } from '@/components/app-sidebar';
+import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,18 +6,18 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@workspace/ui/components/breadcrumb';
-import { Separator } from '@workspace/ui/components/separator';
+} from "@workspace/ui/components/breadcrumb"
+import { Separator } from "@workspace/ui/components/separator"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from '@workspace/ui/components/sidebar';
+} from "@workspace/ui/components/sidebar"
 
 export default function Page() {
   return (
     <SidebarProvider>
-      <AppSidebar variant="inset" />
+      <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
@@ -51,5 +51,5 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  );
+  )
 }
