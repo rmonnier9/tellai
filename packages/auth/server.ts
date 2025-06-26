@@ -7,7 +7,7 @@ import { organization, magicLink } from 'better-auth/plugins';
 import { EmailTemplate } from '@daveyplate/better-auth-ui/server';
 import { send } from '@workspace/emails';
 
-import { db, prisma } from '@workspace/db';
+import { db } from '@workspace/db';
 
 const sendMagicLink = async (props: { email: string; url: string }) => {
   await send({
