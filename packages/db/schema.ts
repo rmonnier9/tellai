@@ -104,6 +104,6 @@ export const invitation = pgTable('invitation', {
 });
 
 export const waitlist = pgTable('waitlist', {
-  email: text('email').notNull().unique(),
+  email: text('email').notNull().unique().primaryKey(),
   createdAt: timestamp('created_at').defaultNow(),
 });
