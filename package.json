@@ -8,9 +8,11 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:ci": "pnpm --filter @workspace/db prisma:generate && pnpm --filter @workspace/db prisma:migrate:prod",
     "db:generate": "pnpm --filter @workspace/db generate",
     "db:migrate": "pnpm --filter @workspace/db migrate",
-    "db:studio": "pnpm --filter @workspace/db studio"
+    "db:studio": "pnpm --filter @workspace/db studio",
+    "better-auth:generate": "dotenvx run -- npx @better-auth/cli generate --output ./packages/db/prisma/schema.prisma --config ./packages/auth/server.ts"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

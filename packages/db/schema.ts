@@ -5,6 +5,7 @@ import {
   boolean,
   integer,
   uuid,
+  vector,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
@@ -106,4 +107,5 @@ export const invitation = pgTable('invitation', {
 export const waitlist = pgTable('waitlist', {
   email: text('email').notNull().unique().primaryKey(),
   createdAt: timestamp('created_at').defaultNow(),
+  embedding: vector('embedding', { dimensions: 1536 }),
 });

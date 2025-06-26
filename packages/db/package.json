@@ -6,21 +6,33 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "scripts": {
-    "generate": "drizzle-kit generate",
-    "migrate": "drizzle-kit migrate",
-    "studio": "drizzle-kit studio"
+    "dirzzle:pull": "drizzle-kit pull",
+    "dirzzle:generate": "drizzle-kit generate",
+    "dirzzle:migrate": "drizzle-kit migrate",
+    "dirzzle:studio": "drizzle-kit studio",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push --skip-generate",
+    "prisma:pull": "prisma db pull",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:prod": "prisma migrate deploy"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.4.1",
   "dependencies": {
+    "@prisma/adapter-pg": "^6.10.1",
+    "@prisma/client": "^6.10.1",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.2",
     "postgres": "^3.4.7"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.2",
+    "prisma": "^6.10.1",
     "tsx": "^4.20.3"
   }
 }

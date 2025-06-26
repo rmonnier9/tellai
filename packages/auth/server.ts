@@ -1,11 +1,13 @@
 import { betterAuth } from 'better-auth';
 import { nextCookies } from 'better-auth/next-js';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
+
 import { organization, magicLink } from 'better-auth/plugins';
 import { EmailTemplate } from '@daveyplate/better-auth-ui/server';
 import { send } from '@workspace/emails';
 
-import { db } from '@workspace/db';
+import { db, prisma } from '@workspace/db';
 
 const sendMagicLink = async (props: { email: string; url: string }) => {
   await send({
@@ -32,8 +34,11 @@ const sendMagicLink = async (props: { email: string; url: string }) => {
 };
 
 export const auth = betterAuth({
-  database: drizzleAdapter(db, {
-    provider: 'pg',
+  // database: drizzleAdapter(db, {
+  //   provider: 'pg',
+  // }),
+  database: prismaAdapter(prisma, {
+    provider: 'postgresql',
   }),
   emailAndPassword: {
     enabled: true,
