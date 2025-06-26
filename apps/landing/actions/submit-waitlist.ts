@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@workspace/db';
-import { waitlist } from '@workspace/db/schema';
+import { waitlist } from '@workspace/db/drizzle/schema';
 
 export async function submitWaitlist(email: string) {
   await db

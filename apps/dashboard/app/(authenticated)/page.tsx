@@ -1,6 +1,3 @@
-'use client';
-
-import { test } from '@/actions/test';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
   Breadcrumb,
@@ -16,16 +13,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
-import { useEffect } from 'react';
 
 export default function Page() {
-  useEffect(() => {
-    (async () => {
-      const waitlist = await test();
-      console.log('waitlist', waitlist);
-    })();
-  }, []);
-
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />

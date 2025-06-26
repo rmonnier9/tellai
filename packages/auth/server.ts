@@ -34,12 +34,12 @@ const sendMagicLink = async (props: { email: string; url: string }) => {
 };
 
 export const auth = betterAuth({
-  // database: drizzleAdapter(db, {
-  //   provider: 'pg',
-  // }),
-  database: prismaAdapter(prisma, {
-    provider: 'postgresql',
+  database: drizzleAdapter(db, {
+    provider: 'pg',
   }),
+  // database: prismaAdapter(prisma, {
+  //   provider: 'postgresql',
+  // }),
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
