@@ -9,5 +9,8 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set');
 }
 
-export const client = postgres(process.env.DATABASE_URL, { prepare: false });
+export const client = postgres(process.env.DATABASE_URL, {
+  prepare: false,
+  ssl: 'prefer',
+});
 export const db = drizzle(client, { schema });
