@@ -80,25 +80,48 @@ export const auth = betterAuth({
         enabled: true,
         plans: [
           {
-            name: 'basic', // the name of the plan, it'll be automatically lower cased when stored in the database
-            priceId: 'price_1234567890', // the price ID from stripe
-            annualDiscountPriceId: 'price_1234567890', // (optional) the price ID for annual billing with a discount
-            limits: {
-              projects: 5,
-              storage: 10,
-            },
-          },
-          {
-            name: 'pro',
-            priceId: 'price_0987654321',
-            limits: {
-              projects: 20,
-              storage: 50,
-            },
+            name: 'premium',
+            priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY!,
             freeTrial: {
-              days: 14,
+              days: 3,
+              onTrialStart: async (subscription) => {
+                // Called when a trial starts
+                // await sendTrialStartEmail(subscription.referenceId);
+              },
+              onTrialEnd: async ({ subscription }, request) => {
+                // Called when a trial ends
+                // await sendTrialEndEmail(user.email);
+              },
+              onTrialExpired: async (subscription) => {
+                // Called when a trial expires without conversion
+                // await sendTrialExpiredEmail(subscription.referenceId);
+              },
             },
           },
+          // {
+          //   name: 'premium',
+          //   priceId: 'price_1SBAzNCrZMTHvTEkvckkt6hs',
+          // },
+          // {
+          //   name: 'basic', // the name of the plan, it'll be automatically lower cased when stored in the database
+          //   priceId: 'price_1234567890', // the price ID from stripe
+          //   annualDiscountPriceId: 'price_1234567890', // (optional) the price ID for annual billing with a discount
+          //   limits: {
+          //     projects: 5,
+          //     storage: 10,
+          //   },
+          // },
+          // {
+          //   name: 'pro',
+          //   priceId: 'price_0987654321',
+          //   limits: {
+          //     projects: 20,
+          //     storage: 50,
+          //   },
+          //   freeTrial: {
+          //     days: 14,
+          //   },
+          // },
         ],
         authorizeReference: async ({ user, referenceId, action }) => {
           const member = await prisma.member.findFirst({
@@ -110,6 +133,41 @@ export const auth = betterAuth({
 
           return member?.role === 'owner' || member?.role === 'admin';
         },
+        getCheckoutSessionParams: async (
+          { user, session, plan, subscription },
+          request
+        ) => {
+          return {
+            params: {
+              allow_promotion_codes: true,
+              billing_address_collection: 'required',
+              tax_id_collection: {
+                enabled: true,
+              },
+              automatic_tax: {
+                enabled: true,
+              },
+              // metadata: {
+              //   planType: 'business',
+              //   referralCode: user.metadata?.referralCode,
+              // },
+            },
+            options: {
+              // idempotencyKey: `sub_${user.id}_${plan.name}_${Date.now()}`,
+            },
+          };
+        },
+      },
+      onEvent: async (event) => {
+        // Handle any Stripe event
+        switch (event.type) {
+          case 'invoice.paid':
+            // Handle paid invoice
+            break;
+          case 'payment_intent.succeeded':
+            // Handle successful payment
+            break;
+        }
       },
     }),
   ],
