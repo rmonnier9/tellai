@@ -29,3 +29,26 @@ To use the components in your app, import them from the `ui` package.
 ```tsx
 import { Button } from "@workspace/ui/components/button"
 ```
+
+TODO MVP
+[] Keywords API
+    - https://dataforseo.com/
+[] Post Planner Workflow
+
+---
+Onboarding
+
+Business Detail
+- Website URL
+- Business Name
+- Language 
+- Country
+- Description
+
+Audience and Competitors
+- Enter your target audience groups to create relevant content. (max 7)
+- Enter competitors (websites url) to discover the SEO keywords they rank for (max 7)
+
+
+Connect Google Search Console (Avoid suggesting keywords you already rank for)
+---

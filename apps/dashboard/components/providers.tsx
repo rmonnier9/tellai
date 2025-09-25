@@ -30,9 +30,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         social={{
           providers: ['google'],
         }}
-        settings={{
-          fields: [],
-        }}
         magicLink
         credentials={false}
         organization={{
@@ -48,6 +45,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
             { role: 'developer', label: 'Developer' },
             { role: 'viewer', label: 'Viewer' },
           ],
+          // pathMode: 'slug',
+          // basePath: '/organization',
+          // slug: currentSlug,
         }}
       >
         {children}

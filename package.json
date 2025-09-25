@@ -1,5 +1,5 @@
 {
-  "name": "lovadesk",
+  "name": "lovarank",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -12,7 +12,7 @@
     "db:generate": "pnpm --filter @workspace/db drizzle:generate",
     "db:migrate": "pnpm --filter @workspace/db dirzzle:migrate",
     "db:studio": "pnpm --filter @workspace/db dirzzle:studio",
-    "better-auth:generate": "dotenvx run -- npx @better-auth/cli generate --output ./packages/db/drizzle/schema.ts --config ./packages/auth/server.ts"
+    "better-auth:generate": "dotenvx run -- npx @better-auth/cli generate --output ./packages/db/prisma/schema.prisma --config ./packages/auth/server.ts"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

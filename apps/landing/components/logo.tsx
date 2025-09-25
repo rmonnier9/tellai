@@ -88,7 +88,7 @@ export function Logo({ className }: { className?: string }) {
         <GalleryVerticalEnd className="size-4" />
         {/* <HeartHandshake className="size-4" /> */}
       </div>
-      Lovadesk
+      Lovarank
     </span>
   );
 }

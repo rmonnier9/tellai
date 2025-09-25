@@ -12,6 +12,8 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
+  Calendar,
+  Puzzle,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -59,7 +61,7 @@ const data = {
       items: [
         {
           title: 'History',
-          url: '#',
+          url: '/test',
         },
         {
           title: 'Starred',
@@ -139,19 +141,19 @@ const data = {
   ],
   projects: [
     {
-      name: 'Design Engineering',
-      url: '#',
-      icon: Frame,
+      name: 'Business Settings',
+      url: '/settings',
+      icon: Settings2,
     },
     {
-      name: 'Sales & Marketing',
-      url: '#',
-      icon: PieChart,
+      name: 'Post Calendar',
+      url: '/calendar',
+      icon: Calendar,
     },
     {
-      name: 'Travel',
-      url: '#',
-      icon: Map,
+      name: 'Integrations',
+      url: '/integrations',
+      icon: Puzzle,
     },
   ],
 };
@@ -163,7 +165,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        {/* <NavMain items={data.navMain} /> */}
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
