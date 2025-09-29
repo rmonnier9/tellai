@@ -18,6 +18,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@workspace/ui/components/sidebar';
+import useProducts from '../hooks/use-products';
+import useCurrentProduct from '../hooks/use-current-product';
 
 export function ProductSwitcher({
   teams,
@@ -28,10 +30,15 @@ export function ProductSwitcher({
     plan: string;
   }[];
 }) {
+  const productsQuery = useProducts();
   const { isMobile } = useSidebar();
   const [activeTeam, setActiveTeam] = React.useState(teams[0]);
+  const currentProductQuery = useCurrentProduct();
 
-  if (!activeTeam) {
+  console.log('productsQuery', productsQuery?.data);
+  console.log('currentProductQuery', currentProductQuery?.data);
+
+  if (!currentProductQuery?.data) {
     return null;
   }
 
@@ -45,13 +52,13 @@ export function ProductSwitcher({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <activeTeam.logo className="size-4" />
+                {/* <activeTeam.logo className="size-4" /> */}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {activeTeam.name}
+                  {currentProductQuery?.data.name}
                 </span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
+                {/* <span className="truncate text-xs">{activeTeam.plan}</span> */}
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -65,16 +72,16 @@ export function ProductSwitcher({
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Products
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
+            {productsQuery?.data?.map((product, index) => (
               <DropdownMenuItem
-                key={team.name}
-                onClick={() => setActiveTeam(team)}
+                key={product?.id}
+                // onClick={() => setActiveTeam(team)}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <team.logo className="size-4 shrink-0" />
+                  {/* <team.logo className="size-4 shrink-0" /> */}
                 </div>
-                {team.name}
+                {product?.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}

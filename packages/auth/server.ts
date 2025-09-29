@@ -4,6 +4,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import prisma from '@workspace/db/prisma/client';
 import { createId as cuid } from '@paralleldrive/cuid2';
+import { customSession } from 'better-auth/plugins';
 
 import Stripe from 'stripe';
 import { stripe } from '@better-auth/stripe';
@@ -74,6 +75,29 @@ export const auth = betterAuth({
       },
     }),
     nextCookies(),
+    customSession(async ({ user, session }) => {
+      const product = await prisma.product.findFirst({
+        where: {
+          organization: {
+            members: {
+              some: {
+                userId: user.id,
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        user: {
+          ...user,
+        },
+        session: {
+          ...session,
+          activeProductId: product?.id,
+        },
+      };
+    }),
     stripe({
       stripeClient,
       stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
@@ -206,7 +230,6 @@ export const auth = betterAuth({
 
                 members: {
                   create: {
-                    id: cuid(),
                     user: {
                       connect: {
                         id: session.userId,

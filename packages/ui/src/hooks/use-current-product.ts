@@ -1,15 +1,11 @@
-import { fetcher } from '@workspace/lib/swr-fetcher';
-import React from 'react';
-import useSWR from 'swr';
 import { client } from '@workspace/auth/client';
 import useProduct from './use-product';
 
-type Props = {
-  id?: string;
-};
-
-function useCurrentProduct({}: Props) {
-  const query = useProduct({ id: '42' });
+function useCurrentProduct() {
+  const session = client.useSession();
+  const query = useProduct({
+    id: (session?.data?.session as any)?.activeProductId as string,
+  });
 
   return query;
 }
