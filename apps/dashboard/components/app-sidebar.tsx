@@ -20,6 +20,7 @@ import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@workspace/ui/components/team-switcher';
+import { ProductSwitcher } from '@workspace/ui/components/product-switcher';
 import {
   Sidebar,
   SidebarContent,
@@ -141,7 +142,7 @@ const data = {
   ],
   projects: [
     {
-      name: 'Business Settings',
+      name: 'Product Settings',
       url: '/settings',
       icon: Settings2,
     },
@@ -162,7 +163,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <ProductSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
         {/* <NavMain items={data.navMain} /> */}

@@ -8,11 +8,11 @@ type Props = {
   children?: React.ReactNode;
 };
 
-function Premium({ children }: Props) {
+function Free({ children }: Props) {
   const { data: activeOrg } = client.useActiveOrganization();
   const subscriptionQuery = useSubscription();
 
-  return subscriptionQuery?.data?.[0] ? children : null;
+  return !subscriptionQuery?.data?.[0] ? children : null;
 }
 
-export default Premium;
+export default Free;

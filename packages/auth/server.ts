@@ -3,6 +3,8 @@ import { nextCookies } from 'better-auth/next-js';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import prisma from '@workspace/db/prisma/client';
+import { createId as cuid } from '@paralleldrive/cuid2';
+
 import Stripe from 'stripe';
 import { stripe } from '@better-auth/stripe';
 
@@ -175,6 +177,56 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          // const organization = await getActiveOrganization(session.userId);
+
+          let organization = await prisma.organization.findFirst({
+            where: {
+              members: {
+                some: {
+                  userId: session.userId,
+                  role: 'owner',
+                },
+              },
+            },
+          });
+
+          if (!organization) {
+            const orgId = cuid();
+            organization = await prisma.organization.create({
+              data: {
+                id: orgId,
+                name: `Team ${orgId.slice(0, 4)}`,
+                slug: orgId,
+
+                members: {
+                  create: {
+                    id: cuid(),
+                    user: {
+                      connect: {
+                        id: session.userId,
+                      },
+                    },
+                    role: 'owner',
+                  },
+                },
+              },
+            });
+          }
+
+          return {
+            data: {
+              ...session,
+              activeOrganizationId: organization?.id,
+            },
+          };
+        },
+      },
     },
   },
 });

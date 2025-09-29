@@ -19,7 +19,7 @@ export default function Example() {
       plan: 'premium',
       successUrl: '/',
       cancelUrl: '/pricing',
-      referenceId: activeOrg.id, // Optional: defaults to the current logged in user ID
+      referenceId: activeOrg?.id, // Optional: defaults to the current logged in user ID
       // annual: true, // Optional: upgrade to an annual plan
       // seats: 5, // Optional: for team plans
     });

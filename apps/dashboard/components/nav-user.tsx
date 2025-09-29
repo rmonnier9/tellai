@@ -30,6 +30,7 @@ import {
   useSidebar,
 } from '@workspace/ui/components/sidebar';
 import { UserButton } from '@daveyplate/better-auth-ui';
+import { TeamSwitcher } from '@workspace/ui/components/team-switcher';
 
 export function NavUser({
   user,
@@ -45,9 +46,11 @@ export function NavUser({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <UserButton size={'full' as any} />
-
-        <DropdownMenu>
+        <div className="space-y-2">
+          <UserButton size={'full' as any} />
+          <TeamSwitcher />
+        </div>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -110,7 +113,7 @@ export function NavUser({
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
       </SidebarMenuItem>
     </SidebarMenu>
   );

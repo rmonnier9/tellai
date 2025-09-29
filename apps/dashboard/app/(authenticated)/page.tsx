@@ -1,6 +1,9 @@
+'use client';
+
 import { AppSidebar } from '@/components/app-sidebar';
 import Premium from '@workspace/ui/components/premium';
 import PricingTable from '@workspace/ui/components/pricing-table';
+import useSubscription from '@workspace/ui/hooks/use-subscription';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,8 +18,19 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
+import Free from '@workspace/ui/components/free';
+import { client } from '@workspace/auth/client';
+import { Button } from '@workspace/ui/components/button';
+
+import CreateProductForm from '@workspace/ui/components/create-product-form';
 
 export default function Page() {
+  const subscriptionQuery = useSubscription();
+  const manageSubscription = async () => {
+    const { data, error } = await client.subscription.billingPortal({
+      referenceId: subscriptionQuery?.data?.[0]?.referenceId,
+    });
+  };
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />
@@ -50,8 +64,13 @@ export default function Page() {
             <div className="bg-muted/50 aspect-video rounded-xl" />
           </div>
           <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-            <Premium />
-            <PricingTable />
+            <CreateProductForm />
+            <Free>
+              <PricingTable />
+            </Free>
+            <Premium>
+              <Button onClick={manageSubscription}>Manage subscription</Button>
+            </Premium>
           </div>
         </div>
       </SidebarInset>
