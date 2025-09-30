@@ -98,6 +98,7 @@ export const auth = betterAuth({
             },
           },
         });
+
         activeProductId = product?.id;
       }
 
@@ -166,7 +167,13 @@ export const auth = betterAuth({
           const member = await prisma.member.findFirst({
             where: {
               userId: user.id,
-              organizationId: referenceId,
+              organization: {
+                products: {
+                  some: {
+                    id: referenceId,
+                  },
+                },
+              },
             },
           });
 

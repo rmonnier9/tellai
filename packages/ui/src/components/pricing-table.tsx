@@ -2,6 +2,7 @@
 
 import { Check } from 'lucide-react';
 import { client } from '@workspace/auth/client';
+import useActiveProduct from '../hooks/use-active-product';
 
 const includedFeatures = [
   'Private forum access',
@@ -11,15 +12,14 @@ const includedFeatures = [
 ];
 
 export default function Example() {
-  const { data: activeOrg } = client.useActiveOrganization();
-  console.log('activeOrg', activeOrg);
+  const activeProductQuery = useActiveProduct();
 
   const handleUpgrade = async () => {
     await client.subscription.upgrade({
       plan: 'premium',
       successUrl: '/',
       cancelUrl: '/pricing',
-      referenceId: activeOrg?.id, // Optional: defaults to the current logged in user ID
+      referenceId: activeProductQuery?.data?.id, // Optional: defaults to the current logged in user ID
       // annual: true, // Optional: upgrade to an annual plan
       // seats: 5, // Optional: for team plans
     });

@@ -1,18 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { client } from '@workspace/auth/client';
-import useSubscription from '@workspace/ui/hooks/use-subscription';
+import useSubscriptions from '@workspace/ui/hooks/use-subscriptions';
 
 type Props = {
   children?: React.ReactNode;
 };
 
 function Free({ children }: Props) {
-  const { data: activeOrg } = client.useActiveOrganization();
-  const subscriptionQuery = useSubscription();
+  const subscriptionQuery = useSubscriptions();
 
-  return !subscriptionQuery?.data?.[0] ? children : null;
+  return !subscriptionQuery?.data?.isPremium ? children : null;
 }
 
 export default Free;

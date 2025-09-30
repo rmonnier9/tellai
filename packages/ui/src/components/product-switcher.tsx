@@ -19,7 +19,7 @@ import {
   useSidebar,
 } from '@workspace/ui/components/sidebar';
 import useProducts from '../hooks/use-products';
-import useCurrentProduct from '../hooks/use-current-product';
+import useActiveProduct from '../hooks/use-active-product';
 import { switchProduct } from '@workspace/lib/server-actions/switch-product';
 
 export function ProductSwitcher({
@@ -34,11 +34,8 @@ export function ProductSwitcher({
   const productsQuery = useProducts();
   const { isMobile } = useSidebar();
   const [activeTeam, setActiveTeam] = React.useState(teams[0]);
-  const currentProductQuery = useCurrentProduct();
+  const currentProductQuery = useActiveProduct();
   const [isLoading, setIsLoading] = React.useState(false);
-
-  console.log('productsQuery', productsQuery?.data);
-  console.log('currentProductQuery', currentProductQuery?.data);
 
   const handleProductSwitch = async (productId: string) => {
     if (productId === currentProductQuery?.data?.id) return;
