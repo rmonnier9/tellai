@@ -15,11 +15,15 @@ export default function Example() {
   const activeProductQuery = useActiveProduct();
 
   const handleUpgrade = async () => {
+    if (!activeProductQuery?.data?.id) {
+      return alert('No product id');
+    }
+
     await client.subscription.upgrade({
       plan: 'premium',
+      cancelUrl: '/',
       successUrl: '/',
-      cancelUrl: '/pricing',
-      referenceId: activeProductQuery?.data?.id, // Optional: defaults to the current logged in user ID
+      referenceId: activeProductQuery?.data?.id,
       // annual: true, // Optional: upgrade to an annual plan
       // seats: 5, // Optional: for team plans
     });

@@ -3,7 +3,6 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import Premium from '@workspace/ui/components/premium';
 import PricingTable from '@workspace/ui/components/pricing-table';
-import useSubscriptions from '@workspace/ui/hooks/use-subscriptions';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,12 +22,13 @@ import { client } from '@workspace/auth/client';
 import { Button } from '@workspace/ui/components/button';
 
 import CreateProductForm from '@workspace/ui/components/create-product-form';
+import useActiveProduct from '@workspace/ui/hooks/use-active-product';
 
 export default function Page() {
-  const subscriptionQuery = useSubscriptions();
+  const currentProductQuery = useActiveProduct();
   const manageSubscription = async () => {
     const { data, error } = await client.subscription.billingPortal({
-      referenceId: subscriptionQuery?.data?.subscriptions?.[0]?.referenceId,
+      referenceId: currentProductQuery?.data?.subscription?.referenceId,
     });
   };
   return (

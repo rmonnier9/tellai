@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { client } from '@workspace/auth/client';
-import useSubscriptions from '@workspace/ui/hooks/use-subscriptions';
+import useActiveProduct from '../hooks/use-active-product';
 
 type Props = {
   children?: React.ReactNode;
 };
 
 function Free({ children }: Props) {
-  const subscriptionQuery = useSubscriptions();
+  const currentProductQuery = useActiveProduct();
+  const isPremium =
+    currentProductQuery?.data?.subscription?.status === 'active' ||
+    currentProductQuery?.data?.subscription?.status === 'trialing';
 
-  return !subscriptionQuery?.data?.isPremium ? children : null;
+  return !isPremium ? children : null;
 }
 
 export default Free;

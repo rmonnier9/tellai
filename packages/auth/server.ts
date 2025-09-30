@@ -163,6 +163,23 @@ export const auth = betterAuth({
           //   },
           // },
         ],
+        onSubscriptionComplete: async (
+          { event, subscription, stripeSubscription, plan },
+          request
+        ) => {
+          await prisma.product.update({
+            where: {
+              id: subscription.referenceId,
+            },
+            data: {
+              subscription: {
+                connect: {
+                  id: subscription.id,
+                },
+              },
+            },
+          });
+        },
         authorizeReference: async ({ user, referenceId, action }) => {
           const member = await prisma.member.findFirst({
             where: {
@@ -198,9 +215,9 @@ export const auth = betterAuth({
               //   referralCode: user.metadata?.referralCode,
               // },
             },
-            options: {
-              // idempotencyKey: `sub_${user.id}_${plan.name}_${Date.now()}`,
-            },
+            // options: {
+            // idempotencyKey: `sub_${user.id}_${plan.name}_${Date.now()}`,
+            // },
           };
         },
       },
