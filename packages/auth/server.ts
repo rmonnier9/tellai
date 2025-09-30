@@ -13,8 +13,6 @@ import { organization, magicLink } from 'better-auth/plugins';
 import { EmailTemplate } from '@daveyplate/better-auth-ui/server';
 import { send } from '@workspace/emails';
 
-import { db } from '@workspace/db';
-
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil',
 });
@@ -50,6 +48,15 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
+  session: {
+    additionalFields: {
+      activeProductId: {
+        type: 'string',
+        required: false,
+        defaultValue: null,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -76,17 +83,23 @@ export const auth = betterAuth({
     }),
     nextCookies(),
     customSession(async ({ user, session }) => {
-      const product = await prisma.product.findFirst({
-        where: {
-          organization: {
-            members: {
-              some: {
-                userId: user.id,
+      // Only fetch a default product if activeProductId is not already set in the session
+      let activeProductId = (session as any).activeProductId;
+
+      if (!activeProductId) {
+        const product = await prisma.product.findFirst({
+          where: {
+            organization: {
+              members: {
+                some: {
+                  userId: user.id,
+                },
               },
             },
           },
-        },
-      });
+        });
+        activeProductId = product?.id;
+      }
 
       return {
         user: {
@@ -94,7 +107,7 @@ export const auth = betterAuth({
         },
         session: {
           ...session,
-          activeProductId: product?.id,
+          activeProductId,
         },
       };
     }),

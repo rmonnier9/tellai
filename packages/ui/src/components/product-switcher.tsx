@@ -20,6 +20,7 @@ import {
 } from '@workspace/ui/components/sidebar';
 import useProducts from '../hooks/use-products';
 import useCurrentProduct from '../hooks/use-current-product';
+import { switchProduct } from '@workspace/lib/server-actions/switch-product';
 
 export function ProductSwitcher({
   teams,
@@ -34,9 +35,29 @@ export function ProductSwitcher({
   const { isMobile } = useSidebar();
   const [activeTeam, setActiveTeam] = React.useState(teams[0]);
   const currentProductQuery = useCurrentProduct();
+  const [isLoading, setIsLoading] = React.useState(false);
 
   console.log('productsQuery', productsQuery?.data);
   console.log('currentProductQuery', currentProductQuery?.data);
+
+  const handleProductSwitch = async (productId: string) => {
+    if (productId === currentProductQuery?.data?.id) return;
+
+    setIsLoading(true);
+    try {
+      const result = await switchProduct(productId);
+      if (result.success) {
+        // Force a full page reload to get updated session data
+        window.location.reload();
+      } else {
+        console.error('Failed to switch product:', result.error);
+      }
+    } catch (error) {
+      console.error('Error switching product:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (!currentProductQuery?.data) {
     return null;
@@ -75,11 +96,17 @@ export function ProductSwitcher({
             {productsQuery?.data?.map((product, index) => (
               <DropdownMenuItem
                 key={product?.id}
-                // onClick={() => setActiveTeam(team)}
-                className="gap-2 p-2"
+                onClick={() => handleProductSwitch(product?.id!)}
+                className={`gap-2 p-2 ${
+                  product?.id === currentProductQuery?.data?.id
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : ''
+                } ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  {/* <team.logo className="size-4 shrink-0" /> */}
+                  {product?.id === currentProductQuery?.data?.id && (
+                    <div className="size-2 rounded-full bg-current" />
+                  )}
                 </div>
                 {product?.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
