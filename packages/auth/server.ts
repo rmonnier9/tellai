@@ -84,7 +84,7 @@ export const auth = betterAuth({
     nextCookies(),
     customSession(async ({ user, session }) => {
       // Only fetch a default product if activeProductId is not already set in the session
-      let activeProductId = (session as any).activeProductId;
+      let activeProductId = (session as any).activeProductId as string;
 
       if (!activeProductId) {
         const product = await prisma.product.findFirst({
@@ -99,7 +99,18 @@ export const auth = betterAuth({
           },
         });
 
-        activeProductId = product?.id;
+        activeProductId = product?.id as string;
+
+        if (activeProductId) {
+          await prisma.session.update({
+            where: {
+              id: session.id,
+            },
+            data: {
+              activeProductId,
+            },
+          });
+        }
       }
 
       return {

@@ -49,6 +49,13 @@ export async function switchProduct(productId: string) {
       },
     });
 
+    await auth.api.getSession({
+      query: {
+        disableCookieCache: true,
+      },
+      headers: await headers(), // pass the headers
+    });
+
     return { success: true, activeProductId: productId };
   } catch (error) {
     console.error('Error switching product:', error);
