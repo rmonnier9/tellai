@@ -10,10 +10,9 @@ export async function submitWaitlist(email: string) {
   //     email,
   //   })
   //   .onConflictDoNothing();
-
-  await prisma.waitlist.upsert({
-    where: { email },
-    create: { email },
-    update: {},
-  });
+  // await prisma.waitlist.upsert({
+  //   where: { email },
+  //   create: { email },
+  //   update: {},
+  // });
 }

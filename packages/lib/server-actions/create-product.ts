@@ -1,7 +1,5 @@
 'use server';
 
-import React, { cache } from 'react';
-
 import prisma from '@workspace/db/prisma/client';
 import { CreateProductSchema } from '../dtos';
 import getSession from '../get-session';
@@ -14,6 +12,19 @@ import getSession from '../get-session';
 export async function createProduct(props: CreateProductSchema) {
   const session = await getSession();
 
+  if (!session?.session) {
+    throw new Error('No session found');
+  }
+
+  // Type assertion since we know activeOrganizationId exists from the auth config
+  const sessionWithOrgId = session.session as typeof session.session & {
+    activeOrganizationId?: string;
+  };
+
+  if (!sessionWithOrgId.activeOrganizationId) {
+    throw new Error('No active organization found');
+  }
+
   const { name, description, url } = CreateProductSchema.parse(props);
 
   return prisma.product.create({
@@ -23,7 +34,7 @@ export async function createProduct(props: CreateProductSchema) {
       description: description ?? '',
       organization: {
         connect: {
-          id: session?.session?.activeOrganizationId!,
+          id: sessionWithOrgId.activeOrganizationId,
         },
       },
     },
