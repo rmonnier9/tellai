@@ -23,14 +23,14 @@ export const weatherAgent = new Agent({
 `,
   model: openai('gpt-4o-mini'),
   tools: { weatherTool },
-  memory: new Memory({
-    // storage: new LibSQLStore({
-    //   url: 'file:../mastra.db', // path is relative to the .mastra/output directory
-    // }),
-    storage: new PostgresStore({
-      // stores telemetry, evals, ... into memory storage, if it needs to persist, change to file:../mastra.db
-      connectionString: process.env.DATABASE_URL!,
-      schemaName: 'mastra',
-    }),
-  }),
+  // memory: new Memory({
+  //   // storage: new LibSQLStore({
+  //   //   url: 'file:../mastra.db', // path is relative to the .mastra/output directory
+  //   // }),
+  //   storage: new PostgresStore({
+  //     // stores telemetry, evals, ... into memory storage, if it needs to persist, change to file:../mastra.db
+  //     connectionString: process.env.DATABASE_URL!,
+  //     schemaName: 'mastra',
+  //   }),
+  // }),
 });
