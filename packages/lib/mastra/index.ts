@@ -1,15 +1,20 @@
-
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
-import { LibSQLStore } from '@mastra/libsql';
+// import { LibSQLStore } from '@mastra/libsql';
+import { PostgresStore } from '@mastra/pg';
 
 import { weatherAgent } from './agents/weather-agent';
 
 export const mastra = new Mastra({
   agents: { weatherAgent },
-  storage: new LibSQLStore({
+  // storage: new LibSQLStore({
+  //   // stores telemetry, evals, ... into memory storage, if it needs to persist, change to file:../mastra.db
+  //   url: ":memory:",
+  // }),
+  storage: new PostgresStore({
     // stores telemetry, evals, ... into memory storage, if it needs to persist, change to file:../mastra.db
-    url: ":memory:",
+    connectionString: process.env.DATABASE_URL!,
+    schemaName: 'mastra',
   }),
   logger: new PinoLogger({
     name: 'Mastra',
