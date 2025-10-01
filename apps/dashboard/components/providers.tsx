@@ -34,7 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         credentials={false}
         organization={{
           logo: {
-            upload: async (file) => {
+            upload: async (_file) => {
               // Your upload logic
               return 'https://cdn.1min30.com/wp-content/uploads/2019/02/Le-logo-Apple.jpg';
             },
