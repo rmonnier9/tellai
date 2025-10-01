@@ -1,18 +1,23 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@workspace/ui', '@workspace/db', '@workspace/lib'],
-  serverExternalPackages: ['@mastra/*', '@libsql/*', 'libsql'],
-  outputFileTracingRoot: '../../',
+  serverExternalPackages: ['@mastra/*', '@libsql/client', 'libsql'],
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   webpack: (config, { isServer }) => {
-    // Exclude README.md and other non-JS files from being processed by webpack
-    config.module.rules.push({
-      test: /\.(md|txt)$/,
-      use: 'ignore-loader',
-    });
-
-    // Handle libsql and @libsql packages properly
     if (isServer) {
-      config.externals.push('@libsql/client', 'libsql');
+      // Externalize all libsql packages - they have native bindings
+      // that cannot be bundled by webpack
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : []),
+        /@libsql\/.*/,
+        /libsql/,
+      ];
     }
 
     return config;
