@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@workspace/ui', '@workspace/db', '@workspace/lib'],
+  transpilePackages: [
+    '@workspace/ui',
+    '@workspace/db',
+    '@workspace/lib',
+    '@workspace/auth',
+  ],
   serverExternalPackages: ['@mastra/*', '@libsql/*', 'libsql'],
   outputFileTracingRoot: '../../',
   webpack: (config, { isServer }) => {
