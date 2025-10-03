@@ -152,6 +152,21 @@ model Product {
   language        String?
   country         String?
   targetAudiences String[]
+  sitemapUrl      String?
+  blogUrl         String?
+  bestArticles    String[]
+
+  // Article preferences
+  autoPublish         Boolean @default(true)
+  articleStyle        String  @default("informative")
+  internalLinks       Int     @default(3)
+  globalInstructions  String?
+  imageStyle          String  @default("brand-text")
+  brandColor          String  @default("#000000")
+  includeYoutubeVideo Boolean @default(true)
+  includeCallToAction Boolean @default(true)
+  includeInfographics Boolean @default(true)
+  includeEmojis       Boolean @default(true)
 
   subscriptionId String?       @unique
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id])

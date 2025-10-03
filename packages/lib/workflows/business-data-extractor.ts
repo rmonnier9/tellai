@@ -25,6 +25,7 @@ const outputSchema = z.object({
   targetAudiences: z
     .array(z.string())
     .describe('list of potential target audiences'),
+  sitemapUrl: z.string().describe('URL of the website sitemap'),
 });
 
 // Step 1: Fetch and parse HTML
@@ -46,6 +47,7 @@ const fetchPageStep = createStep({
       h2: z.string(),
       bodyText: z.string(),
     }),
+    sitemapUrl: z.string(),
   }),
   execute: async ({ inputData }) => {
     const { url } = inputData;
@@ -87,9 +89,61 @@ const fetchPageStep = createStep({
           .join(' '),
       };
 
+      // Try to find sitemap URL
+      let sitemapUrl = '';
+
+      // Check for sitemap link in the page
+      const sitemapLink = $('a[href*="sitemap"]').first().attr('href');
+      if (sitemapLink) {
+        sitemapUrl = sitemapLink;
+      }
+
+      // If not found, try common sitemap locations
+      if (!sitemapUrl) {
+        const urlObj = new URL(url);
+        const commonSitemaps = [
+          '/sitemap.xml',
+          '/sitemap_index.xml',
+          '/sitemap',
+          '/blog/sitemap.xml',
+        ];
+
+        for (const path of commonSitemaps) {
+          const testUrl = `${urlObj.protocol}//${urlObj.host}${path}`;
+          try {
+            const sitemapResponse = await axios.head(testUrl, {
+              timeout: 3000,
+              headers: {
+                'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              },
+            });
+            if (sitemapResponse.status === 200) {
+              sitemapUrl = testUrl;
+              break;
+            }
+          } catch {
+            // Continue to next common location
+          }
+        }
+      }
+
+      // Make sitemap URL absolute if it's relative
+      if (sitemapUrl && !sitemapUrl.startsWith('http')) {
+        const urlObj = new URL(url);
+        if (sitemapUrl.startsWith('//')) {
+          sitemapUrl = `${urlObj.protocol}${sitemapUrl}`;
+        } else if (sitemapUrl.startsWith('/')) {
+          sitemapUrl = `${urlObj.protocol}//${urlObj.host}${sitemapUrl}`;
+        } else {
+          sitemapUrl = `${urlObj.protocol}//${urlObj.host}/${sitemapUrl}`;
+        }
+      }
+
       return {
         url,
         rawData,
+        sitemapUrl,
       };
     } catch (error) {
       throw new Error(
@@ -115,6 +169,7 @@ const extractLogoStep = createStep({
       h2: z.string(),
       bodyText: z.string(),
     }),
+    sitemapUrl: z.string(),
   }),
   outputSchema: z.object({
     url: z.string(),
@@ -130,9 +185,10 @@ const extractLogoStep = createStep({
       bodyText: z.string(),
     }),
     logo: z.string(),
+    sitemapUrl: z.string(),
   }),
   execute: async ({ inputData }) => {
-    const { rawData, url } = inputData;
+    const { rawData, url, sitemapUrl } = inputData;
 
     try {
       // Try to get the best logo/favicon URL
@@ -169,17 +225,17 @@ const extractLogoStep = createStep({
           );
           const logo = `data:${contentType};base64,${base64}`;
 
-          return { url, rawData, logo };
+          return { url, rawData, logo, sitemapUrl };
         } catch (error) {
           console.warn('Failed to fetch logo, using empty string:', error);
-          return { url, rawData, logo: '' };
+          return { url, rawData, logo: '', sitemapUrl };
         }
       }
 
-      return { url, rawData, logo: '' };
+      return { url, rawData, logo: '', sitemapUrl };
     } catch (error) {
       console.warn('Error extracting logo:', error);
-      return { url, rawData, logo: '' };
+      return { url, rawData, logo: '', sitemapUrl };
     }
   },
 });
@@ -201,10 +257,11 @@ const extractBusinessInfoStep = createStep({
       ogImage: z.string(),
     }),
     logo: z.string(),
+    sitemapUrl: z.string(),
   }),
   outputSchema: outputSchema,
   execute: async ({ inputData }) => {
-    const { rawData, url, logo } = inputData;
+    const { rawData, url, logo, sitemapUrl } = inputData;
 
     const prompt = `Analyze the following webpage content and extract business information.
 
@@ -254,6 +311,7 @@ Be specific and accurate based on the content provided.`;
         description: result.object.description,
         targetAudiences: result.object.targetAudiences,
         language: rawData.language.split('-')[0] || 'en',
+        sitemapUrl,
       };
     } catch (error) {
       throw new Error(

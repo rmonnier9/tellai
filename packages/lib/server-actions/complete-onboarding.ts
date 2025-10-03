@@ -45,6 +45,20 @@ export async function completeOnboarding(data: OnboardingProductSchema) {
         country: validatedData.country,
         logo: validatedData.logo || null,
         targetAudiences: validatedData.targetAudiences,
+        sitemapUrl: validatedData.sitemapUrl || null,
+        blogUrl: validatedData.blogUrl || null,
+        bestArticles: validatedData.bestArticles || [],
+        // Article preferences
+        autoPublish: validatedData.autoPublish,
+        articleStyle: validatedData.articleStyle,
+        internalLinks: validatedData.internalLinks,
+        globalInstructions: validatedData.globalInstructions || null,
+        imageStyle: validatedData.imageStyle,
+        brandColor: validatedData.brandColor,
+        includeYoutubeVideo: validatedData.includeYoutubeVideo,
+        includeCallToAction: validatedData.includeCallToAction,
+        includeInfographics: validatedData.includeInfographics,
+        includeEmojis: validatedData.includeEmojis,
         organization: {
           connect: {
             id: sessionWithOrgId.activeOrganizationId,
