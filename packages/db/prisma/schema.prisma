@@ -144,10 +144,14 @@ model Subscription {
 }
 
 model Product {
-  id          String  @id @default(cuid())
-  url         String
-  name        String?
-  description String?
+  id              String   @id @default(cuid())
+  url             String
+  name            String?
+  description     String?
+  logo            String?
+  language        String?
+  country         String?
+  targetAudiences String[]
 
   subscriptionId String?       @unique
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
