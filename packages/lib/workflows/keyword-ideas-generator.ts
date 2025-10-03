@@ -3,6 +3,7 @@ import { Agent } from '@mastra/core/agent';
 import { z } from 'zod';
 import { openai } from '@ai-sdk/openai';
 import * as DataForSEO from 'dataforseo-client';
+import prisma from '@workspace/db/prisma/client';
 
 // Article type schemas
 const ArticleTypeEnum = z.enum(['guide', 'listicle']);
@@ -100,19 +101,30 @@ const generateSeedKeywordsStep = createStep({
   execute: async ({ inputData }) => {
     const { name, description, targetAudiences, url } = inputData;
 
-    const prompt = `Based on this product information, generate 10-15 seed keywords that would be relevant for SEO article content:
+    // Add timestamp-based variation for diversity across runs
+    const currentMonth = new Date().toLocaleString('default', {
+      month: 'long',
+    });
+    const currentYear = new Date().getFullYear();
+
+    const prompt = `Based on this product information, generate 10-15 UNIQUE and DIVERSE seed keywords for SEO article content.
 
 Product Name: ${name}
 Description: ${description}
 Target Audiences: ${targetAudiences.join(', ')}
 Website: ${url}
+Current Context: ${currentMonth} ${currentYear}
 
-Generate keywords that:
+IMPORTANT: Generate fresh, diverse keyword ideas that:
 1. Are relevant to the product and its target audiences
-2. Cover different aspects of what the product does
+2. Cover different aspects and use cases (not just basic features)
 3. Include both informational and commercial intent
-4. Range from broader topics to more specific use cases
-5. Consider "how to", comparison, and best practices type queries
+4. Range from broader topics to specific long-tail queries
+5. Consider "how to", comparison, best practices, troubleshooting, and advanced topics
+6. Include some timely/current topics relevant to ${currentYear}
+7. Explore different angles: beginner guides, expert tips, case studies, alternatives, integrations
+
+Focus on variety and uniqueness to ensure fresh content ideas.
 
 Provide only the keywords, one per line, without numbering or explanations.`;
 
@@ -135,12 +147,67 @@ Provide only the keywords, one per line, without numbering or explanations.`;
   },
 });
 
-// Step 2: Get keyword ideas from DataForSEO
+// Step 2: Fetch existing articles to avoid duplicates
+const fetchExistingArticlesStep = createStep({
+  id: 'fetch-existing-articles',
+  inputSchema: z.object({
+    product: ProductInputSchema,
+    seedKeywords: z.array(z.string()),
+  }),
+  outputSchema: z.object({
+    product: ProductInputSchema,
+    seedKeywords: z.array(z.string()),
+    existingKeywords: z.array(z.string()),
+  }),
+  execute: async ({ inputData }) => {
+    const { product, seedKeywords } = inputData;
+
+    try {
+      // Fetch all existing articles for this product
+      const existingArticles = await prisma.article.findMany({
+        where: {
+          productId: product.id,
+        },
+        select: {
+          keyword: true,
+        },
+      });
+
+      const existingKeywords = existingArticles.map((article) =>
+        article.keyword.toLowerCase()
+      );
+
+      console.log(
+        `Found ${existingKeywords.length} existing articles for this product`
+      );
+
+      return {
+        product,
+        seedKeywords,
+        existingKeywords,
+      };
+    } catch (error) {
+      console.warn(
+        'Failed to fetch existing articles, continuing without deduplication:',
+        error
+      );
+      // Continue without deduplication if database query fails
+      return {
+        product,
+        seedKeywords,
+        existingKeywords: [],
+      };
+    }
+  },
+});
+
+// Step 3: Get keyword ideas from DataForSEO
 const getKeywordDataStep = createStep({
   id: 'get-keyword-data',
   inputSchema: z.object({
     product: ProductInputSchema,
     seedKeywords: z.array(z.string()),
+    existingKeywords: z.array(z.string()),
   }),
   outputSchema: z.object({
     product: ProductInputSchema,
@@ -156,8 +223,12 @@ const getKeywordDataStep = createStep({
     ),
   }),
   execute: async ({ inputData }) => {
-    const { product, seedKeywords } = inputData;
+    const { product, seedKeywords, existingKeywords } = inputData;
     const api = getDataForSEOClient();
+
+    console.log(
+      `Excluding ${existingKeywords.length} already-used keywords from search`
+    );
 
     try {
       // Create request info for Keywords For Keywords endpoint
@@ -217,7 +288,16 @@ const getKeywordDataStep = createStep({
           for (const item of taskResult.result) {
             if (!item) continue;
 
-            // Skip if already added
+            // Skip if already used in previous runs
+            if (
+              existingKeywords.some(
+                (existingKw) => existingKw === item.keyword?.toLowerCase()
+              )
+            ) {
+              continue;
+            }
+
+            // Skip if already added in this batch
             if (keywordData.some((kw) => kw.keyword === item.keyword)) continue;
 
             // Apply current filter strategy
@@ -261,6 +341,15 @@ const getKeywordDataStep = createStep({
 
         for (const seedKeyword of seedKeywords) {
           if (keywordData.length >= 30) break;
+
+          // Skip if already used in previous runs
+          if (
+            existingKeywords.some(
+              (existingKw) => existingKw === seedKeyword.toLowerCase()
+            )
+          ) {
+            continue;
+          }
 
           // Skip if already in the list
           if (keywordData.some((kw) => kw.keyword === seedKeyword)) continue;
@@ -340,9 +429,19 @@ const categorizeKeywordsStep = createStep({
 
     const prompt = `You are analyzing keywords for a content calendar. For each keyword, determine:
 1. The best article type (guide or listicle)
-2. The appropriate subtype:
-   - For guides: how_to, explainer, comparison, or reference
-   - For listicles: round_up (curated tips/strategies), resources (tools/templates), or examples (case studies)
+2. The appropriate subtype - STRICTLY follow these rules:
+   
+   IF type is "guide", use ONE of these guideSubtype values:
+   - how_to: Step-by-step instructions
+   - explainer: Educational content explaining concepts
+   - comparison: Comparing options or alternatives
+   - reference: Comprehensive reference material
+   
+   IF type is "listicle", use ONE of these listicleSubtype values:
+   - round_up: Curated tips, strategies, or advice
+   - resources: Tools, software, templates, or websites
+   - examples: Case studies or real-world examples
+
 3. A compelling, SEO-optimized article title
 4. Brief rationale for your choices
 
@@ -354,14 +453,19 @@ Product Context:
 Keywords to analyze:
 ${keywordData.map((kw, i) => `${i + 1}. "${kw.keyword}" (Volume: ${kw.searchVolume}, Difficulty: ${kw.difficulty.toFixed(1)})`).join('\n')}
 
-Guidelines:
-- "How to" queries → guide/how_to
-- Comparison keywords (vs, best, top) → guide/comparison or listicle based on intent
-- Questions (what is, why) → guide/explainer
-- Definition/reference keywords → guide/reference
-- Lists of tips/strategies → listicle/round_up
-- Tool/resource collections → listicle/resources
-- Example/case study requests → listicle/examples
+CRITICAL RULES:
+- "How to" queries → type: "guide", guideSubtype: "how_to"
+- Comparison keywords (vs, best, comparing) → type: "guide", guideSubtype: "comparison" 
+- Questions (what is, why) → type: "guide", guideSubtype: "explainer"
+- Definition/reference → type: "guide", guideSubtype: "reference"
+- Lists of tips/strategies → type: "listicle", listicleSubtype: "round_up"
+- Tool/resource collections → type: "listicle", listicleSubtype: "resources"
+- Case studies/examples → type: "listicle", listicleSubtype: "examples"
+
+IMPORTANT: 
+- If type is "guide", ONLY use guideSubtype (not listicleSubtype)
+- If type is "listicle", ONLY use listicleSubtype (not guideSubtype)
+- Never mix guide subtypes with listicle types or vice versa
 
 Provide a categorization for each keyword.`;
 
@@ -387,7 +491,7 @@ Provide a categorization for each keyword.`;
         );
 
         if (!categorization) {
-          // Fallback categorization
+          // Fallback categorization when AI doesn't provide a response
           return {
             ...kw,
             title: `${kw.keyword.charAt(0).toUpperCase() + kw.keyword.slice(1)} - Complete Guide`,
@@ -397,14 +501,27 @@ Provide a categorization for each keyword.`;
           };
         }
 
-        return {
-          ...kw,
-          title: categorization.title,
-          type: categorization.type,
-          guideSubtype: categorization.guideSubtype,
-          listicleSubtype: categorization.listicleSubtype,
-          rationale: categorization.rationale,
-        };
+        // Validate and clean up the categorization
+        // Ensure guide types don't have listicle subtypes and vice versa
+        if (categorization.type === 'guide') {
+          return {
+            ...kw,
+            title: categorization.title,
+            type: 'guide' as const,
+            guideSubtype: categorization.guideSubtype || 'explainer',
+            listicleSubtype: undefined, // Remove any invalid listicle subtype
+            rationale: categorization.rationale,
+          };
+        } else {
+          return {
+            ...kw,
+            title: categorization.title,
+            type: 'listicle' as const,
+            guideSubtype: undefined, // Remove any invalid guide subtype
+            listicleSubtype: categorization.listicleSubtype || 'round_up',
+            rationale: categorization.rationale,
+          };
+        }
       });
 
       return {
@@ -548,11 +665,13 @@ function getLocationCode(countryCode: string): number {
 // Create the workflow
 export const keywordIdeasGeneratorWorkflow = createWorkflow({
   id: 'keyword-ideas-generator',
-  description: 'Generates 30 days of keyword-based article ideas for a product',
+  description:
+    'Generates 30 days of keyword-based article ideas for a product, avoiding duplicates from previous runs',
   inputSchema: ProductInputSchema,
   outputSchema: OutputSchema,
 })
   .then(generateSeedKeywordsStep)
+  .then(fetchExistingArticlesStep) // Check for existing articles to avoid duplicates
   .then(getKeywordDataStep)
   .then(categorizeKeywordsStep)
   .then(createContentCalendarStep)
