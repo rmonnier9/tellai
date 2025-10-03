@@ -174,8 +174,62 @@ model Product {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  articles Article[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("product")
+}
+
+enum ArticleType {
+  guide
+  listicle
+}
+
+enum GuideSubtype {
+  how_to
+  explainer
+  comparison
+  reference
+}
+
+enum ListicleSubtype {
+  round_up
+  resources
+  examples
+}
+
+model Article {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // Article metadata
+  keyword         String
+  title           String?
+  type            ArticleType
+  guideSubtype    GuideSubtype?
+  listicleSubtype ListicleSubtype?
+
+  // SEO metrics from DataForSEO
+  searchVolume      Int?
+  keywordDifficulty Float?
+  cpc               Float?
+  competition       Float?
+
+  // Scheduling
+  scheduledDate DateTime
+  status        String   @default("pending") // pending, generated, published
+
+  // Generated content (will be populated later)
+  content      String?
+  publishedUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId, scheduledDate])
+  @@index([status])
+  @@map("article")
 }
