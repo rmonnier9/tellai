@@ -134,71 +134,89 @@ export function ArticleDisplay({ article }: { article: Article }) {
             </p>
           </div>
 
-          {/* SEO Metrics Cards */}
-          <div className="grid gap-4 md:grid-cols-4">
+          {/* SEO Metrics - Compact Design */}
+          <div className="grid gap-3 md:grid-cols-4">
             {article.searchVolume !== null && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                    <CardDescription className="text-xs">
-                      Search Volume
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {article.searchVolume.toLocaleString()}
+              <Card className="overflow-hidden py-4 mb-auto">
+                <CardContent className="px-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+                        <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Search Volume
+                        </p>
+                        <p className="text-xl font-bold">
+                          {article.searchVolume.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
             {article.keywordDifficulty !== null && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    <CardDescription className="text-xs">
-                      Keyword Difficulty
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {article.keywordDifficulty}%
+              <Card className="overflow-hidden py-4 mb-auto">
+                <CardContent className="px-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10">
+                        <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Difficulty
+                        </p>
+                        <p className="text-xl font-bold">
+                          {article.keywordDifficulty}%
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
             {article.cpc !== null && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <CardDescription className="text-xs">CPC</CardDescription>
+              <Card className="overflow-hidden py-4 mb-auto">
+                <CardContent className="px-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                        <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          CPC
+                        </p>
+                        <p className="text-xl font-bold">${article.cpc}</p>
+                      </div>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">${article.cpc}</div>
                 </CardContent>
               </Card>
             )}
 
             {article.competition !== null && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                    <CardDescription className="text-xs">
-                      Competition
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {Math.round(article.competition * 100)}%
+              <Card className="overflow-hidden py-4 mb-auto">
+                <CardContent className="px-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
+                        <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Competition
+                        </p>
+                        <p className="text-xl font-bold">
+                          {Math.round(article.competition * 100)}%
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
