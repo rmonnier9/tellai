@@ -269,7 +269,7 @@ model Publication {
   article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   credentialId String     @map("credential_id")
-  credential   Credential @relation(fields: [credentialId], references: [id])
+  credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
 

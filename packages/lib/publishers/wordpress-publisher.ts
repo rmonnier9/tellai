@@ -1,3 +1,4 @@
+import { marked } from 'marked';
 import {
   BasePublisher,
   ArticleData,
@@ -11,15 +12,25 @@ export class WordPressPublisher extends BasePublisher {
     credential: CredentialConfig
   ): Promise<PublishResult> {
     try {
-      const { siteUrl, username, authorId, publishingStatus } =
-        credential.config;
-      const applicationPassword = credential.accessToken;
+      const {
+        siteUrl,
+        username,
+        authorId,
+        publishingStatus,
+        applicationPassword,
+      } = credential.config;
 
-      if (!applicationPassword || !siteUrl || !username) {
+      if (!siteUrl) {
         return {
           success: false,
-          error: 'Missing WordPress credentials',
+          error: 'WordPress site URL is required',
         };
+      }
+
+      // If username is not provided, use the simplified API key flow
+      // Push to WordPress plugin REST API endpoint
+      if (!username || !applicationPassword) {
+        return this.publishViaPlugin(article, siteUrl, credential.accessToken);
       }
 
       // Convert markdown to HTML
@@ -72,18 +83,102 @@ export class WordPressPublisher extends BasePublisher {
     }
   }
 
+  private async publishViaPlugin(
+    article: ArticleData,
+    siteUrl: string,
+    apiKey?: string | null
+  ): Promise<PublishResult> {
+    try {
+      if (!apiKey) {
+        return {
+          success: false,
+          error: 'API key is required for plugin publishing',
+        };
+      }
+
+      const postData = {
+        secret: apiKey,
+        title: article.title,
+        content: article.content,
+        slug: article.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, ''),
+        meta_description: article.content.substring(0, 160).replace(/\n/g, ' '),
+        tags: [article.keyword],
+        focus_keyword: article.keyword,
+        created_at: new Date().toISOString(),
+      };
+
+      // Try pretty permalinks first (works with most permalink structures)
+      let endpoint = `${siteUrl}/wp-json/lovarank/v1/submit`;
+      let response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      });
+
+      // If 404, try the query parameter method (works with Plain permalinks)
+      if (response.status === 404) {
+        endpoint = `${siteUrl}/?rest_route=/lovarank/v1/submit`;
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(postData),
+        });
+      }
+
+      if (!response.ok) {
+        // Still 404 after both attempts - plugin not found/activated
+        if (response.status === 404) {
+          return {
+            success: false,
+            error:
+              'WordPress plugin not found. Please ensure the Lovarank plugin is installed and activated on your WordPress site.',
+          };
+        }
+
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: errorData.error || `HTTP ${response.status}`,
+        };
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        return {
+          success: false,
+          error: data.error || 'Unknown error from WordPress plugin',
+        };
+      }
+
+      // Get the post URL from WordPress
+      const postUrl = `${siteUrl}/?p=${data.post_id}`;
+
+      return {
+        success: true,
+        url: postUrl,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
   private markdownToHtml(markdown: string): string {
-    // Basic markdown to HTML conversion
-    // In production, use a proper library like 'marked' or 'remark'
-    return markdown
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-      .replace(/\*(.*)\*/gim, '<em>$1</em>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/^(.+)$/gim, '<p>$1</p>')
-      .replace(/<p><h/g, '<h')
-      .replace(/<\/h([1-6])><\/p>/g, '</h$1>');
+    // Convert markdown to HTML using marked library
+    return marked.parse(markdown, {
+      async: false,
+      gfm: true, // GitHub Flavored Markdown
+      breaks: true, // Convert line breaks to <br>
+    }) as string;
   }
 }

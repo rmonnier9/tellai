@@ -71,9 +71,9 @@ export type ShopifyCredentialSchema = z.infer<typeof ShopifyCredentialSchema>;
 export const WordPressCredentialSchema = z.object({
   name: z.string().min(1, 'Integration name is required'),
   siteUrl: z.string().url('Please enter a valid URL'),
-  username: z.string().min(1, 'Username is required'),
+  username: z.string().nullish(),
   applicationPassword: z.string().min(1, 'Application password is required'),
-  authorId: z.string().optional(),
+  authorId: z.string().nullish(),
   publishingStatus: z.enum(['publish', 'draft']),
 });
 

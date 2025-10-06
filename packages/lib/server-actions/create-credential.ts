@@ -56,13 +56,20 @@ export async function createCredential(input: CreateCredentialInput) {
 
     case 'wordpress':
       const wpData = WordPressCredentialSchema.parse(input.data);
+      // If username is not provided, use the application password as the API key
+      // Otherwise generate a unique API key for WordPress plugin to fetch articles
+      const apiKey = wpData.username
+        ? `wp_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`
+        : wpData.applicationPassword; // In simplified flow, applicationPassword is the API key
+
       credentialData = {
         type: 'wordpress' as CredentialType,
         name: wpData.name,
-        accessToken: wpData.applicationPassword,
+        accessToken: apiKey, // API key for WordPress plugin to fetch articles
         config: {
           siteUrl: wpData.siteUrl,
-          username: wpData.username,
+          username: wpData.username || '',
+          applicationPassword: wpData.applicationPassword,
           authorId: wpData.authorId,
           publishingStatus: wpData.publishingStatus,
         },
