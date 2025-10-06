@@ -22,8 +22,12 @@ import {
   ExternalLink,
   FileText,
   BarChart3,
+  Loader2,
+  Send,
 } from 'lucide-react';
 import { toast } from '@workspace/ui/lib/toast';
+import { publishArticle } from '@workspace/lib/server-actions/publish-article';
+import { useRouter } from 'next/navigation';
 
 type Article = {
   id: string;
@@ -48,10 +52,22 @@ type Article = {
     url: string;
     logo: string | null;
   };
+  publications: Array<{
+    id: string;
+    url: string | null;
+    createdAt: Date;
+    credential: {
+      id: string;
+      type: string;
+      name: string | null;
+    };
+  }>;
 };
 
 export function ArticleDisplay({ article }: { article: Article }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const handleCopy = async () => {
     if (article.content) {
@@ -59,6 +75,35 @@ export function ArticleDisplay({ article }: { article: Article }) {
       setCopied(true);
       toast.success('Content copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      const result = await publishArticle({ articleId: article.id });
+
+      if (result.errors && result.errors.length > 0) {
+        toast.warning(
+          `Published to ${result.publicationsCount} of ${result.totalCredentials} integrations`,
+          {
+            description: `Some publications failed: ${result.errors.join(', ')}`,
+          }
+        );
+      } else {
+        toast.success(
+          `Successfully published to ${result.publicationsCount} integration${result.publicationsCount === 1 ? '' : 's'}!`
+        );
+      }
+
+      // Refresh the page to show updated publications
+      router.refresh();
+    } catch (error) {
+      toast.error('Failed to publish article', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -238,16 +283,23 @@ export function ArticleDisplay({ article }: { article: Article }) {
                 </>
               )}
             </Button>
-            {article.publishedUrl && (
-              <Button variant="outline" asChild>
-                <a
-                  href={article.publishedUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View Published
-                </a>
+            {article.status !== 'published' && article.content && (
+              <Button
+                onClick={handlePublish}
+                disabled={isPublishing}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isPublishing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Publish
+                  </>
+                )}
               </Button>
             )}
             <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
@@ -258,6 +310,63 @@ export function ArticleDisplay({ article }: { article: Article }) {
               </span>
             </div>
           </div>
+
+          {/* Publications */}
+          {article.publications && article.publications.length > 0 && (
+            <Card className="bg-muted/50">
+              <CardHeader>
+                <CardTitle className="text-base">Published To</CardTitle>
+                <CardDescription>
+                  This article has been published to the following platforms
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {article.publications.map((publication) => (
+                    <div
+                      key={publication.id}
+                      className="flex items-center justify-between rounded-lg border bg-background p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                          {publication.credential.type === 'shopify' && '🛍️'}
+                          {publication.credential.type === 'wordpress' && '📝'}
+                          {publication.credential.type === 'webhook' && '🔗'}
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {publication.credential.name ||
+                              publication.credential.type
+                                .charAt(0)
+                                .toUpperCase() +
+                                publication.credential.type.slice(1)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Published{' '}
+                            {new Date(
+                              publication.createdAt
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      {publication.url && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a
+                            href={publication.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            View
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <Separator />

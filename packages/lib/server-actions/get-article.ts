@@ -7,57 +7,60 @@ export async function getArticle({ articleId }: { articleId: string }) {
   const session = await getSession();
 
   if (!session) {
-    return null;
+    throw new Error('Unauthorized');
   }
 
   const article = await prisma.article.findUnique({
     where: { id: articleId },
     include: {
       product: {
+        select: {
+          id: true,
+          name: true,
+          url: true,
+          logo: true,
+        },
+      },
+      publications: {
         include: {
-          organization: {
-            include: {
-              members: {
-                where: {
-                  userId: session.user.id,
-                },
-              },
+          credential: {
+            select: {
+              id: true,
+              type: true,
+              name: true,
             },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
+    },
+  });
+
+  if (!article) {
+    return null;
+  }
+
+  // Verify user has access through organization membership
+  const hasAccess = await prisma.member.findFirst({
+    where: {
+      userId: session.user.id,
+      organization: {
+        products: {
+          some: {
+            id: article.product.id,
           },
         },
       },
     },
   });
 
-  // Check if user has access to this article
-  if (!article || article.product.organization.members.length === 0) {
-    return null;
+  if (!hasAccess) {
+    throw new Error('Unauthorized to access this article');
   }
 
-  return {
-    id: article.id,
-    keyword: article.keyword,
-    title: article.title,
-    type: article.type,
-    guideSubtype: article.guideSubtype,
-    listicleSubtype: article.listicleSubtype,
-    searchVolume: article.searchVolume,
-    keywordDifficulty: article.keywordDifficulty,
-    cpc: article.cpc,
-    competition: article.competition,
-    scheduledDate: article.scheduledDate,
-    status: article.status,
-    content: article.content,
-    publishedUrl: article.publishedUrl,
-    createdAt: article.createdAt,
-    updatedAt: article.updatedAt,
-    product: {
-      id: article.product.id,
-      name: article.product.name,
-      url: article.product.url,
-      logo: article.product.logo,
-    },
-  };
+  return article;
 }
 
 export default getArticle;

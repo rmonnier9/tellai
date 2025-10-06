@@ -55,3 +55,37 @@ export const OnboardingProductSchema = z.object({
 });
 
 export type OnboardingProductSchema = z.infer<typeof OnboardingProductSchema>;
+
+// Credential Schemas
+export const ShopifyCredentialSchema = z.object({
+  name: z.string().min(1, 'Integration name is required'),
+  storeName: z.string().min(1, 'Store name is required'),
+  accessToken: z.string().min(1, 'Access token is required'),
+  blogId: z.string().min(1, 'Blog ID is required'),
+  authorName: z.string().min(1, 'Author name is required'),
+  publishingStatus: z.enum(['published', 'draft']),
+});
+
+export type ShopifyCredentialSchema = z.infer<typeof ShopifyCredentialSchema>;
+
+export const WordPressCredentialSchema = z.object({
+  name: z.string().min(1, 'Integration name is required'),
+  siteUrl: z.string().url('Please enter a valid URL'),
+  username: z.string().min(1, 'Username is required'),
+  applicationPassword: z.string().min(1, 'Application password is required'),
+  authorId: z.string().optional(),
+  publishingStatus: z.enum(['publish', 'draft']),
+});
+
+export type WordPressCredentialSchema = z.infer<
+  typeof WordPressCredentialSchema
+>;
+
+export const WebhookCredentialSchema = z.object({
+  name: z.string().min(1, 'Integration name is required'),
+  webhookUrl: z.string().url('Please enter a valid webhook URL'),
+  secret: z.string().optional(),
+  headers: z.string().optional(), // JSON string of headers
+});
+
+export type WebhookCredentialSchema = z.infer<typeof WebhookCredentialSchema>;

@@ -26,6 +26,19 @@ export async function getArticles({ productId }: { productId: string }) {
         lte: endDate,
       },
     },
+    include: {
+      publications: {
+        include: {
+          credential: {
+            select: {
+              id: true,
+              type: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
     orderBy: {
       scheduledDate: 'asc',
     },

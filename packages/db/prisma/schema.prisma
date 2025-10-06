@@ -174,7 +174,8 @@ model Product {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  articles Article[]
+  articles    Article[]
+  credentials Credential[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -226,10 +227,61 @@ model Article {
   content      String?
   publishedUrl String?
 
+  publications Publication[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([productId, scheduledDate])
   @@index([status])
   @@map("article")
+}
+
+model Credential {
+  id   String         @id @default(cuid())
+  type CredentialType
+
+  name         String?
+  refreshToken String? @map("refresh_token")
+  accessToken  String? @map("access_token")
+  externalId   String? @map("external_id")
+
+  config Json?
+
+  productId String?  @map("product_id")
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  publications Publication[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([type, externalId], name: "unique_external_id")
+  @@map("credential")
+}
+
+model Publication {
+  id String @id @default(cuid())
+
+  url String? @map("url")
+
+  articleId String  @map("article_id")
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  credentialId String     @map("credential_id")
+  credential   Credential @relation(fields: [credentialId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("publication")
+}
+
+enum CredentialType {
+  shopify
+  wordpress
+  webhook
+  notion
+  webflow
+  wix
+  framer
 }

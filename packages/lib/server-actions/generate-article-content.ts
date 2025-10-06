@@ -5,6 +5,7 @@ import getSession from '../get-session';
 import { Agent } from '@mastra/core/agent';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
+import { getPublisher } from '../publishers';
 
 export async function generateArticleContent({
   articleId,
@@ -182,11 +183,73 @@ Return the article with:
       },
     });
 
+    // Auto-publish if enabled
+    const publications: any[] = [];
+    if (article.product.autoPublish) {
+      try {
+        // Get all credentials for this product
+        const credentials = await prisma.credential.findMany({
+          where: {
+            productId: article.product.id,
+          },
+        });
+
+        // Publish to each credential
+        for (const credential of credentials) {
+          const publisher = getPublisher(credential.type);
+
+          if (publisher) {
+            const publishResult = await publisher.publish(
+              {
+                title: result.title,
+                content: result.content,
+                keyword: article.keyword,
+              },
+              {
+                type: credential.type,
+                accessToken: credential.accessToken,
+                config: credential.config,
+              }
+            );
+
+            if (publishResult.success) {
+              // Create publication record
+              const publication = await prisma.publication.create({
+                data: {
+                  articleId,
+                  credentialId: credential.id,
+                  url: publishResult.url,
+                },
+              });
+              publications.push(publication);
+            } else {
+              console.error(
+                `Failed to publish to ${credential.type}:`,
+                publishResult.error
+              );
+            }
+          }
+        }
+
+        // Update article status to published if at least one publication succeeded
+        if (publications.length > 0) {
+          await prisma.article.update({
+            where: { id: articleId },
+            data: { status: 'published' },
+          });
+        }
+      } catch (publishError) {
+        console.error('Error during auto-publish:', publishError);
+        // Don't fail the whole operation if publishing fails
+      }
+    }
+
     return {
       success: true,
       article: updatedArticle,
       metaDescription: result.metaDescription,
       slug: result.slug,
+      publications,
     };
   } catch (error) {
     console.error('Error generating article content:', error);

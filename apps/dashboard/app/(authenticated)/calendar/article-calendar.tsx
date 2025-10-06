@@ -44,6 +44,15 @@ type Article = {
   keywordDifficulty: number | null;
   scheduledDate: Date;
   status: string;
+  publications?: Array<{
+    id: string;
+    url: string | null;
+    credential: {
+      id: string;
+      type: string;
+      name: string | null;
+    };
+  }>;
 };
 
 type ArticlesByDate = {

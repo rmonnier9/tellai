@@ -13,22 +13,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
-import { getArticle } from '@workspace/lib/server-actions/get-article';
-import { notFound } from 'next/navigation';
-import { ArticleDisplay } from './article-display';
+import { WebhookIntegrationForm } from '@workspace/ui/components/webhook-integration-form';
 
-export default async function ArticlePage({
-  params,
-}: {
-  params: Promise<{ articleId: string }>;
-}) {
-  const { articleId } = await params;
-  const article = await getArticle({ articleId });
-
-  if (!article) {
-    notFound();
-  }
-
+export default function WebhookIntegrationPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -47,17 +34,19 @@ export default async function ArticlePage({
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/calendar">Calendar</BreadcrumbLink>
+                  <BreadcrumbLink href="/integrations">
+                    Integrations
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Article</BreadcrumbPage>
+                  <BreadcrumbPage>Create Webhook Integration</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
         </header>
-        <ArticleDisplay article={article} />
+        <WebhookIntegrationForm />
       </SidebarInset>
     </SidebarProvider>
   );
