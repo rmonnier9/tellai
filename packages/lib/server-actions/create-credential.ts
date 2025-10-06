@@ -2,7 +2,7 @@
 
 import prisma from '@workspace/db/prisma/client';
 import getSession from '../get-session';
-import { CredentialType } from '@prisma/client';
+import { CredentialType } from '@workspace/db/prisma/client';
 import {
   ShopifyCredentialSchema,
   WordPressCredentialSchema,

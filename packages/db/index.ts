@@ -4,3 +4,5 @@ export * from 'drizzle-orm';
 import { default as prisma } from './prisma/client';
 
 export { prisma };
+
+export * from './prisma/generated/enums';
