@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -14,6 +15,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
+  Sparkles,
+  Loader2,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -27,6 +31,7 @@ import {
 } from '@workspace/ui/lib/dnd';
 import { toast } from '@workspace/ui/lib/toast';
 import { updateArticleSchedule } from '@workspace/lib/server-actions/update-article-schedule';
+import { generateArticleContent } from '@workspace/lib/server-actions/generate-article-content';
 
 type Article = {
   id: string;
@@ -59,6 +64,9 @@ export function ArticleCalendar() {
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [generatingArticles, setGeneratingArticles] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     async function fetchArticles() {
@@ -136,6 +144,44 @@ export function ArticleCalendar() {
       }
     } else {
       toast.error(result.error || 'Failed to update schedule');
+    }
+  }
+
+  async function handleGenerateArticle(articleId: string) {
+    if (!product?.id) return;
+
+    // Add to generating set
+    setGeneratingArticles((prev) => new Set(prev).add(articleId));
+
+    try {
+      const result = await generateArticleContent({ articleId });
+
+      if (result.success) {
+        // Refresh articles
+        const data = await getArticles({ productId: product.id });
+        if (data) {
+          setArticles(
+            data.map((article) => ({
+              ...article,
+              scheduledDate: new Date(article.scheduledDate),
+            }))
+          );
+        }
+
+        toast.success('Article content generated successfully!');
+      }
+    } catch (error) {
+      console.error('Error generating article:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to generate article'
+      );
+    } finally {
+      // Remove from generating set
+      setGeneratingArticles((prev) => {
+        const next = new Set(prev);
+        next.delete(articleId);
+        return next;
+      });
     }
   }
 
@@ -285,6 +331,8 @@ export function ArticleCalendar() {
               key={month.monthKey}
               month={month}
               articlesByDate={articlesByDate}
+              onGenerateArticle={handleGenerateArticle}
+              generatingArticles={generatingArticles}
             />
           ))}
         </div>
@@ -302,6 +350,8 @@ export function ArticleCalendar() {
 function MonthCalendar({
   month,
   articlesByDate,
+  onGenerateArticle,
+  generatingArticles,
 }: {
   month: {
     monthKey: string;
@@ -310,6 +360,8 @@ function MonthCalendar({
     weeks: Date[][];
   };
   articlesByDate: ArticlesByDate;
+  onGenerateArticle: (articleId: string) => void;
+  generatingArticles: Set<string>;
 }) {
   return (
     <Card>
@@ -356,6 +408,8 @@ function MonthCalendar({
                 isCurrentMonth={isCurrentMonth}
                 isToday={isToday}
                 dayArticles={dayArticles}
+                onGenerateArticle={onGenerateArticle}
+                generatingArticles={generatingArticles}
               />
             );
           })}
@@ -371,12 +425,16 @@ function DroppableDay({
   isCurrentMonth,
   isToday,
   dayArticles,
+  onGenerateArticle,
+  generatingArticles,
 }: {
   date: Date;
   dateKey: string;
   isCurrentMonth: boolean;
   isToday: boolean;
   dayArticles: Article[];
+  onGenerateArticle: (articleId: string) => void;
+  generatingArticles: Set<string>;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: dateKey,
@@ -408,15 +466,28 @@ function DroppableDay({
       </div>
       <div className="space-y-1">
         {dayArticles.map((article) => (
-          <ArticleCard key={article.id} article={article} />
+          <ArticleCard
+            key={article.id}
+            article={article}
+            onGenerate={onGenerateArticle}
+            isGenerating={generatingArticles.has(article.id)}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function ArticleCard({ article }: { article: Article }) {
-  const isDraggable = article.status === 'pending';
+function ArticleCard({
+  article,
+  onGenerate,
+  isGenerating,
+}: {
+  article: Article;
+  onGenerate: (articleId: string) => void;
+  isGenerating: boolean;
+}) {
+  const isDraggable = article.status === 'pending' && !isGenerating;
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -458,40 +529,89 @@ function ArticleCard({ article }: { article: Article }) {
     <div
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
       className={`text-xs p-2 bg-card border rounded space-y-1 transition-shadow ${
-        isDraggable ? 'cursor-grab active:cursor-grabbing hover:shadow-md' : ''
+        isDraggable ? 'hover:shadow-md' : ''
       } ${isDragging ? 'opacity-50' : ''}`}
     >
-      <div className="flex items-center gap-1 flex-wrap">
-        <span
-          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getTypeColor(article.type)}`}
-        >
-          {article.type}
-        </span>
-        <span
-          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getStatusColor(article.status)}`}
-        >
-          {article.status}
-        </span>
-      </div>
-      <p className="font-medium line-clamp-2 leading-tight">
-        {article.title || article.keyword}
-      </p>
-      {article.searchVolume !== null && (
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <span className="text-[10px]">Vol: {article.searchVolume}</span>
-          {article.keywordDifficulty !== null && (
-            <>
-              <span className="text-[10px]">•</span>
-              <span className="text-[10px]">
-                Diff: {article.keywordDifficulty}%
-              </span>
-            </>
-          )}
+      <div
+        {...listeners}
+        {...attributes}
+        className={`space-y-1 ${
+          isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
+        }`}
+      >
+        <div className="flex items-center gap-1 flex-wrap">
+          <span
+            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getTypeColor(article.type)}`}
+          >
+            {article.type}
+          </span>
+          <span
+            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getStatusColor(article.status)}`}
+          >
+            {article.status}
+          </span>
         </div>
-      )}
+        <p className="font-medium line-clamp-2 leading-tight">
+          {article.title || article.keyword}
+        </p>
+        {article.searchVolume !== null && (
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <span className="text-[10px]">Vol: {article.searchVolume}</span>
+            {article.keywordDifficulty !== null && (
+              <>
+                <span className="text-[10px]">•</span>
+                <span className="text-[10px]">
+                  Diff: {article.keywordDifficulty}%
+                </span>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      <div className="space-y-1">
+        {/* Generate button - only show for pending articles */}
+        {article.status === 'pending' && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onGenerate(article.id);
+            }}
+            disabled={isGenerating}
+            className={`w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[10px] font-medium transition-colors ${
+              isGenerating
+                ? 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400 cursor-not-allowed'
+                : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer'
+            }`}
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3 w-3" />
+                <span>Generate</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* View button - show for generated and published articles */}
+        {(article.status === 'generated' || article.status === 'published') && (
+          <Link
+            href={`/articles/${article.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[10px] font-medium transition-colors bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
+          >
+            <Eye className="h-3 w-3" />
+            <span>View Article</span>
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
