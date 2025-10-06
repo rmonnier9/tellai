@@ -16,6 +16,17 @@ import {
   Calendar as CalendarIcon,
 } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
+import {
+  DndContext,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+  closestCenter,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@workspace/ui/lib/dnd';
+import { toast } from '@workspace/ui/lib/toast';
+import { updateArticleSchedule } from '@workspace/lib/server-actions/update-article-schedule';
 
 type Article = {
   id: string;
@@ -34,11 +45,20 @@ type ArticlesByDate = {
   [date: string]: Article[];
 };
 
+// Helper function to format date as YYYY-MM-DD in local timezone
+function formatDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function ArticleCalendar() {
   const { data: product, isLoading: productLoading } = useActiveProduct();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchArticles() {
@@ -65,6 +85,60 @@ export function ArticleCalendar() {
     fetchArticles();
   }, [product?.id]);
 
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(event.active.id as string);
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over || !product?.id) return;
+
+    const articleId = active.id as string;
+    const targetDateString = over.id as string;
+
+    // Parse the target date (YYYY-MM-DD format)
+    const [year, month, day] = targetDateString.split('-').map(Number);
+    const targetDate = new Date(year!, month! - 1, day!);
+
+    // Find the article being dragged
+    const draggedArticle = articles.find((a) => a.id === articleId);
+    if (!draggedArticle) return;
+
+    // Check if date is different
+    const currentDateString = formatDateKey(draggedArticle.scheduledDate);
+    if (currentDateString === targetDateString) return;
+
+    // Update the article schedule
+    const result = await updateArticleSchedule({
+      articleId,
+      newDate: targetDate,
+      productId: product.id,
+    });
+
+    if (result.success) {
+      // Refresh articles
+      const data = await getArticles({ productId: product.id });
+      if (data) {
+        setArticles(
+          data.map((article) => ({
+            ...article,
+            scheduledDate: new Date(article.scheduledDate),
+          }))
+        );
+      }
+
+      if (result.swapped) {
+        toast.success('Articles swapped successfully');
+      } else {
+        toast.success('Article rescheduled successfully');
+      }
+    } else {
+      toast.error(result.error || 'Failed to update schedule');
+    }
+  }
+
   if (productLoading || loading) {
     return <LoadingSkeleton />;
   }
@@ -87,120 +161,137 @@ export function ArticleCalendar() {
 
   // Group articles by date
   const articlesByDate: ArticlesByDate = articles.reduce((acc, article) => {
-    const dateKey = article.scheduledDate.toISOString().split('T')[0];
+    const dateKey = formatDateKey(article.scheduledDate);
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
-    acc[dateKey].push(article);
+    acc[dateKey]!.push(article);
     return acc;
   }, {} as ArticlesByDate);
 
   // Generate calendar days for the current view (3 months)
   const months = generateMonths(currentMonth, 3);
 
+  // Find the active article for drag overlay
+  const activeArticle = activeId
+    ? articles.find((a) => a.id === activeId)
+    : null;
+
   return (
-    <div className="space-y-6">
-      {/* Calendar Navigation */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const newDate = new Date(currentMonth);
-            newDate.setMonth(newDate.getMonth() - 1);
-            setCurrentMonth(newDate);
-          }}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Previous
-        </Button>
-        <div className="text-sm font-medium">
-          {currentMonth.toLocaleDateString('default', {
-            month: 'long',
-            year: 'numeric',
-          })}{' '}
-          -{' '}
-          {new Date(
-            currentMonth.getFullYear(),
-            currentMonth.getMonth() + 2,
-            1
-          ).toLocaleDateString('default', { month: 'long', year: 'numeric' })}
+    <DndContext
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      collisionDetection={closestCenter}
+    >
+      <div className="space-y-6">
+        {/* Calendar Navigation */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const newDate = new Date(currentMonth);
+              newDate.setMonth(newDate.getMonth() - 1);
+              setCurrentMonth(newDate);
+            }}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Previous
+          </Button>
+          <div className="text-sm font-medium">
+            {currentMonth.toLocaleDateString('default', {
+              month: 'long',
+              year: 'numeric',
+            })}{' '}
+            -{' '}
+            {new Date(
+              currentMonth.getFullYear(),
+              currentMonth.getMonth() + 2,
+              1
+            ).toLocaleDateString('default', { month: 'long', year: 'numeric' })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const newDate = new Date(currentMonth);
+              newDate.setMonth(newDate.getMonth() + 1);
+              setCurrentMonth(newDate);
+            }}
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const newDate = new Date(currentMonth);
-            newDate.setMonth(newDate.getMonth() + 1);
-            setCurrentMonth(newDate);
-          }}
-        >
-          Next
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
+
+        {/* Stats Summary */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Scheduled
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{articles.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Pending
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {articles.filter((a) => a.status === 'pending').length}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Generated
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {articles.filter((a) => a.status === 'generated').length}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Published
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {articles.filter((a) => a.status === 'published').length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="space-y-8">
+          {months.map((month) => (
+            <MonthCalendar
+              key={month.monthKey}
+              month={month}
+              articlesByDate={articlesByDate}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Stats Summary */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Scheduled
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{articles.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {articles.filter((a) => a.status === 'pending').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Generated
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {articles.filter((a) => a.status === 'generated').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Published
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {articles.filter((a) => a.status === 'published').length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="space-y-8">
-        {months.map((month) => (
-          <MonthCalendar
-            key={month.monthKey}
-            month={month}
-            articlesByDate={articlesByDate}
-          />
-        ))}
-      </div>
-    </div>
+      <DragOverlay>
+        {activeArticle ? (
+          <ArticleCardDragOverlay article={activeArticle} />
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
 
@@ -240,43 +331,21 @@ function MonthCalendar({
             const isCurrentMonth =
               date.getMonth() ===
               new Date(month.year, parseInt(month.monthKey) - 1, 1).getMonth();
-            const dateKey = date.toISOString().split('T')[0];
+            const dateKey = formatDateKey(date);
             const dayArticles = articlesByDate[dateKey] || [];
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const isToday = date.getTime() === today.getTime();
 
             return (
-              <div
+              <DroppableDay
                 key={index}
-                className={`
-                  min-h-[120px] p-2 border rounded-lg
-                  ${isCurrentMonth ? 'bg-background' : 'bg-muted/30'}
-                  ${isToday ? 'border-primary border-2' : 'border-border'}
-                `}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span
-                    className={`text-sm font-medium ${
-                      isCurrentMonth
-                        ? 'text-foreground'
-                        : 'text-muted-foreground'
-                    } ${isToday ? 'text-primary font-bold' : ''}`}
-                  >
-                    {date.getDate()}
-                  </span>
-                  {dayArticles.length > 0 && (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                      {dayArticles.length}
-                    </span>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  {dayArticles.map((article) => (
-                    <ArticleCard key={article.id} article={article} />
-                  ))}
-                </div>
-              </div>
+                date={date}
+                dateKey={dateKey}
+                isCurrentMonth={isCurrentMonth}
+                isToday={isToday}
+                dayArticles={dayArticles}
+              />
             );
           })}
         </div>
@@ -285,7 +354,71 @@ function MonthCalendar({
   );
 }
 
+function DroppableDay({
+  date,
+  dateKey,
+  isCurrentMonth,
+  isToday,
+  dayArticles,
+}: {
+  date: Date;
+  dateKey: string;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  dayArticles: Article[];
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: dateKey,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`
+        min-h-[120px] p-2 border rounded-lg transition-colors
+        ${isCurrentMonth ? 'bg-background' : 'bg-muted/30'}
+        ${isToday ? 'border-primary border-2' : 'border-border'}
+        ${isOver ? 'bg-primary/10 border-primary' : ''}
+      `}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span
+          className={`text-sm font-medium ${
+            isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
+          } ${isToday ? 'text-primary font-bold' : ''}`}
+        >
+          {date.getDate()}
+        </span>
+        {dayArticles.length > 0 && (
+          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+            {dayArticles.length}
+          </span>
+        )}
+      </div>
+      <div className="space-y-1">
+        {dayArticles.map((article) => (
+          <ArticleCard key={article.id} article={article} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ArticleCard({ article }: { article: Article }) {
+  const isDraggable = article.status === 'pending';
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: article.id,
+      disabled: !isDraggable,
+    });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined;
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
@@ -311,7 +444,74 @@ function ArticleCard({ article }: { article: Article }) {
   };
 
   return (
-    <div className="text-xs p-2 bg-card border rounded space-y-1 hover:shadow-md transition-shadow">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`text-xs p-2 bg-card border rounded space-y-1 transition-shadow ${
+        isDraggable ? 'cursor-grab active:cursor-grabbing hover:shadow-md' : ''
+      } ${isDragging ? 'opacity-50' : ''}`}
+    >
+      <div className="flex items-center gap-1 flex-wrap">
+        <span
+          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getTypeColor(article.type)}`}
+        >
+          {article.type}
+        </span>
+        <span
+          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getStatusColor(article.status)}`}
+        >
+          {article.status}
+        </span>
+      </div>
+      <p className="font-medium line-clamp-2 leading-tight">
+        {article.title || article.keyword}
+      </p>
+      {article.searchVolume !== null && (
+        <div className="flex items-center gap-1 text-muted-foreground">
+          <span className="text-[10px]">Vol: {article.searchVolume}</span>
+          {article.keywordDifficulty !== null && (
+            <>
+              <span className="text-[10px]">•</span>
+              <span className="text-[10px]">
+                Diff: {article.keywordDifficulty}%
+              </span>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ArticleCardDragOverlay({ article }: { article: Article }) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300';
+      case 'generated':
+        return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300';
+      case 'published':
+        return 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300';
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'guide':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300';
+      case 'listicle':
+        return 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300';
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
+  return (
+    <div className="text-xs p-2 bg-card border rounded space-y-1 shadow-lg cursor-grabbing opacity-90 rotate-3">
       <div className="flex items-center gap-1 flex-wrap">
         <span
           className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getTypeColor(article.type)}`}
