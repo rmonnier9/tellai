@@ -194,6 +194,10 @@ export function ArticleCalendar() {
               newDate.setMonth(newDate.getMonth() - 1);
               setCurrentMonth(newDate);
             }}
+            disabled={
+              currentMonth.getMonth() === new Date().getMonth() &&
+              currentMonth.getFullYear() === new Date().getFullYear()
+            }
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Previous
@@ -328,6 +332,13 @@ function MonthCalendar({
 
           {/* Calendar days */}
           {month.weeks.flat().map((date, index) => {
+            // Check if this is a placeholder date (epoch date)
+            const isPlaceholder = date.getTime() === 0;
+
+            if (isPlaceholder) {
+              return <div key={index} className="min-h-[120px]" />;
+            }
+
             const isCurrentMonth =
               date.getMonth() ===
               new Date(month.year, parseInt(month.monthKey) - 1, 1).getMonth();
@@ -576,9 +587,11 @@ function LoadingSkeleton() {
   );
 }
 
-// Helper function to generate calendar months
+// Helper function to generate calendar months starting from today
 function generateMonths(startMonth: Date, count: number) {
   const months = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   for (let i = 0; i < count; i++) {
     const monthDate = new Date(
@@ -594,50 +607,64 @@ function generateMonths(startMonth: Date, count: number) {
     });
     const monthKey = `${month + 1}`;
 
-    // Get first day of month (0 = Sunday, 1 = Monday, etc.)
+    // Get first and last day of month
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
 
-    // Adjust to start on Monday (1) instead of Sunday (0)
-    let startDay = firstDay.getDay() - 1;
-    if (startDay === -1) startDay = 6; // Sunday becomes 6
+    // Determine the actual start day (either first of month or today)
+    const isFirstMonth = i === 0;
+    const startDayOfMonth =
+      isFirstMonth && today.getMonth() === month && today.getFullYear() === year
+        ? today.getDate()
+        : 1;
+
+    // Get the day of week for the first day we're showing
+    const firstDayToShow = new Date(year, month, startDayOfMonth);
+    let dayOfWeek = firstDayToShow.getDay() - 1; // Adjust to Monday = 0
+    if (dayOfWeek === -1) dayOfWeek = 6; // Sunday becomes 6
 
     // Generate weeks
     const weeks: Date[][] = [];
     let currentWeek: Date[] = [];
 
-    // Fill in days from previous month
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
-    for (let i = startDay - 1; i >= 0; i--) {
-      currentWeek.push(new Date(year, month - 1, prevMonthLastDay - i));
+    // Add empty slots for days before our start day in the first week
+    for (let i = 0; i < dayOfWeek; i++) {
+      currentWeek.push(new Date(0)); // Use epoch date as placeholder
     }
 
-    // Fill in days of current month
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-      currentWeek.push(new Date(year, month, day));
+    // Fill in days from start day to end of month
+    for (let day = startDayOfMonth; day <= lastDay.getDate(); day++) {
+      const date = new Date(year, month, day);
 
-      if (currentWeek.length === 7) {
-        weeks.push(currentWeek);
-        currentWeek = [];
+      // Only add dates that are today or in the future
+      if (date >= today) {
+        currentWeek.push(date);
+
+        if (currentWeek.length === 7) {
+          weeks.push(currentWeek);
+          currentWeek = [];
+        }
       }
     }
 
-    // Fill in remaining days from next month
+    // Push remaining days if any
     if (currentWeek.length > 0) {
-      let nextMonthDay = 1;
+      // Fill remaining slots with placeholder dates
       while (currentWeek.length < 7) {
-        currentWeek.push(new Date(year, month + 1, nextMonthDay));
-        nextMonthDay++;
+        currentWeek.push(new Date(0));
       }
       weeks.push(currentWeek);
     }
 
-    months.push({
-      monthKey,
-      monthName,
-      year,
-      weeks,
-    });
+    // Only add month if it has weeks with valid dates
+    if (weeks.length > 0) {
+      months.push({
+        monthKey,
+        monthName,
+        year,
+        weeks,
+      });
+    }
   }
 
   return months;
