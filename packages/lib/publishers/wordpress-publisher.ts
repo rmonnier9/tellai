@@ -96,10 +96,13 @@ export class WordPressPublisher extends BasePublisher {
         };
       }
 
+      // Convert markdown to HTML for WordPress
+      const htmlContent = this.markdownToHtml(article.content);
+
       const postData = {
         secret: apiKey,
         title: article.title,
-        content: article.content,
+        content: htmlContent,
         slug: article.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')

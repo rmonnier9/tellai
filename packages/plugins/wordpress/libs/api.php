@@ -161,9 +161,10 @@ function lovarank_receive_article($request) {
     $actual_slug = get_post_field('post_name', $post_id);
     $post_status = get_post_field('post_status', $post_id);
 
-    // Insert into custom table with the actual WordPress slug
+    // Insert or update in custom table with the actual WordPress slug
+    // Use REPLACE to handle duplicates gracefully (update instead of error)
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-    $inserted = $wpdb->insert($table_name, [
+    $inserted = $wpdb->replace($table_name, [
         'image'            => $imageId,
         'slug'             => $actual_slug,  // Use WordPress-generated slug
         'title'            => $title,
@@ -173,9 +174,9 @@ function lovarank_receive_article($request) {
     ]);
 
     if (!$inserted) {
-        // If custom table insert fails, we should probably delete the post to maintain consistency
+        // If custom table operation fails, delete the post to maintain consistency
         wp_delete_post($post_id, true);
-        return new WP_REST_Response(['error' => 'Failed to insert into tracking table'], 500);
+        return new WP_REST_Response(['error' => 'Failed to save to tracking table'], 500);
     }
 
     // Set featured image
