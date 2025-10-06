@@ -89,3 +89,10 @@ export const WebhookCredentialSchema = z.object({
 });
 
 export type WebhookCredentialSchema = z.infer<typeof WebhookCredentialSchema>;
+
+export const QueueInputSchema = z.object({
+  apiUrl: z.string(),
+  body: z.any(),
+});
+
+export type QueueInputSchema = z.infer<typeof QueueInputSchema>;

@@ -1,0 +1,19 @@
+name: Deploy CF Worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+jobs:
+  job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy Cloudflare Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          workingDirectory: "apps/workers"
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy --minify src/index.ts
