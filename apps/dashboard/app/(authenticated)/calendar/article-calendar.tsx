@@ -591,8 +591,8 @@ function ArticleCard({
             disabled={isGenerating}
             className={`w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[10px] font-medium transition-colors ${
               isGenerating
-                ? 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400 cursor-not-allowed'
-                : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer'
+                ? 'bg-primary-100 text-primary-600 dark:bg-primary-950 dark:text-primary-400 cursor-not-allowed'
+                : 'bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 cursor-pointer'
             }`}
           >
             {isGenerating ? (
@@ -614,7 +614,7 @@ function ArticleCard({
           <Link
             href={`/articles/${article.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[10px] font-medium transition-colors bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
+            className="w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[10px] font-medium transition-colors bg-neutral-500 text-white hover:bg-neutral-600 dark:bg-neutral-600 dark:hover:bg-neutral-700"
           >
             <Eye className="h-3 w-3" />
             <span>View Article</span>

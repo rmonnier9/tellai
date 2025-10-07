@@ -40,7 +40,7 @@ export default function Example() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 lg:px-8">
-      <div className="mx-auto mt-16 max-w-6xl rounded-3xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 sm:mt-20 dark:from-emerald-900/20 dark:to-emerald-800/20 dark:border-emerald-700/30">
+      <div className="mx-auto mt-16 max-w-6xl rounded-3xl bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 sm:mt-20 dark:from-primary-900/20 dark:to-primary-800/20 dark:border-primary-700/30">
         <div className="flex flex-col lg:flex-row">
           {/* Left side - Plan info and pricing */}
           <div className="p-8 sm:p-12 lg:w-1/3 lg:shrink-0">
@@ -48,7 +48,7 @@ export default function Example() {
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                 All in One
               </h2>
-              <p className="text-emerald-600 font-medium mb-8 dark:text-emerald-400">
+              <p className="text-primary-600 font-medium mb-8 dark:text-primary-400">
                 For ambitious entrepreneurs
               </p>
 
@@ -68,7 +68,7 @@ export default function Example() {
 
               <button
                 onClick={handleUpgrade}
-                className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl mb-6"
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl mb-6"
               >
                 Start 3-day Trial for $1
               </button>
@@ -96,15 +96,15 @@ export default function Example() {
               <div className="space-y-4">
                 {leftFeatures.map((feature, index) => (
                   <div key={index} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5 dark:bg-emerald-800/50">
-                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center mt-0.5 dark:bg-primary-800/50">
+                      <Check className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                     </div>
                     <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                       {feature.includes('Backlink Exchange') ? (
                         <>
                           <strong>High DR Backlinks</strong> built for you on
                           auto-pilot through our{' '}
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span className="text-primary-600 dark:text-primary-400 font-medium">
                             Backlink Exchange
                           </span>
                         </>
@@ -112,7 +112,7 @@ export default function Example() {
                         <>
                           Integrates with WordPress, Webflow, Shopify, Framer
                           and many{' '}
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span className="text-primary-600 dark:text-primary-400 font-medium">
                             other platforms
                           </span>
                         </>
@@ -134,15 +134,15 @@ export default function Example() {
               <div className="space-y-4">
                 {rightFeatures.map((feature, index) => (
                   <div key={index} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5 dark:bg-emerald-800/50">
-                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center mt-0.5 dark:bg-primary-800/50">
+                      <Check className="h-4 w-4 text-primary-600 dark:text-primary-400" />
                     </div>
                     <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                       {feature.includes('other platforms') ? (
                         <>
                           Integrates with WordPress, Webflow, Shopify, Framer
                           and many{' '}
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span className="text-primary-600 dark:text-primary-400 font-medium">
                             other platforms
                           </span>
                         </>

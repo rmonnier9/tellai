@@ -171,12 +171,12 @@ const Logo = () => {
       })}
     >
       <img
-        src="/images/lovarank-logo-icon-animated.png"
+        src="/images/lovarank-logo-icon.svg"
         alt="Lovarank Icon"
-        className="h-auto w-8 -rotate-15"
+        className="h-auto w-7 -rotate-15"
       />
       {open && (
-        <span className="text-2xl font-extrabold font-display">Lovarank</span>
+        <span className="text-lg font-extrabold font-display">Lovarank</span>
       )}
     </div>
   );

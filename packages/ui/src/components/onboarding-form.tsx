@@ -213,9 +213,9 @@ export function OnboardingForm() {
               <div
                 className={`flex items-center rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap ${
                   currentStep === step.id
-                    ? 'bg-violet-600 text-white'
+                    ? 'bg-primary-600 text-white'
                     : currentStep > step.id
-                      ? 'bg-violet-100 text-violet-600'
+                      ? 'bg-primary-100 text-primary-600'
                       : 'bg-neutral-100 text-neutral-500'
                 }`}
               >
