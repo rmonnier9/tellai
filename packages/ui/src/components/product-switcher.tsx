@@ -71,6 +71,10 @@ export function ProductSwitcher({
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 {/* <activeTeam.logo className="size-4" /> */}
+                <img
+                  src={currentProductQuery?.data.logo!}
+                  className="w-full h-full rounded-lg"
+                />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">

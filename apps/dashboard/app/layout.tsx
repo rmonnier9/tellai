@@ -1,10 +1,15 @@
-import { Geist, Geist_Mono, Bricolage_Grotesque } from 'next/font/google';
+import {
+  Inter,
+  // Geist,
+  Geist_Mono,
+  Bricolage_Grotesque,
+} from 'next/font/google';
 import { Toaster } from '@workspace/ui/components/sonner';
 
 import '@workspace/ui/globals.css';
 import { Providers } from '@/components/providers';
 
-const fontSans = Geist({
+const fontSans = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
 });

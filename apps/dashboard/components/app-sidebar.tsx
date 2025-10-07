@@ -30,6 +30,7 @@ import {
   useSidebar,
 } from '@workspace/ui/components/sidebar';
 import { cn } from '@workspace/ui/lib/utils';
+import { Separator } from '@workspace/ui/components/separator';
 
 // This is sample data.
 const data = {
@@ -167,13 +168,16 @@ const Logo = () => {
   return (
     <div
       className={cn('inline-flex items-center gap-2', {
-        'pl-1': !!open,
+        'mx-auto': !open,
+        'pl-2': !!open,
       })}
     >
       <img
         src="/images/lovarank-logo-icon-animated-2.png"
         alt="Lovarank Icon"
-        className="h-auto w-7 -rotate-15"
+        className={cn('h-auto w-6', {
+          '-rotate-15 w-6': !!open,
+        })}
       />
       {open && (
         <span className="text-lg font-extrabold font-display">Lovarank</span>
@@ -187,6 +191,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <Logo />
+        <Separator />
         <ProductSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
