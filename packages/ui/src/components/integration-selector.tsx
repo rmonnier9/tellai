@@ -83,7 +83,7 @@ export function IntegrationSelector() {
   return (
     <div className="flex flex-1 flex-col p-6">
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold tracking-tight">
+        <h1 className="mb-2 text-3xl font-bold tracking-tight font-display">
           Add New Integration
         </h1>
         <p className="text-muted-foreground">

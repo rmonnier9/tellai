@@ -27,7 +27,9 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  useSidebar,
 } from '@workspace/ui/components/sidebar';
+import { cn } from '@workspace/ui/lib/utils';
 
 // This is sample data.
 const data = {
@@ -159,10 +161,32 @@ const data = {
   ],
 };
 
+const Logo = () => {
+  const { open } = useSidebar();
+
+  return (
+    <div
+      className={cn('inline-flex items-center gap-2', {
+        'pl-1': !!open,
+      })}
+    >
+      <img
+        src="/images/lovarank-logo-icon-animated.png"
+        alt="Lovarank Icon"
+        className="h-auto w-8 -rotate-15"
+      />
+      {open && (
+        <span className="text-2xl font-extrabold font-display">Lovarank</span>
+      )}
+    </div>
+  );
+};
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
+        <Logo />
         <ProductSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
