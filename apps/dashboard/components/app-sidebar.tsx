@@ -171,7 +171,7 @@ const Logo = () => {
       })}
     >
       <img
-        src="/images/lovarank-logo-icon.svg"
+        src="/images/lovarank-logo-icon-animated-2.png"
         alt="Lovarank Icon"
         className="h-auto w-7 -rotate-15"
       />
