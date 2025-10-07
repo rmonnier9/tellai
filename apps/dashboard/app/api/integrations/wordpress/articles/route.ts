@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     // Only get articles that have been generated and not yet published to this credential
     const articles = await prisma.article.findMany({
       where: {
-        productId: credential.productId,
+        productId: credential.productId!,
         status: 'generated',
         content: {
           not: null,
