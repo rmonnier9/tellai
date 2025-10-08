@@ -39,7 +39,7 @@ export default function Example() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <div className="max-w-7xl">
       <div className="mx-auto mt-16 max-w-6xl rounded-3xl bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 sm:mt-20 dark:from-primary-900/20 dark:to-primary-800/20 dark:border-primary-700/30">
         <div className="flex flex-col lg:flex-row">
           {/* Left side - Plan info and pricing */}
@@ -70,17 +70,17 @@ export default function Example() {
                 onClick={handleUpgrade}
                 className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl mb-6"
               >
-                Start 3-day Trial for $1
+                Start 3-day Trial
               </button>
 
               <div className="text-center lg:text-left">
                 <p className="font-semibold text-gray-900 dark:text-white mb-1">
                   Cancel anytime. No questions asked!
                 </p>
-                <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                {/* <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <span>$1 trial fee helps us ensure quality service.</span>
                   <Info className="h-4 w-4" />
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
