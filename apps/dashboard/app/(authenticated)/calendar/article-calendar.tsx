@@ -1,7 +1,7 @@
 'use client';
 
 import { enqueueJob } from '@workspace/lib/enqueue-job';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Card,
@@ -13,6 +13,7 @@ import { Skeleton } from '@workspace/ui/components/skeleton';
 import useActiveProduct from '@workspace/ui/hooks/use-active-product';
 import useArticles from '@workspace/ui/hooks/use-articles';
 import useContentPlannerWatcher from '@workspace/ui/hooks/use-content-planner-watcher';
+import useJob from '@workspace/ui/hooks/use-job';
 import {
   ChevronLeft,
   ChevronRight,
@@ -33,7 +34,6 @@ import {
 } from '@workspace/ui/lib/dnd';
 import { toast } from '@workspace/ui/lib/toast';
 import { updateArticleSchedule } from '@workspace/lib/server-actions/update-article-schedule';
-import { generateArticleContent } from '@workspace/lib/server-actions/generate-article-content';
 
 type Article = {
   id: string;
@@ -78,8 +78,8 @@ export function ArticleCalendar() {
   } = useArticles({ productId: product?.id });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [generatingArticles, setGeneratingArticles] = useState<Set<string>>(
-    new Set()
+  const [articleJobIds, setArticleJobIds] = useState<Map<string, string>>(
+    new Map()
   );
 
   // Convert article dates to Date objects (memoized)
@@ -148,29 +148,26 @@ export function ArticleCalendar() {
   async function handleGenerateArticle(articleId: string) {
     if (!product?.id) return;
 
-    // Add to generating set
-    setGeneratingArticles((prev) => new Set(prev).add(articleId));
-
     try {
-      const result = await generateArticleContent({ articleId });
+      // Enqueue article generation job
+      const jobId = await enqueueJob({
+        jobType: 'article_generation',
+        articleId,
+        productId: product.id,
+      });
 
-      if (result.success) {
-        // Revalidate SWR cache
-        await mutateArticles();
-        toast.success('Article content generated successfully!');
+      if (jobId) {
+        // Track the job ID for this article
+        setArticleJobIds((prev) => new Map(prev).set(articleId, jobId));
+        toast.success('Article generation started!');
       }
     } catch (error) {
-      console.error('Error generating article:', error);
+      console.error('Error starting article generation:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to generate article'
+        error instanceof Error
+          ? error.message
+          : 'Failed to start article generation'
       );
-    } finally {
-      // Remove from generating set
-      setGeneratingArticles((prev) => {
-        const next = new Set(prev);
-        next.delete(articleId);
-        return next;
-      });
     }
   }
 
@@ -321,7 +318,17 @@ export function ArticleCalendar() {
               month={month}
               articlesByDate={articlesByDate}
               onGenerateArticle={handleGenerateArticle}
-              generatingArticles={generatingArticles}
+              articleJobIds={articleJobIds}
+              onJobComplete={(articleId) => {
+                // Remove job ID from map when complete
+                setArticleJobIds((prev) => {
+                  const next = new Map(prev);
+                  next.delete(articleId);
+                  return next;
+                });
+                // Revalidate articles to show updated data
+                mutateArticles();
+              }}
             />
           ))}
         </div>
@@ -340,7 +347,8 @@ function MonthCalendar({
   month,
   articlesByDate,
   onGenerateArticle,
-  generatingArticles,
+  articleJobIds,
+  onJobComplete,
 }: {
   month: {
     monthKey: string;
@@ -350,7 +358,8 @@ function MonthCalendar({
   };
   articlesByDate: ArticlesByDate;
   onGenerateArticle: (articleId: string) => void;
-  generatingArticles: Set<string>;
+  articleJobIds: Map<string, string>;
+  onJobComplete: (articleId: string) => void;
 }) {
   return (
     <Card>
@@ -398,7 +407,8 @@ function MonthCalendar({
                 isToday={isToday}
                 dayArticles={dayArticles}
                 onGenerateArticle={onGenerateArticle}
-                generatingArticles={generatingArticles}
+                articleJobIds={articleJobIds}
+                onJobComplete={onJobComplete}
               />
             );
           })}
@@ -415,7 +425,8 @@ function DroppableDay({
   isToday,
   dayArticles,
   onGenerateArticle,
-  generatingArticles,
+  articleJobIds,
+  onJobComplete,
 }: {
   date: Date;
   dateKey: string;
@@ -423,7 +434,8 @@ function DroppableDay({
   isToday: boolean;
   dayArticles: Article[];
   onGenerateArticle: (articleId: string) => void;
-  generatingArticles: Set<string>;
+  articleJobIds: Map<string, string>;
+  onJobComplete: (articleId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: dateKey,
@@ -459,7 +471,8 @@ function DroppableDay({
             key={article.id}
             article={article}
             onGenerate={onGenerateArticle}
-            isGenerating={generatingArticles.has(article.id)}
+            jobId={articleJobIds.get(article.id)}
+            onJobComplete={onJobComplete}
           />
         ))}
       </div>
@@ -470,12 +483,31 @@ function DroppableDay({
 function ArticleCard({
   article,
   onGenerate,
-  isGenerating,
+  jobId,
+  onJobComplete,
 }: {
   article: Article;
   onGenerate: (articleId: string) => void;
-  isGenerating: boolean;
+  jobId?: string;
+  onJobComplete: (articleId: string) => void;
 }) {
+  // Watch job status if there's an active job
+  const { data: job } = useJob({ id: jobId });
+
+  // Handle job completion
+  useEffect(() => {
+    if (!job || !jobId) return;
+
+    if (job.status === 'done') {
+      toast.success('Article content generated successfully!');
+      onJobComplete(article.id);
+    } else if (job.status === 'error') {
+      toast.error(job.error || 'Failed to generate article');
+      onJobComplete(article.id);
+    }
+  }, [job?.status, jobId, article.id, onJobComplete]);
+
+  const isGenerating = job?.status === 'running' || job?.status === 'pending';
   const isDraggable = article.status === 'pending' && !isGenerating;
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =

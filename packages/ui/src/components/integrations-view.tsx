@@ -1,7 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, ExternalLink, Loader2 } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  ExternalLink,
+  Loader2,
+  CirclePlus,
+  ArrowUpRightIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@workspace/ui/components/button';
 import { Card } from '@workspace/ui/components/card';
@@ -18,6 +25,14 @@ import {
 import { toast } from 'sonner';
 import { getCredentials } from '@workspace/lib/server-actions/get-credentials';
 import { deleteCredential } from '@workspace/lib/server-actions/delete-credential';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyContent,
+} from './empty';
 
 type Credential = {
   id: string;
@@ -97,31 +112,66 @@ export function IntegrationsView() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Integrations</h1>
             <p className="text-muted-foreground mt-2">
-              Connect your website with Lovarank to publish articles
+              Connect your blog or website with Lovarank to publish articles
               automatically
             </p>
           </div>
           <Link href="/integrations/new">
             <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Integration
+              <CirclePlus className="h-4 w-4" />
+              Create Integration
             </Button>
           </Link>
         </div>
 
         {credentials.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center p-12 text-center">
-            <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-              <Plus className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="mb-2 text-lg font-semibold">
-              No Integrations just yet
-            </h3>
-            <Link href="/integrations/new">
-              <Button>Create Your First Integration</Button>
-            </Link>
+          <Card>
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <CirclePlus />
+                </EmptyMedia>
+                <EmptyTitle>No Integrations yet</EmptyTitle>
+                <EmptyDescription>
+                  You haven&apos;t created any integrations yet. Get started by
+                  creating your first integration.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <div className="flex gap-2">
+                  <Link href="/integrations/new">
+                    <Button>
+                      <CirclePlus className="h-4 w-4" />
+                      Create Integration
+                    </Button>
+                  </Link>
+                  {/* <Button variant="outline">Import Project</Button> */}
+                </div>
+              </EmptyContent>
+              {/* <Button
+                variant="link"
+                asChild
+                className="text-muted-foreground"
+                size="sm"
+              >
+                <a href="#">
+                  Learn More <ArrowUpRightIcon />
+                </a>
+              </Button> */}
+            </Empty>
           </Card>
         ) : (
+          // <Card className="flex flex-col items-center justify-center p-12 text-center">
+          //   <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+          //     <Plus className="h-8 w-8 text-muted-foreground" />
+          //   </div>
+          //   <h3 className="mb-2 text-lg font-semibold">
+          //     No Integrations just yet
+          //   </h3>
+          //   <Link href="/integrations/new">
+          //     <Button>Create Your First Integration</Button>
+          //   </Link>
+          // </Card>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {credentials.map((credential) => (
               <Card key={credential.id} className="p-6">

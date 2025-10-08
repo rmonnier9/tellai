@@ -14,14 +14,8 @@ import { Input } from '@workspace/ui/components/input';
 import { Button } from '@workspace/ui/components/button';
 import { UseFormReturn } from 'react-hook-form';
 
-interface ProductBlogContentFormData {
-  sitemapUrl?: string;
-  blogUrl?: string;
-  bestArticles?: string[];
-}
-
 interface ProductBlogContentFormProps {
-  form: UseFormReturn<ProductBlogContentFormData>;
+  form: UseFormReturn<any>;
 }
 
 export function ProductBlogContentForm({ form }: ProductBlogContentFormProps) {
@@ -44,7 +38,7 @@ export function ProductBlogContentForm({ form }: ProductBlogContentFormProps) {
     const currentArticles = form.getValues('bestArticles') || [];
     form.setValue(
       'bestArticles',
-      currentArticles.filter((_, i) => i !== index)
+      currentArticles.filter((_: string, i: number) => i !== index)
     );
   };
 
@@ -120,21 +114,23 @@ export function ProductBlogContentForm({ form }: ProductBlogContentFormProps) {
 
             {/* Display best articles */}
             <div className="mt-4 space-y-2">
-              {form.watch('bestArticles')?.map((article, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
-                >
-                  <span className="flex-1 truncate">{article}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeBestArticle(index)}
-                    className="text-muted-foreground hover:text-foreground"
+              {form
+                .watch('bestArticles')
+                ?.map((article: string, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
                   >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
+                    <span className="flex-1 truncate">{article}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeBestArticle(index)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
             </div>
             <FormMessage />
           </FormItem>
