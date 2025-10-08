@@ -12,6 +12,7 @@ import { stripe } from '@better-auth/stripe';
 import { organization, magicLink } from 'better-auth/plugins';
 import { EmailTemplate } from '@daveyplate/better-auth-ui/server';
 import { send } from '@workspace/emails';
+import enqueueJob from '../lib/enqueue-job';
 
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil',
@@ -189,6 +190,12 @@ export const auth = betterAuth({
                 },
               },
             },
+          });
+
+          // TODO: Find better place for this
+          await enqueueJob({
+            jobType: 'content_planner',
+            productId: subscription.referenceId,
           });
         },
         authorizeReference: async ({ user, referenceId, action }) => {

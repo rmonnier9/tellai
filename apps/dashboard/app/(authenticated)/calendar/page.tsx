@@ -13,6 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
+import { ContentPlannerModal } from '@workspace/ui/components/content-planner-modal';
 import { ArticleCalendar } from './article-calendar';
 
 export default function CalendarPage() {
@@ -50,6 +51,7 @@ export default function CalendarPage() {
           <ArticleCalendar />
         </div>
       </SidebarInset>
+      <ContentPlannerModal />
     </SidebarProvider>
   );
 }
