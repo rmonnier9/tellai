@@ -8,7 +8,7 @@ import type { QueueInputSchema } from '@workspace/lib/dtos';
 type Environment = {
   readonly GENERIC_QUEUE: Queue<QueueInputSchema>;
   WORKER_SECRET: string;
-  NEXT_PUBLIC_LANDING_PAGE_URL: string;
+  NEXT_PUBLIC_DASHBOARD_URL: string;
 };
 
 const app = new Hono<{
@@ -19,7 +19,7 @@ const app = new Hono<{
 //   const e = env<Environment>(c as any);
 
 //   await e.GENERIC_QUEUE.send({
-//     apiUrl: `${e.NEXT_PUBLIC_LANDING_PAGE_URL}/api/jobs/generate-video`,
+//     apiUrl: `${e.NEXT_PUBLIC_DASHBOARD_URL}/api/jobs/generate-video`,
 //     body: {
 //       id: '444444',
 //     },

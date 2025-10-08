@@ -1,3 +1,4 @@
+import { JobType } from '@workspace/db/prisma/generated/enums';
 import { z } from 'zod';
 
 export const CreateProductSchema = z.object({
@@ -144,3 +145,12 @@ export const QueueInputSchema = z.object({
 });
 
 export type QueueInputSchema = z.infer<typeof QueueInputSchema>;
+
+export const EnqueueJobSchema = z.object({
+  jobType: z.nativeEnum(JobType).nullish(),
+  productId: z.string().nullish(),
+  articleId: z.string().nullish(),
+  userId: z.string().nullish(),
+});
+
+export type EnqueueJobSchema = z.infer<typeof EnqueueJobSchema>;
