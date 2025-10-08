@@ -37,7 +37,7 @@ export function ProductTargetAudienceForm({
     const currentAudiences = form.getValues('targetAudiences') || [];
     form.setValue(
       'targetAudiences',
-      currentAudiences.filter((_, i) => i !== index)
+      currentAudiences.filter((_: string, i: number) => i !== index)
     );
   };
 
@@ -77,21 +77,23 @@ export function ProductTargetAudienceForm({
 
             {/* Display target audiences */}
             <div className="mt-4 flex flex-wrap gap-2">
-              {form.watch('targetAudiences')?.map((audience, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
-                >
-                  <span>{audience}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeTargetAudience(index)}
-                    className="text-muted-foreground hover:text-foreground"
+              {form
+                .watch('targetAudiences')
+                ?.map((audience: string, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
                   >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
+                    <span>{audience}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTargetAudience(index)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
             </div>
             <FormMessage />
           </FormItem>
