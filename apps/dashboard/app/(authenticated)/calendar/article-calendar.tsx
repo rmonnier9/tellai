@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { enqueueJob } from '@workspace/lib/enqueue-job';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Card,
@@ -10,7 +11,8 @@ import {
 } from '@workspace/ui/components/card';
 import { Skeleton } from '@workspace/ui/components/skeleton';
 import useActiveProduct from '@workspace/ui/hooks/use-active-product';
-import { getArticles } from '@workspace/lib/server-actions/get-articles';
+import useArticles from '@workspace/ui/hooks/use-articles';
+import useContentPlannerWatcher from '@workspace/ui/hooks/use-content-planner-watcher';
 import {
   ChevronLeft,
   ChevronRight,
@@ -69,38 +71,33 @@ function formatDateKey(date: Date): string {
 
 export function ArticleCalendar() {
   const { data: product, isLoading: productLoading } = useActiveProduct();
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: articlesData,
+    isLoading: articlesLoading,
+    mutate: mutateArticles,
+  } = useArticles({ productId: product?.id });
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [activeId, setActiveId] = useState<string | null>(null);
   const [generatingArticles, setGeneratingArticles] = useState<Set<string>>(
     new Set()
   );
 
-  useEffect(() => {
-    async function fetchArticles() {
-      if (!product?.id) return;
+  // Convert article dates to Date objects (memoized)
+  const articles = useMemo(() => {
+    if (!articlesData) return [];
+    return articlesData.map((article) => ({
+      ...article,
+      scheduledDate: new Date(article.scheduledDate),
+    }));
+  }, [articlesData]);
 
-      setLoading(true);
-      try {
-        const data = await getArticles({ productId: product.id });
-        if (data) {
-          setArticles(
-            data.map((article) => ({
-              ...article,
-              scheduledDate: new Date(article.scheduledDate),
-            }))
-          );
-        }
-      } catch (error) {
-        console.error('Error fetching articles:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchArticles();
-  }, [product?.id]);
+  // Watch for content planner job completion and revalidate SWR cache
+  useContentPlannerWatcher({
+    onComplete: () => {
+      toast.success('Content plan created successfully!');
+      mutateArticles(); // Revalidate SWR cache
+    },
+  });
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string);
@@ -135,16 +132,8 @@ export function ArticleCalendar() {
     });
 
     if (result.success) {
-      // Refresh articles
-      const data = await getArticles({ productId: product.id });
-      if (data) {
-        setArticles(
-          data.map((article) => ({
-            ...article,
-            scheduledDate: new Date(article.scheduledDate),
-          }))
-        );
-      }
+      // Revalidate SWR cache to get fresh data
+      await mutateArticles();
 
       if (result.swapped) {
         toast.success('Articles swapped successfully');
@@ -166,17 +155,8 @@ export function ArticleCalendar() {
       const result = await generateArticleContent({ articleId });
 
       if (result.success) {
-        // Refresh articles
-        const data = await getArticles({ productId: product.id });
-        if (data) {
-          setArticles(
-            data.map((article) => ({
-              ...article,
-              scheduledDate: new Date(article.scheduledDate),
-            }))
-          );
-        }
-
+        // Revalidate SWR cache
+        await mutateArticles();
         toast.success('Article content generated successfully!');
       }
     } catch (error) {
@@ -194,7 +174,7 @@ export function ArticleCalendar() {
     }
   }
 
-  if (productLoading || loading) {
+  if (productLoading || articlesLoading) {
     return <LoadingSkeleton />;
   }
 

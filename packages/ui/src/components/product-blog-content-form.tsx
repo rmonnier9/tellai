@@ -14,8 +14,14 @@ import { Input } from '@workspace/ui/components/input';
 import { Button } from '@workspace/ui/components/button';
 import { UseFormReturn } from 'react-hook-form';
 
+interface ProductBlogContentFormData {
+  sitemapUrl?: string;
+  blogUrl?: string;
+  bestArticles?: string[];
+}
+
 interface ProductBlogContentFormProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<ProductBlogContentFormData>;
 }
 
 export function ProductBlogContentForm({ form }: ProductBlogContentFormProps) {
