@@ -17,7 +17,7 @@ if (isset($_POST['btn_save_and_sync'])) {
     update_option('lovarank_api_key', $apiKey);
     update_option('lovarank_post_as_draft', $postMode);
 
-    echo '<div class="outrank-success-notice">
+    echo '<div class="lovarank-success-notice">
             <div class="notice-content">
                 <svg class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/>
@@ -37,9 +37,9 @@ $apiKey = get_option('lovarank_api_key');
 $isDraft = get_option('lovarank_post_as_draft', 'no');
 ?>
 
-<div class="outrank-settings-container">
-    <div class="outrank-settings-card">
-        <div class="outrank-settings-header">
+<div class="lovarank-settings-container">
+    <div class="lovarank-settings-card">
+        <div class="lovarank-settings-header">
             <h1 class="settings-title"><?php echo empty($apiKey) ? 'Lovarank Plugin Set Up' : 'Plugin Settings'; ?></h1>
             <p class="settings-subtitle">Configure Lovarank plugin to publish articles to your website</p>
         </div>
@@ -64,7 +64,7 @@ $isDraft = get_option('lovarank_post_as_draft', 'no');
                     </p>
                 </div>
 
-                <div class="field-group">
+                <!-- <div class="field-group">
                     <label for="post_as_draft" class="field-label">Post Mode</label>
                     <select name="post_as_draft" id="post_as_draft" class="field-input">
                         <option value="" disabled>Select Post Mode</option>
@@ -72,7 +72,7 @@ $isDraft = get_option('lovarank_post_as_draft', 'no');
                         <option value="no" <?php selected($isDraft, 'no'); ?>>Publish Directly</option>
                     </select>
                     <p class="field-description">Choose whether incoming posts are published immediately or saved as drafts.</p>
-                </div>
+                </div> -->
 
                 <div class="flex-buttons" style="display: flex; gap: 12px; margin-top: 16px;">
                     <button id="save-btn" type="submit" name="btn_save_and_sync" class="save-button">

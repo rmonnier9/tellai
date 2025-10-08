@@ -1,6 +1,6 @@
 === Lovarank ===
-Contributors: eugenezolo  
-Tags: seo, content automation, article sync, ai blog  
+Contributors: gpetrov  
+Tags: seo, content automation, article sync, ai blog, seo ai agent, seo, autoblogging, ai content generator, wordpress seo, ai seo
 Requires at least: 6.4  
 Tested up to: 6.8  
 Requires PHP: 8.0  
@@ -8,28 +8,30 @@ Stable tag: 1.0.2
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
-Lovarank automatically creates and publishes SEO-optimized articles to your WordPress site as blog posts or drafts.
+Lovarank streamlines content creation by auto-publishing SEO-ready articles to your WordPress blog or saving them as drafts for review.
 
 == Description ==
 
-Grow Organic Traffic Without Lifting a Finger.
+The AI Agent that Grows Your Organic Traffic.
 
-Lovarank is your behind-the-scenes content team powered by AI. It creates high-quality, SEO-optimized blog posts that drive traffic to your WordPress site – automatically. No brainstorming, no writing, no scheduling. Just pure growth on autopilot.
+Think of Lovarank as your content team that never sleeps. It writes and publishes SEO-focused blog posts that help your WordPress site grow. You don’t have to come up with ideas, write drafts, or plan schedules. Everything runs automatically in the background.
 
-Lovarank plugin may embed external links or credits on the public site.
+The plugin may add external links or small credits on your site.
 
-The plugin provides secure API access to retrieve your published posts for content analysis and optimization within the Lovarank app.
+It also connects securely to your WordPress posts through an API for content review and optimization inside the Lovarank app.
+
+Our AI content generator WordPress AI Agents analyze the top Google results, identify content gaps, and create comprehensive articles designed to outrank competitors. This WordPress AI writer delivers deep research, not generic content.
 
 == Features ==
 
-1. Fully automatic content creation and keyword research – find hidden keyword gems and publish optimized articles daily.
-2. Write in 150+ languages – speak to your audience wherever they are.
-3. One-click integration with WordPress – set it up once and your content gets published like magic.
-4. SEO-friendly, fact-checked articles with media – includes internal links, videos, images, and credible citations.
-5. Your voice, your tone – match your brand’s style with AI-tuned tone control.
-6. Up to 4000 words per article – long-form, evergreen content designed to rank and convert.
-7. Smart daily publishing plan – a tailored 30-day strategy to keep content flowing.
-8. Multi-user and multi-site support – manage teams and scale across sites easily.
+1.	Hands-free content and keyword automation – uncover valuable keyword opportunities and automatically publish optimized articles every day.
+2.	Support for over 200 languages – reach audiences around the world in their native language.
+3.	Seamless WordPress connection – integrate once, and your new posts appear automatically without extra setup.
+4.	SEO-focused, reliable content with visuals – includes relevant links, images, videos, and trustworthy sources.
+5.	Consistent tone that fits your brand – customize the writing style and voice to match your brand identity.
+6.	In-depth articles up to 4,000 words – create comprehensive, evergreen posts that drive rankings and engagement.
+7.	Automated publishing schedule – follow a personalized 30-day content plan that keeps your site active and growing.
+8.	Built for teams and multiple sites – collaborate easily and manage content across several websites in one place.
 
 == Installation ==
 
@@ -37,56 +39,32 @@ The plugin provides secure API access to retrieve your published posts for conte
 2. Activate the plugin from the “Plugins” page.
 3. Navigate to **Lovarank → Manage** in your admin menu.
 4. Enter your API key and select publish mode.
-5. Click **Sync Articles** to manually fetch content or let it sync daily via cron.
 
 == Screenshots ==
 
-1. Grow Organic Traffic on Autopilot.
-2. The Sync Dashboard and Setup Page.
-3. AI-generated blog posts ready to publish.
+1. The AI Agent that Grows Your Organic Traffic.
 
 == External services ==
 
-This plugin connects to the Lovarank API to fetch blog article content for your site. This is necessary to sync AI-generated content to your WordPress posts.
+The plugin links your WordPress site to Lovarank and automatically pulls in new blog articles. This keeps your site up to date with the latest content.
 
 Data sent:
 - API Key (stored by user in plugin settings)
 
 Data is sent when:
-- Manual sync is triggered or daily sync runs via cron.
+- An article has been geenrated by your Lovarank Agent
 
 External Service:
-- [Lovarank API](https://lovarank.com)
-- [Privacy Policy](https://lovarank.com/privacy-policy)
-- [Terms of Use](https://lovarank.com/terms-of-use)
+- [Lovarank API](https://www.lovarank.com)
+- [Privacy Policy](https://www.lovarank.com/privacy-policy)
+- [Terms of Use](https://www.lovarank.com/terms-of-service)
 
 == Frequently Asked Questions ==
 
 = Does this plugin automatically post articles? =  
 Yes. You can choose whether articles are saved as drafts or published instantly.
 
-= How does the sync work? =  
-Lovarank sends a secure request to your content API daily and stores unique articles in your site.
-
-= Can I sync manually? =  
-Yes, there is a **Sync Articles** button in the dashboard for instant updates.
-
 == Changelog ==
-
-= 1.0.2 =
-* Fixed YouTube video embedding in synced articles
-
-= 1.0.1 =
-* Added posts fetching endpoint for retrieving published blog posts
-* Added API access functionality for content analysis and optimization
-* Various bug fixes and improvements
 
 = 1.0.0 =
 * Initial release.
-* Admin dashboard with API key and post settings.
-* Manual and automatic article syncing via cron.
-
-== Upgrade Notice ==
-
-= 1.0.0 =
-First release — includes cron sync, manual sync, and support for draft/publish modes.

@@ -87,7 +87,7 @@ export function IntegrationSelector() {
           Add New Integration
         </h1>
         <p className="text-muted-foreground">
-          Connect your website with Outrank
+          Connect your website with Lovarank
         </p>
       </div>
 

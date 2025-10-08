@@ -102,7 +102,7 @@ export function ShopifyIntegrationForm() {
                 className="text-primary mt-1 flex items-center gap-1 hover:underline"
               >
                 Watch YouTube tutorial how to integrate your Shopify store with
-                Outrank
+                Lovarank
                 <ExternalLink className="h-3 w-3" />
               </a>
             </AlertDescription>

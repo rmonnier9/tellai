@@ -1,7 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-define('LOVARANK_API_SECRET', '7d775a0fd0bc1d92e4d3db1fe313d72e');
 require_once plugin_dir_path(__FILE__) . '../includes/image-functions.php';
 
 function sanitize_content($content) {
@@ -275,7 +274,7 @@ function lovarank_test_integration($request) {
         'post_content'  => 'This is a test post to verify Lovarank integration is working correctly.',
         'post_status'   => 'draft',
         'post_type'     => 'post',
-        'post_name'     => 'outrank-test-post-' . time(),
+        'post_name'     => 'lovarank-test-post-' . time(),
         'post_author'   => 1, // Admin user
     ]);
     

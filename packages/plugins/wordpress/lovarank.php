@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 /*
  * Plugin Name: Lovarank
  * Plugin URI: https://lovarank.com
- * Description: Get traffic and outrank competitors with automatic SEO-optimized content generation published to your WordPress site.
+ * Description: Get traffic and lovarank competitors with automatic SEO-optimized content generation published to your WordPress site.
  * Version: 1.0.2
  * Author: Lovarank
  * License: GPLv2 or later
@@ -120,7 +120,7 @@ function lovarank_deactivate() {
 // Enqueue admin styles and scripts
 add_action('admin_enqueue_scripts', 'lovarank_add_plugin_assets');
 function lovarank_add_plugin_assets($hook_suffix = '') {
-    if (strpos($hook_suffix, 'lovarank') === false) return; // Only enqueue on outrank pages
+    if (strpos($hook_suffix, 'lovarank') === false) return; // Only enqueue on lovarank pages
 
     wp_enqueue_style('lovarank-style', LOVARANK_PLUGIN_URL . 'css/manage.css', [], '1.0.0');
     wp_enqueue_style('lovarank-home-style', LOVARANK_PLUGIN_URL . 'css/home.css', [], '1.0.0');

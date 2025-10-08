@@ -97,7 +97,7 @@ export function IntegrationsView() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Integrations</h1>
             <p className="text-muted-foreground mt-2">
-              Connect your website with Outrank to publish articles
+              Connect your website with Lovarank to publish articles
               automatically
             </p>
           </div>
@@ -117,11 +117,6 @@ export function IntegrationsView() {
             <h3 className="mb-2 text-lg font-semibold">
               No Integrations just yet
             </h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              Discover Feather.so to turn your Notion content into an SEO
-              friendly blog. For Outrank users only, enjoy 25% off on Feather
-              subscriptions with code <strong>"OUTRANK"</strong>.
-            </p>
             <Link href="/integrations/new">
               <Button>Create Your First Integration</Button>
             </Link>
