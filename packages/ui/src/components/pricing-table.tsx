@@ -75,7 +75,7 @@ export default function Example() {
 
               <button
                 onClick={handleUpgrade}
-                disabled={isLoading || !productId}
+                disabled={!productId}
                 className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Loading...' : 'Start 3-day Trial'}

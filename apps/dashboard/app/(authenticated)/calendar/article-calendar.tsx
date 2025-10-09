@@ -261,7 +261,7 @@ export function ArticleCalendar() {
         </div>
 
         {/* Stats Summary */}
-        <div className="grid gap-4 md:grid-cols-4">
+        {/* <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -308,7 +308,7 @@ export function ArticleCalendar() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* Calendar Grid */}
         <div className="space-y-8">
