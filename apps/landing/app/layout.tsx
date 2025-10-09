@@ -1,35 +1,41 @@
-import { Geist, Geist_Mono } from 'next/font/google';
-import { Toaster } from '@workspace/ui/components/sonner';
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { Bricolage_Grotesque, Inter } from "next/font/google";
 
-import '@workspace/ui/globals.css';
-import './globals.css';
-import { Providers } from '@/components/providers';
+import "./css/style.css";
 
-const fontSans = Geist({
-  subsets: ['latin'],
-  variable: '--font-sans',
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
-const fontMono = Geist_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
+const bricolageGrotesque = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+  display: "swap",
 });
+
+export const metadata = {
+  title: "Lovarank | AI-powered SEO that works while you sleep",
+  description:
+    "A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.",
+};
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="scroll-smooth">
       <body
-        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased `}
+        className={`${inter.variable} ${bricolageGrotesque.variable} bg-gray-50 font-inter tracking-tight text-gray-900 antialiased`}
       >
-        <Providers>
+        <div className="flex min-h-screen flex-col overflow-hidden supports-[overflow:clip]:overflow-clip">
           {children}
-          <Toaster />
-        </Providers>
+        </div>
       </body>
+      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
     </html>
   );
 }
