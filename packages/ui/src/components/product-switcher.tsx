@@ -21,19 +21,11 @@ import {
 import useProducts from '../hooks/use-products';
 import useActiveProduct from '../hooks/use-active-product';
 import { switchProduct } from '@workspace/lib/server-actions/switch-product';
+import Link from 'next/link';
 
-export function ProductSwitcher({
-  teams,
-}: {
-  teams: {
-    name: string;
-    logo: React.ElementType;
-    plan: string;
-  }[];
-}) {
+export function ProductSwitcher({}: {}) {
   const productsQuery = useProducts();
   const { isMobile } = useSidebar();
-  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
   const currentProductQuery = useActiveProduct();
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -113,15 +105,17 @@ export function ProductSwitcher({
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                <Plus className="size-4" />
-              </div>
-              <div className="font-medium text-muted-foreground">
-                Add product
-              </div>
-            </DropdownMenuItem>
+            {/* <DropdownMenuSeparator />
+            <Link href="/onboarding">
+              <DropdownMenuItem className="gap-2 p-2">
+                <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+                  <Plus className="size-4" />
+                </div>
+                <div className="font-medium text-muted-foreground">
+                  Add product
+                </div>
+              </DropdownMenuItem>
+            </Link> */}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
