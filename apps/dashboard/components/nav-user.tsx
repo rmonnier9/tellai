@@ -41,14 +41,14 @@ export function NavUser({
     avatar: string;
   };
 }) {
-  const { isMobile } = useSidebar();
+  const { isMobile, open } = useSidebar();
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <div className="space-y-2">
-          <UserButton size={'full' as any} />
-          <TeamSwitcher />
+          <UserButton size={open ? 'default' : 'icon'} disableDefaultLinks />
+          {/* <TeamSwitcher /> */}
         </div>
         {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
