@@ -3,6 +3,8 @@
 import { Check, Info } from 'lucide-react';
 import { client } from '@workspace/auth/client';
 import useActiveProduct from '../hooks/use-active-product';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const leftFeatures = [
   '30 Articles a month generated and published on auto-pilot',
@@ -21,11 +23,21 @@ const rightFeatures = [
 ];
 
 export default function Example() {
-  const activeProductQuery = useActiveProduct();
+  const router = useRouter();
+  const activeProductQuery = useActiveProduct({
+    swrConfig: {
+      refreshInterval: 5000,
+    },
+  });
   const session = client.useSession();
 
   const isLoading = session.isPending || activeProductQuery.isLoading;
   const productId = activeProductQuery?.data?.id;
+  const hasAlreadySubscribed =
+    activeProductQuery?.data?.subscription?.status === 'active' ||
+    activeProductQuery?.data?.subscription?.status === 'trialing';
+
+  console.log('hasAlreadySubscribed', hasAlreadySubscribed);
 
   const handleUpgrade = async () => {
     // Get the latest product ID at the time of click
@@ -44,6 +56,12 @@ export default function Example() {
       // seats: 5, // Optional: for team plans
     });
   };
+
+  useEffect(() => {
+    if (hasAlreadySubscribed) {
+      router.replace('/');
+    }
+  }, [hasAlreadySubscribed]);
 
   return (
     <div className="max-w-7xl">

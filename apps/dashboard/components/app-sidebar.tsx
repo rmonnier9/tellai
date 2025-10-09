@@ -21,6 +21,7 @@ import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@workspace/ui/components/team-switcher';
 import { ProductSwitcher } from '@workspace/ui/components/product-switcher';
+import { ThemeModeToggle } from '@workspace/ui/components/theme-mode-toggle';
 import {
   Sidebar,
   SidebarContent,
@@ -180,7 +181,12 @@ const Logo = () => {
         })}
       />
       {open && (
-        <span className="text-lg font-extrabold font-display">Lovarank</span>
+        <>
+          <span className="text-lg font-extrabold font-display">Lovarank</span>
+          <div className="ml-auto">
+            <ThemeModeToggle />
+          </div>
+        </>
       )}
     </div>
   );
