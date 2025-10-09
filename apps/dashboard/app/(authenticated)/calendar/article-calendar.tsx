@@ -437,8 +437,15 @@ function DroppableDay({
   articleJobIds: Map<string, string>;
   onJobComplete: (articleId: string) => void;
 }) {
+  // Disable dropping if there are any generated or published articles on this day
+  const hasNonPendingArticles = dayArticles.some(
+    (article) =>
+      article.status === 'generated' || article.status === 'published'
+  );
+
   const { setNodeRef, isOver } = useDroppable({
     id: dateKey,
+    disabled: hasNonPendingArticles,
   });
 
   return (
@@ -448,7 +455,8 @@ function DroppableDay({
         min-h-[120px] p-2 border rounded-lg transition-colors
         ${isCurrentMonth ? 'bg-background' : 'bg-muted/30'}
         ${isToday ? 'border-primary border-2' : 'border-border'}
-        ${isOver ? 'bg-primary/10 border-primary' : ''}
+        ${isOver && !hasNonPendingArticles ? 'bg-primary/10 border-primary' : ''}
+        ${hasNonPendingArticles ? 'opacity-75' : ''}
       `}
     >
       <div className="flex items-center justify-between mb-2">
@@ -581,7 +589,9 @@ function ArticleCard({
           </span>
         </div>
         <p className="font-medium line-clamp-2 leading-tight">
-          {article.title || article.keyword}
+          {article.status === 'pending'
+            ? article.keyword
+            : article.title || article.keyword}
         </p>
         {article.searchVolume !== null && (
           <div className="flex items-center gap-1 text-muted-foreground">
@@ -684,7 +694,9 @@ function ArticleCardDragOverlay({ article }: { article: Article }) {
         </span>
       </div>
       <p className="font-medium line-clamp-2 leading-tight">
-        {article.title || article.keyword}
+        {article.status === 'pending'
+          ? article.keyword
+          : article.title || article.keyword}
       </p>
       {article.searchVolume !== null && (
         <div className="flex items-center gap-1 text-muted-foreground">

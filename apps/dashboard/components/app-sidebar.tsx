@@ -145,14 +145,14 @@ const data = {
   ],
   projects: [
     {
+      name: 'Content Calendar',
+      url: '/calendar',
+      icon: Calendar,
+    },
+    {
       name: 'Product Settings',
       url: '/settings',
       icon: Settings2,
-    },
-    {
-      name: 'Post Calendar',
-      url: '/calendar',
-      icon: Calendar,
     },
     {
       name: 'Integrations',
