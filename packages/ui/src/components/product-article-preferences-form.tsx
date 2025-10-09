@@ -19,6 +19,7 @@ import {
 import { Switch } from '@workspace/ui/components/switch';
 import { Input } from '@workspace/ui/components/input';
 import { UseFormReturn } from 'react-hook-form';
+import { cn } from '@workspace/ui/lib/utils';
 
 interface ProductArticlePreferencesFormProps {
   form: UseFormReturn<any>;
@@ -169,11 +170,20 @@ export function ProductArticlePreferencesForm({
                       key={style.value}
                       type="button"
                       onClick={() => field.onChange(style.value)}
-                      className={`relative rounded-lg border-2 p-2 transition-all ${
-                        field.value === style.value
-                          ? 'border-violet-600 bg-violet-600/10 ring-2 ring-violet-600/20'
-                          : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
-                      }`}
+                      // className={`relative rounded-lg border-2 p-2 transition-all ${
+                      //   field.value === style.value
+                      //     ? 'border-violet-600 bg-violet-600/10 ring-2 ring-violet-600/20'
+                      //     : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
+                      // }`}
+                      className={cn(
+                        `relative rounded-lg border-2 p-2 transition-all cursor-pointer`,
+                        {
+                          'border-pink-600 bg-pink-600/10 ring-2 ring-pink-600/20':
+                            field.value === style.value,
+                          'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/30':
+                            field.value !== style.value,
+                        }
+                      )}
                     >
                       <div className="aspect-video rounded bg-neutral-100 mb-2 flex items-center justify-center">
                         <span className="text-xs text-neutral-400">
@@ -183,7 +193,7 @@ export function ProductArticlePreferencesForm({
                       <div className="flex items-center justify-between gap-1">
                         <span
                           className={`text-xs font-medium ${
-                            field.value === style.value ? 'text-violet-600' : ''
+                            field.value === style.value ? 'text-pink-600' : ''
                           }`}
                         >
                           {style.label}

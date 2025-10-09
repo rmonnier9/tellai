@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from '@workspace/ui/components/form';
 import { Input } from '@workspace/ui/components/input';
-import { Card } from '@workspace/ui/components/card';
+import { Card, CardContent } from '@workspace/ui/components/card';
 
 import { OnboardingProductSchema } from '@workspace/lib/dtos';
 import { analyzeBusinessUrl } from '@workspace/lib/server-actions/analyze-business-url';
@@ -27,6 +27,7 @@ import { ProductBusinessInfoForm } from '@workspace/ui/components/product-busine
 import { ProductTargetAudienceForm } from '@workspace/ui/components/product-target-audience-form';
 import { ProductBlogContentForm } from '@workspace/ui/components/product-blog-content-form';
 import { ProductArticlePreferencesForm } from '@workspace/ui/components/product-article-preferences-form';
+import BrandCard from './brand-card';
 
 const steps = [
   { id: 1, name: 'Website', status: 'current' },
@@ -105,16 +106,64 @@ export function OnboardingForm() {
           'sitemapUrl',
         ]);
 
+        toast.success('Website analyzed successfully', {
+          description: "We've pre-filled your business information",
+        });
+
         setCurrentStep(2);
       } else if (result.status === 'failed') {
-        throw new Error(result.error?.message || 'Failed to analyze website');
+        const errorMessage =
+          result.error?.message || 'Failed to analyze website';
+
+        // Set form error
+        form.setError('url', {
+          message: errorMessage,
+        });
+
+        // Show toast notification for better visibility
+        toast.error('Analysis failed', {
+          description: errorMessage,
+        });
       } else {
-        throw new Error('Failed to analyze website');
+        const errorMessage =
+          'Unable to analyze website. Please ensure the URL is correct and the website is accessible.';
+
+        form.setError('url', {
+          message: errorMessage,
+        });
+
+        toast.error('Analysis failed', {
+          description: errorMessage,
+        });
       }
     } catch (error) {
       console.error('Error analyzing URL:', error);
+
+      // Determine error message based on error type
+      let errorMessage = 'Failed to analyze website. Please try again.';
+
+      if (error instanceof Error) {
+        // Check for network errors
+        if (
+          error.message.includes('fetch') ||
+          error.message.includes('network')
+        ) {
+          errorMessage =
+            'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage =
+            'Request timed out. The website might be slow to respond.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      }
+
       form.setError('url', {
-        message: 'Failed to analyze website. Please try again.',
+        message: errorMessage,
+      });
+
+      toast.error('Analysis failed', {
+        description: errorMessage,
       });
     } finally {
       setIsAnalyzing(false);
@@ -165,31 +214,138 @@ export function OnboardingForm() {
     }
   };
 
+  // Get current step details
+  const currentStepInfo = steps.find((step) => step.id === currentStep);
+  const progressValue = ((currentStep - 1) / (steps.length - 1)) * 100;
+
   return (
     <div className="mx-auto w-full max-w-4xl space-y-8 py-8">
-      {/* Step Progress */}
-      <nav aria-label="Progress">
-        <ol role="list" className="flex items-center justify-center space-x-5">
+      {/* Previous Step Progress - Commented Out */}
+      {/* <nav aria-label="Progress" className="px-4">
+        <ol role="list" className="flex items-center justify-between">
           {steps.map((step, stepIdx) => (
-            <li key={step.name} className="flex items-center">
-              {stepIdx > 0 && (
-                <div className="mr-5 h-0.5 w-16 bg-neutral-200" />
+            <li key={step.name} className="relative flex flex-1 items-center">
+              {stepIdx !== 0 && (
+                <div className="absolute right-1/2 top-5 -z-10 w-full">
+                  <div className="h-0.5 w-full bg-border">
+                    <div
+                      className="h-full bg-primary transition-all duration-500 ease-out"
+                      style={{
+                        width: currentStep > step.id ? '100%' : '0%',
+                      }}
+                    />
+                  </div>
+                </div>
               )}
-              <div
-                className={`flex items-center rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap ${
-                  currentStep === step.id
-                    ? 'bg-primary-600 text-white'
-                    : currentStep > step.id
-                      ? 'bg-primary-100 text-primary-600'
-                      : 'bg-neutral-100 text-neutral-500'
-                }`}
-              >
-                <span className="mr-2">{step.id}</span>
-                <span className="whitespace-nowrap">{step.name}</span>
+              <div className="flex w-full flex-col items-center gap-2">
+                <div className="relative flex items-center justify-center">
+                  <div
+                    className={`
+                      relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 
+                      transition-all duration-300 ease-out
+                      ${
+                        currentStep === step.id
+                          ? 'border-primary bg-primary shadow-lg shadow-primary/30 scale-110'
+                          : currentStep > step.id
+                            ? 'border-primary bg-primary'
+                            : 'border-border bg-background'
+                      }
+                    `}
+                  >
+                    {currentStep > step.id && (
+                      <Check className="h-5 w-5 text-primary-foreground animate-in zoom-in-50 duration-300" />
+                    )}
+                    {currentStep <= step.id && (
+                      <span
+                        className={`
+                          text-sm font-semibold transition-colors duration-300
+                          ${
+                            currentStep === step.id
+                              ? 'text-primary-foreground'
+                              : 'text-muted-foreground'
+                          }
+                        `}
+                      >
+                        {step.id}
+                      </span>
+                    )}
+                  </div>
+                  {currentStep === step.id && (
+                    <div className="absolute inset-0 -z-10 animate-pulse">
+                      <div className="h-full w-full rounded-full bg-primary/20" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col items-center">
+                  <span
+                    className={`
+                      text-xs font-medium transition-all duration-300 text-center
+                      ${
+                        currentStep === step.id
+                          ? 'text-foreground scale-105'
+                          : currentStep > step.id
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                      }
+                    `}
+                  >
+                    {step.name}
+                  </span>
+                </div>
               </div>
             </li>
           ))}
         </ol>
+      </nav> */}
+
+      {/* New Circular Step Progress */}
+      <nav aria-label="Progress" className="px-4">
+        <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
+          <div>
+            <span className="text-5xl md:text-8xl font-bold font-display">
+              {currentStep}
+            </span>
+          </div>
+
+          {/* Step Information */}
+          <div className="flex-1 space-y-2 text-center sm:text-left">
+            <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              {currentStepInfo?.name}
+            </h3>
+            <p className="text-sm text-muted-foreground sm:text-base">
+              {currentStep === 1 &&
+                "We'll analyze your website to pre-fill your business information"}
+              {currentStep === 2 &&
+                'Based on your website, verify and complete your business details'}
+              {currentStep === 3 &&
+                'Understanding your audience ensures we generate the most effective keywords'}
+              {currentStep === 4 &&
+                'Share your content details to help us create relevant blog posts'}
+              {currentStep === 5 &&
+                'Set your preferences to ensure all articles maintain your quality standards'}
+            </p>
+
+            {/* Step Indicators */}
+            <div className="flex items-center justify-center gap-2 pt-2 sm:justify-start">
+              {steps.map((step) => (
+                <div
+                  key={step.id}
+                  className={`
+                    h-1.5 rounded-full transition-all duration-500
+                    ${
+                      step.id === currentStep
+                        ? 'w-8 bg-primary'
+                        : step.id < currentStep
+                          ? 'w-6 bg-primary/60'
+                          : 'w-4 bg-muted'
+                    }
+                  `}
+                  aria-label={`Step ${step.id}: ${step.name}${step.id === currentStep ? ' (current)' : step.id < currentStep ? ' (completed)' : ''}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </nav>
 
       {/* Form Content */}
