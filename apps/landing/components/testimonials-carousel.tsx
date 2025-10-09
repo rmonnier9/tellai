@@ -1,46 +1,46 @@
-import Testimonial from "@/components/testimonial";
-import TestimonialImg01 from "@/public/images/testimonial-01.jpg";
-import TestimonialImg02 from "@/public/images/testimonial-02.jpg";
-import TestimonialImg03 from "@/public/images/testimonial-03.jpg";
-import TestimonialImg04 from "@/public/images/testimonial-04.jpg";
+import Testimonial from '@/components/testimonial';
+import TestimonialImg01 from '@/public/images/testimonial-01.jpg';
+import TestimonialImg02 from '@/public/images/testimonial-02.jpg';
+import TestimonialImg03 from '@/public/images/testimonial-03.jpg';
+import TestimonialImg04 from '@/public/images/testimonial-04.jpg';
 
 export default function TestimonialsCarousel() {
   const testimonials = [
     {
       img: TestimonialImg01,
-      name: "Peter Lowe",
-      username: "@peterlowex",
-      date: "May 19, 2027",
+      name: 'Peter Lowe',
+      username: '@peterlowex',
+      date: 'May 19, 2027',
       content:
         "As a founder, having a visually appealing and user-friendly website is essential. This tool not only helped me achieve that but also improved my site's performance and SEO.",
-      channel: "Twitter",
+      channel: 'Twitter',
     },
     {
       img: TestimonialImg02,
-      name: "Rodri Alba",
-      username: "@rodri_spn",
-      date: "Apr 12, 2027",
+      name: 'Rodri Alba',
+      username: '@rodri_spn',
+      date: 'Apr 12, 2027',
       content:
         "Simple has revolutionized the way I manage my work. Its intuitive interface and seamless functionality make staying organized effortless. I can't imagine my life without it.",
-      channel: "Twitter",
+      channel: 'Twitter',
     },
     {
       img: TestimonialImg03,
-      name: "Michele Lex",
-      username: "@MikyBrown",
-      date: "Mar 04, 2027",
+      name: 'Michele Lex',
+      username: '@MikyBrown',
+      date: 'Mar 04, 2027',
       content:
         "I've tried several website builders before, but none were as user-friendly and versatile as this one. From design to functionality, it exceeded my expectations!",
-      channel: "Twitter",
+      channel: 'Twitter',
     },
     {
       img: TestimonialImg04,
-      name: "Michael Ross",
-      username: "@michjack",
-      date: "Jan 15, 2027",
+      name: 'Michael Ross',
+      username: '@michjack',
+      date: 'Jan 15, 2027',
       content:
         "Simple lives up to its name in every way. It's incredibly easy to use yet powerful enough to handle all my tasks effortlessly. It's become an essential part of my daily routine.",
-      channel: "Twitter",
+      channel: 'Twitter',
     },
   ];
 
@@ -59,10 +59,10 @@ export default function TestimonialsCarousel() {
             className="absolute bottom-20 -z-10 -translate-x-36"
             aria-hidden="true"
           >
-            <div className="h-80 w-80 rounded-full bg-linear-to-tr from-blue-500 to-gray-900 opacity-30 blur-[160px] will-change-[filter]" />
+            <div className="h-80 w-80 rounded-full bg-linear-to-tr from-pink-500 to-gray-900 opacity-30 blur-[160px] will-change-[filter]" />
           </div>
           <div className="absolute -bottom-10 -z-10" aria-hidden="true">
-            <div className="h-80 w-80 rounded-full bg-blue-500 opacity-40 blur-[160px] will-change-[filter]" />
+            <div className="h-80 w-80 rounded-full bg-pink-500 opacity-40 blur-[160px] will-change-[filter]" />
           </div>
           <div className="absolute bottom-0 -z-10" aria-hidden="true">
             <div className="h-56 w-56 rounded-full border-[20px] border-white blur-[20px] will-change-[filter]" />

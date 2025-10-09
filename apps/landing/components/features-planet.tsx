@@ -1,10 +1,10 @@
-import Image from "next/image";
-import PlanetImg from "@/public/images/planet.png";
-import PlanetOverlayImg from "@/public/images/planet-overlay.svg";
-import PlanetTagImg01 from "@/public/images/planet-tag-01.png";
-import PlanetTagImg02 from "@/public/images/planet-tag-02.png";
-import PlanetTagImg03 from "@/public/images/planet-tag-03.png";
-import PlanetTagImg04 from "@/public/images/planet-tag-04.png";
+import Image from 'next/image';
+import PlanetImg from '@/public/images/planet.png';
+import PlanetOverlayImg from '@/public/images/planet-overlay.svg';
+import PlanetTagImg01 from '@/public/images/planet-tag-01.png';
+import PlanetTagImg02 from '@/public/images/planet-tag-02.png';
+import PlanetTagImg03 from '@/public/images/planet-tag-03.png';
+import PlanetTagImg04 from '@/public/images/planet-tag-04.png';
 
 export default function FeaturesPlanet() {
   return (
@@ -20,7 +20,7 @@ export default function FeaturesPlanet() {
           {/* Planet */}
           <div className="pb-16 md:pb-20" data-aos="zoom-y-out">
             <div className="text-center">
-              <div className="relative inline-flex rounded-full before:absolute before:inset-0 before:-z-10 before:scale-[.85] before:animate-[pulse_4s_cubic-bezier(.4,0,.6,1)_infinite] before:bg-linear-to-b before:from-blue-900 before:to-sky-700/50 before:blur-3xl after:absolute after:inset-0 after:rounded-[inherit] after:[background:radial-gradient(closest-side,var(--color-blue-500),transparent)]">
+              <div className="relative inline-flex rounded-full before:absolute before:inset-0 before:-z-10 before:scale-[.85] before:animate-[pulse_4s_cubic-bezier(.4,0,.6,1)_infinite] before:bg-linear-to-b before:from-pink-900 before:to-sky-700/50 before:blur-3xl after:absolute after:inset-0 after:rounded-[inherit] after:[background:radial-gradient(closest-side,var(--color-pink-500),transparent)]">
                 <Image
                   className="rounded-full bg-gray-900"
                   src={PlanetImg}
@@ -75,7 +75,7 @@ export default function FeaturesPlanet() {
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-pink-500"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -93,7 +93,7 @@ export default function FeaturesPlanet() {
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-pink-500"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -111,7 +111,7 @@ export default function FeaturesPlanet() {
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-pink-500"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -133,7 +133,7 @@ export default function FeaturesPlanet() {
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-pink-500"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -151,7 +151,7 @@ export default function FeaturesPlanet() {
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-pink-500"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}
@@ -169,7 +169,7 @@ export default function FeaturesPlanet() {
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-pink-500"
                   xmlns="http://www.w3.org/2000/svg"
                   width={16}
                   height={16}

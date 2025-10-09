@@ -1,11 +1,11 @@
-import Link from "next/link";
-import Image from "next/image";
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function PostItem({ ...props }) {
   return (
     <article className="pl-6 sm:pl-10">
       <header className="mb-2">
-        <div className="relative mb-2 flex items-center gap-2 before:absolute before:inset-y-0 before:-left-6 before:-ml-px before:w-px before:bg-blue-500 sm:before:-left-10">
+        <div className="relative mb-2 flex items-center gap-2 before:absolute before:inset-y-0 before:-left-6 before:-ml-px before:w-px before:bg-pink-500 sm:before:-left-10">
           <Image
             className="rounded-full"
             src={props.metadata.authorImg}
@@ -24,10 +24,10 @@ export default function PostItem({ ...props }) {
       <p className="mb-4 text-gray-700">{props.metadata.summary}</p>
       <footer>
         <Link
-          className="text-sm font-medium text-blue-500 transition-colors hover:text-blue-600"
+          className="text-sm font-medium text-pink-500 transition-colors hover:text-pink-600"
           href={`/blog/${props.slug}`}
         >
-          Read more <span className="tracking-normal text-blue-300">-&gt;</span>
+          Read more <span className="tracking-normal text-pink-300">-&gt;</span>
         </Link>
       </footer>
     </article>

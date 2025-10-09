@@ -1,13 +1,13 @@
-import PageIllustration from "@/components/page-illustration";
-import Avatar01 from "@/public/images/avatar-01.jpg";
-import Avatar02 from "@/public/images/avatar-02.jpg";
-import Avatar03 from "@/public/images/avatar-03.jpg";
-import Avatar04 from "@/public/images/avatar-04.jpg";
-import Avatar05 from "@/public/images/avatar-05.jpg";
-import Avatar06 from "@/public/images/avatar-06.jpg";
-import Image from "next/image";
-import Logos from "./logos";
-import WaitlistForm from "./waitlist-form";
+import PageIllustration from '@/components/page-illustration';
+import Avatar01 from '@/public/images/avatar-01.jpg';
+import Avatar02 from '@/public/images/avatar-02.jpg';
+import Avatar03 from '@/public/images/avatar-03.jpg';
+import Avatar04 from '@/public/images/avatar-04.jpg';
+import Avatar05 from '@/public/images/avatar-05.jpg';
+import Avatar06 from '@/public/images/avatar-06.jpg';
+import Image from 'next/image';
+import Logos from './logos';
+import WaitlistForm from './waitlist-form';
 
 export default function HeroHome() {
   return (
@@ -45,12 +45,12 @@ export default function HeroHome() {
                   <WaitlistForm />
 
                   {/* <a
-                    className="btn group mb-4 w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
+                    className="btn group mb-4 w-full bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
                     href="#0"
                   >
                     <span className="relative inline-flex items-center">
                       Start Free Trial{" "}
-                      <span className="ml-1 tracking-normal text-blue-300 transition-transform group-hover:translate-x-0.5">
+                      <span className="ml-1 tracking-normal text-pink-300 transition-transform group-hover:translate-x-0.5">
                         -&gt;
                       </span>
                     </span>

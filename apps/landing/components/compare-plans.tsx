@@ -1,4 +1,4 @@
-import Tooltip from "@/components/tooltip";
+import Tooltip from '@/components/tooltip';
 
 export default function ComparePlans() {
   return (
@@ -180,7 +180,7 @@ export default function ComparePlans() {
                   <div className="mb-5 font-medium">Hobby</div>
                   <div>
                     <a
-                      className="btn-sm w-full rounded-lg bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] py-1.5 text-white shadow-sm hover:bg-[length:100%_150%]"
+                      className="btn-sm w-full rounded-lg bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] py-1.5 text-white shadow-sm hover:bg-[length:100%_150%]"
                       href="#0"
                     >
                       Free trial
@@ -287,7 +287,7 @@ export default function ComparePlans() {
                   <div className="mb-5 font-medium">Basic</div>
                   <div>
                     <a
-                      className="btn-sm w-full rounded-lg bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] py-1.5 text-white shadow-sm hover:bg-[length:100%_150%]"
+                      className="btn-sm w-full rounded-lg bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] py-1.5 text-white shadow-sm hover:bg-[length:100%_150%]"
                       href="#0"
                     >
                       Free trial
@@ -402,7 +402,7 @@ export default function ComparePlans() {
                   <div className="mb-5 font-medium text-gray-200">Business</div>
                   <div>
                     <a
-                      className="btn-sm w-full rounded-lg bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] py-1.5 text-white shadow-sm hover:bg-[length:100%_150%]"
+                      className="btn-sm w-full rounded-lg bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] py-1.5 text-white shadow-sm hover:bg-[length:100%_150%]"
                       href="#0"
                     >
                       Free trial
@@ -529,7 +529,7 @@ export default function ComparePlans() {
                   <div className="mb-5 font-medium">Enterprise</div>
                   <div>
                     <a
-                      className="btn-sm w-full rounded-lg bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] py-1.5 text-white shadow-sm hover:bg-[length:100%_150%]"
+                      className="btn-sm w-full rounded-lg bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] py-1.5 text-white shadow-sm hover:bg-[length:100%_150%]"
                       href="#0"
                     >
                       Free trial

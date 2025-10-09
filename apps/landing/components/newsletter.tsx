@@ -26,7 +26,7 @@ export default function Newsletter() {
             />
           </div>
           <button
-            className="btn whitespace-nowrap bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%]"
+            className="btn whitespace-nowrap bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%]"
             type="submit"
           >
             Subscribe

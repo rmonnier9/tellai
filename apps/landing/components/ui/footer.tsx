@@ -1,5 +1,5 @@
-import Link from "next/link";
-import Logo from "./logo";
+import Link from 'next/link';
+import Logo from './logo';
 
 export default function Footer({ border = false }: { border?: boolean }) {
   return (
@@ -9,8 +9,8 @@ export default function Footer({ border = false }: { border?: boolean }) {
         <div
           className={`grid gap-10 py-8 sm:grid-cols-12 md:py-12 ${
             border
-              ? "border-t [border-image:linear-gradient(to_right,transparent,var(--color-slate-200),transparent)1]"
-              : ""
+              ? 'border-t [border-image:linear-gradient(to_right,transparent,var(--color-slate-200),transparent)1]'
+              : ''
           }`}
         >
           <div className="space-y-2 sm:col-span-12 lg:col-span-4">
@@ -141,7 +141,7 @@ export default function Footer({ border = false }: { border?: boolean }) {
             <ul className="flex gap-1">
               <li>
                 <Link
-                  className="flex items-center justify-center text-blue-500 transition hover:text-blue-600"
+                  className="flex items-center justify-center text-pink-500 transition hover:text-pink-600"
                   href="https://www.linkedin.com/company/lovarank/"
                   aria-label="Linkedin"
                   target="_blank"
@@ -158,7 +158,7 @@ export default function Footer({ border = false }: { border?: boolean }) {
               </li>
               {/* <li>
                 <Link
-                  className="flex items-center justify-center text-blue-500 transition hover:text-blue-600"
+                  className="flex items-center justify-center text-pink-500 transition hover:text-pink-600"
                   href="#0"
                   aria-label="Medium"
                 >
@@ -173,7 +173,7 @@ export default function Footer({ border = false }: { border?: boolean }) {
               </li>
               <li>
                 <Link
-                  className="flex items-center justify-center text-blue-500 transition hover:text-blue-600"
+                  className="flex items-center justify-center text-pink-500 transition hover:text-pink-600"
                   href="#0"
                   aria-label="Github"
                 >
@@ -197,7 +197,7 @@ export default function Footer({ border = false }: { border?: boolean }) {
           className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-2/3"
           aria-hidden="true"
         >
-          <div className="h-56 w-56 rounded-full border-[20px] border-blue-700 blur-[80px] will-change-[filter]"></div>
+          <div className="h-56 w-56 rounded-full border-[20px] border-pink-700 blur-[80px] will-change-[filter]"></div>
         </div>
       </div> */}
     </footer>

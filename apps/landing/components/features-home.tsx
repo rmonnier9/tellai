@@ -5,7 +5,7 @@ import {
   LanguagesIcon,
   RefreshCcwIcon,
   SquarePenIcon,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function FeaturesHome() {
   return (
@@ -14,7 +14,7 @@ export default function FeaturesHome() {
         className="absolute left-1/2 top-0 -z-10 -translate-x-1/2 -translate-y-1/2"
         aria-hidden="true"
       >
-        <div className="h-80 w-80 rounded-full bg-linear-to-tr from-blue-500 to-gray-900 opacity-40 blur-[160px] will-change-[filter]" />
+        <div className="h-80 w-80 rounded-full bg-linear-to-tr from-pink-500 to-gray-900 opacity-40 blur-[160px] will-change-[filter]" />
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="py-12 md:py-20">
@@ -33,7 +33,7 @@ export default function FeaturesHome() {
             data-aos="zoom-y-out"
           >
             <div className="absolute bottom-0 -z-10" aria-hidden="true">
-              <div className="h-80 w-80 rounded-full bg-blue-500 opacity-70 blur-[160px] will-change-[filter]" />
+              <div className="h-80 w-80 rounded-full bg-pink-500 opacity-70 blur-[160px] will-change-[filter]" />
             </div>
             <div className="aspect-video w-full -rotate-1 rounded-2xl bg-gray-900 px-5 py-3 shadow-xl transition duration-300 group-hover:-rotate-0">
               <div className="relative mb-8 flex items-center justify-between before:block before:h-[9px] before:w-[41px] before:bg-[length:16px_9px] before:[background-image:radial-gradient(circle_at_4.5px_4.5px,var(--color-gray-600)_4.5px,transparent_0)] after:w-[41px]">
@@ -94,7 +94,7 @@ export default function FeaturesHome() {
           <div className="grid overflow-hidden border-y [border-image:linear-gradient(to_right,transparent,var(--color-slate-200),transparent)1] lg:grid-cols-3 *:relative *:p-6 *:before:absolute *:before:bg-linear-to-b *:before:from-transparent *:before:via-gray-200 *:before:[block-size:100%] *:before:[inline-size:1px] *:before:[inset-block-start:0] *:before:[inset-inline-start:-1px] md:*:px-10 md:*:py-12">
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
-                <LanguagesIcon className="text-blue-500" />
+                <LanguagesIcon className="text-pink-500" />
                 <span>Keyword Discovery</span>
               </h3>
               <p className="text-[15px] text-gray-700">
@@ -104,7 +104,7 @@ export default function FeaturesHome() {
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
-                <CogIcon className="text-blue-500" />
+                <CogIcon className="text-pink-500" />
                 <span>SEO Optimization</span>
               </h3>
               <p className="text-[15px] text-gray-700">
@@ -114,7 +114,7 @@ export default function FeaturesHome() {
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
-                <BotIcon className="text-blue-500" />
+                <BotIcon className="text-pink-500" />
                 <span>AI Search Optimization</span>
               </h3>
               <p className="text-[15px] text-gray-700">
@@ -124,7 +124,7 @@ export default function FeaturesHome() {
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
-                <CalendarCheckIcon className="text-blue-500" />
+                <CalendarCheckIcon className="text-pink-500" />
                 <span>Content Calendar</span>
               </h3>
               <p className="text-[15px] text-gray-700">
@@ -134,7 +134,7 @@ export default function FeaturesHome() {
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
-                <RefreshCcwIcon className="text-blue-500" />
+                <RefreshCcwIcon className="text-pink-500" />
                 <span>Sync with Wordpress, Webflow</span>
               </h3>
               <p className="text-[15px] text-gray-700">
@@ -144,7 +144,7 @@ export default function FeaturesHome() {
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
-                <SquarePenIcon className="text-blue-500" />
+                <SquarePenIcon className="text-pink-500" />
                 <span>Edit articles</span>
               </h3>
               <p className="text-[15px] text-gray-700">

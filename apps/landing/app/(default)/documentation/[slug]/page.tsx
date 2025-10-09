@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
-import { getDocPages } from "@/components/mdx/utils";
-import { notFound } from "next/navigation";
-import { CustomMDX } from "@/components/mdx/mdx";
-import PageIllustration from "@/components/page-illustration";
-import DocumentationProvider from "./documentation-provider";
-import Sidebar from "./sidebar";
-import Hamburger from "./hamburger";
-import PageNavigation from "@/components/page-navigation";
+import type { Metadata } from 'next';
+import { getDocPages } from '@/components/mdx/utils';
+import { notFound } from 'next/navigation';
+import { CustomMDX } from '@/components/mdx/mdx';
+import PageIllustration from '@/components/page-illustration';
+import DocumentationProvider from './documentation-provider';
+import Sidebar from './sidebar';
+import Hamburger from './hamburger';
+import PageNavigation from '@/components/page-navigation';
 
 function updatedDate(dateString: string) {
   const date = new Date(dateString);
@@ -15,27 +15,25 @@ function updatedDate(dateString: string) {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays < 2) {
-    return "Updated 1 day ago";
+    return 'Updated 1 day ago';
   } else if (diffDays < 30) {
     return `Updated ${diffDays} days ago`;
   } else if (diffDays < 365) {
     const diffMonths = Math.floor(diffDays / 30);
     return diffMonths > 1
       ? `Updated ${diffMonths} months ago`
-      : "Updated 1 month ago";
+      : 'Updated 1 month ago';
   } else {
     const diffYears = Math.floor(diffDays / 365);
     return diffYears > 1
       ? `Updated ${diffYears} years ago`
-      : "Updated 1 year ago";
+      : 'Updated 1 year ago';
   }
 }
 
-export async function generateMetadata(
-  props: {
-    params: Promise<{ slug: string }>;
-  }
-): Promise<Metadata | undefined> {
+export async function generateMetadata(props: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata | undefined> {
   const params = await props.params;
   const post = getDocPages().find((post) => post.slug === params.slug);
 
@@ -51,11 +49,9 @@ export async function generateMetadata(
   };
 }
 
-export default async function DocumentationPage(
-  props: {
-    params: Promise<{ slug: string }>;
-  }
-) {
+export default async function DocumentationPage(props: {
+  params: Promise<{ slug: string }>;
+}) {
   const params = await props.params;
   const allDocs = getDocPages();
   // Sort pages by date
@@ -120,7 +116,7 @@ export default async function DocumentationPage(
                             {post.metadata.summary}
                           </p>
                         </header>
-                        <div className="prose max-w-none text-gray-700 prose-headings:scroll-mt-24 prose-headings:font-bold prose-headings:text-gray-900 prose-a:font-medium prose-a:text-blue-500 prose-a:no-underline hover:prose-a:underline prose-strong:font-medium prose-strong:text-gray-900 prose-code:rounded prose-code:bg-transparent prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-gray-900 prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:border prose-pre:border-gray-700 prose-pre:bg-gray-900">
+                        <div className="prose max-w-none text-gray-700 prose-headings:scroll-mt-24 prose-headings:font-bold prose-headings:text-gray-900 prose-a:font-medium prose-a:text-pink-500 prose-a:no-underline hover:prose-a:underline prose-strong:font-medium prose-strong:text-gray-900 prose-code:rounded prose-code:bg-transparent prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-gray-900 prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:border prose-pre:border-gray-700 prose-pre:bg-gray-900">
                           <CustomMDX source={post.content} />
                         </div>
                       </div>

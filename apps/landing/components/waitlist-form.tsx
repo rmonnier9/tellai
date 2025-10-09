@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { submitWaitlist } from "../lib/actions";
+import { useEffect, useState } from 'react';
+import { submitWaitlist } from '../lib/actions';
 import {
   getUTMParametersWithFallback,
   storeUTMParameters,
   UTMParameters,
-} from "../utils/utm";
+} from '../utils/utm';
 
 export default function WaitlistForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [utmParams, setUtmParams] = useState<UTMParameters>({});
   const [message, setMessage] = useState<{
-    type: "success" | "error";
+    type: 'success' | 'error';
     text: string;
   } | null>(null);
 
@@ -36,8 +36,8 @@ export default function WaitlistForm() {
           e.preventDefault();
           if (email.length === 0) {
             setMessage({
-              type: "error",
-              text: "Please enter your email address",
+              type: 'error',
+              text: 'Please enter your email address',
             });
             return;
           }
@@ -48,21 +48,21 @@ export default function WaitlistForm() {
 
             if (result.success) {
               setMessage({
-                type: "success",
-                text: result.message || "Successfully joined the waitlist!",
+                type: 'success',
+                text: result.message || 'Successfully joined the waitlist!',
               });
-              setEmail("");
+              setEmail('');
             } else {
               setMessage({
-                type: "error",
-                text: result.error || "Something went wrong. Please try again.",
+                type: 'error',
+                text: result.error || 'Something went wrong. Please try again.',
               });
             }
           } catch (error) {
             console.error(error);
             setMessage({
-              type: "error",
-              text: "Something went wrong. Please try again.",
+              type: 'error',
+              text: 'Something went wrong. Please try again.',
             });
           } finally {
             setIsLoading(false);
@@ -71,7 +71,7 @@ export default function WaitlistForm() {
       >
         <input
           name="email"
-          className="bg-white text-base px-4 py-3 rounded-lg flex-1 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="bg-white text-base px-4 py-3 rounded-lg flex-1 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
           type="email"
           placeholder="Enter your email"
           value={email}
@@ -82,7 +82,7 @@ export default function WaitlistForm() {
           type="submit"
           disabled={isLoading}
         >
-          {isLoading ? "Joining..." : "Get Early Access"}{" "}
+          {isLoading ? 'Joining...' : 'Get Early Access'}{' '}
           <span className="ml-1 tracking-normal text-pink-300 transition-transform group-hover:translate-x-0.5">
             -&gt;
           </span>
@@ -91,9 +91,9 @@ export default function WaitlistForm() {
       {message && (
         <div
           className={`mt-4 p-3 rounded-lg text-sm ${
-            message.type === "success"
-              ? "bg-green-50 text-green-800 border border-green-200"
-              : "bg-red-50 text-red-800 border border-red-200"
+            message.type === 'success'
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
           }`}
         >
           {message.text}

@@ -1,6 +1,6 @@
-import Stripes from "@/public/images/stripes-dark.svg";
-import Image from "next/image";
-import WaitlistForm from "./waitlist-form";
+import Stripes from '@/public/images/stripes-dark.svg';
+import Image from 'next/image';
+import WaitlistForm from './waitlist-form';
 
 export default function Cta() {
   return (
@@ -15,7 +15,7 @@ export default function Cta() {
             className="absolute bottom-0 left-1/2 -z-10 -translate-x-1/2 translate-y-1/2"
             aria-hidden="true"
           >
-            <div className="h-56 w-[480px] rounded-full border-[20px] border-blue-500 blur-3xl will-change-[filter]" />
+            <div className="h-56 w-[480px] rounded-full border-[20px] border-pink-500 blur-3xl will-change-[filter]" />
           </div>
           {/* Stripes illustration */}
           <div
@@ -31,12 +31,12 @@ export default function Cta() {
             <div className="mx-auto max-w-xs sm:flex sm:max-w-none sm:justify-center">
               <WaitlistForm />
               {/* <a
-                className="btn group mb-4 w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
+                className="btn group mb-4 w-full bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
                 href="#0"
               >
                 <span className="relative inline-flex items-center">
                   Start Free Trial{" "}
-                  <span className="ml-1 tracking-normal text-blue-300 transition-transform group-hover:translate-x-0.5">
+                  <span className="ml-1 tracking-normal text-pink-300 transition-transform group-hover:translate-x-0.5">
                     -&gt;
                   </span>
                 </span>

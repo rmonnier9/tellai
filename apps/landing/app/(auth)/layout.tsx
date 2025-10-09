@@ -1,6 +1,6 @@
-import Image from "next/image";
-import Logo from "@/components/ui/logo";
-import AuthBg from "@/public/images/auth-bg.svg";
+import Image from 'next/image';
+import Logo from '@/components/ui/logo';
+import AuthBg from '@/public/images/auth-bg.svg';
 
 export default function AuthLayout({
   children,
@@ -25,7 +25,7 @@ export default function AuthLayout({
           className="pointer-events-none absolute bottom-0 left-0 -translate-x-1/3"
           aria-hidden="true"
         >
-          <div className="h-80 w-80 rounded-full bg-linear-to-tr from-blue-500 opacity-70 blur-[160px] will-change-[filter]"></div>
+          <div className="h-80 w-80 rounded-full bg-linear-to-tr from-pink-500 opacity-70 blur-[160px] will-change-[filter]"></div>
         </div>
 
         {/* Content */}
@@ -44,7 +44,7 @@ export default function AuthLayout({
           <div className="relative my-6 mr-6 hidden w-[572px] shrink-0 overflow-hidden rounded-2xl lg:block">
             {/* Background */}
             <div
-              className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -ml-24 -translate-x-1/2 -translate-y-1/2 bg-blue-50"
+              className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -ml-24 -translate-x-1/2 -translate-y-1/2 bg-pink-50"
               aria-hidden="true"
             >
               <Image
@@ -66,14 +66,14 @@ export default function AuthLayout({
                 <div className="font-mono text-sm text-gray-500 transition duration-300 [&_span]:opacity-0">
                   <span className="animate-[code-1_10s_infinite] text-gray-200">
                     npm login
-                  </span>{" "}
+                  </span>{' '}
                   <span className="animate-[code-2_10s_infinite]">
                     --registry=https://npm.pkg.github.com
                   </span>
                   <br />
                   <span className="animate-[code-3_10s_infinite]">
                     --scope=@phanatic
-                  </span>{" "}
+                  </span>{' '}
                   <span className="animate-[code-4_10s_infinite]">
                     Successfully logged-in.
                   </span>

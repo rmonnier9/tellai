@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useRef, useState, Fragment } from "react";
-import Image from "next/image";
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { Transition } from "@headlessui/react";
-import Logo01 from "@/public/images/logo-01.svg";
-import Logo02 from "@/public/images/logo-02.svg";
-import Logo03 from "@/public/images/logo-03.svg";
-import Logo04 from "@/public/images/logo-04.svg";
-import Logo05 from "@/public/images/logo-05.svg";
-import Logo06 from "@/public/images/logo-06.svg";
-import Logo07 from "@/public/images/logo-07.svg";
-import Logo08 from "@/public/images/logo-08.svg";
-import Logo09 from "@/public/images/logo-09.svg";
+import { useRef, useState, Fragment } from 'react';
+import Image from 'next/image';
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
+import { Transition } from '@headlessui/react';
+import Logo01 from '@/public/images/logo-01.svg';
+import Logo02 from '@/public/images/logo-02.svg';
+import Logo03 from '@/public/images/logo-03.svg';
+import Logo04 from '@/public/images/logo-04.svg';
+import Logo05 from '@/public/images/logo-05.svg';
+import Logo06 from '@/public/images/logo-06.svg';
+import Logo07 from '@/public/images/logo-07.svg';
+import Logo08 from '@/public/images/logo-08.svg';
+import Logo09 from '@/public/images/logo-09.svg';
 
 export default function BusinessCategories() {
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -28,10 +28,10 @@ export default function BusinessCategories() {
               <TabList className="relative mb-8 inline-flex flex-wrap justify-center rounded-xl bg-white p-2 shadow-lg shadow-black/[0.03] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:border before:border-transparent before:[background:linear-gradient(var(--color-gray-100),var(--color-gray-200))_border-box] before:[mask-composite:exclude_!important] before:[mask:linear-gradient(white_0_0)_padding-box,_linear-gradient(white_0_0)] max-[480px]:max-w-[180px] min-[480px]:mb-12">
                 <Tab as={Fragment}>
                   <button
-                    className={`ui-focus-visible:outline-none ui-focus-visible:ring ui-focus-visible:ring-blue-300 flex h-8 flex-1 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-hidden ${selectedTab === 0 ? "bg-gray-800 text-gray-200" : "text-gray-700"}`}
+                    className={`ui-focus-visible:outline-none ui-focus-visible:ring ui-focus-visible:ring-pink-300 flex h-8 flex-1 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-hidden ${selectedTab === 0 ? 'bg-gray-800 text-gray-200' : 'text-gray-700'}`}
                   >
                     <svg
-                      className={`fill-current ${selectedTab === 0 ? "text-gray-400" : "text-gray-500"}`}
+                      className={`fill-current ${selectedTab === 0 ? 'text-gray-400' : 'text-gray-500'}`}
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
@@ -43,10 +43,10 @@ export default function BusinessCategories() {
                 </Tab>
                 <Tab as={Fragment}>
                   <button
-                    className={`ui-focus-visible:outline-none ui-focus-visible:ring ui-focus-visible:ring-blue-300 flex h-8 flex-1 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-hidden ${selectedTab === 1 ? "bg-gray-800 text-gray-200" : "text-gray-700"}`}
+                    className={`ui-focus-visible:outline-none ui-focus-visible:ring ui-focus-visible:ring-pink-300 flex h-8 flex-1 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-hidden ${selectedTab === 1 ? 'bg-gray-800 text-gray-200' : 'text-gray-700'}`}
                   >
                     <svg
-                      className={`fill-current ${selectedTab === 1 ? "text-gray-400" : "text-gray-500"}`}
+                      className={`fill-current ${selectedTab === 1 ? 'text-gray-400' : 'text-gray-500'}`}
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
@@ -58,10 +58,10 @@ export default function BusinessCategories() {
                 </Tab>
                 <Tab as={Fragment}>
                   <button
-                    className={`ui-focus-visible:outline-none ui-focus-visible:ring ui-focus-visible:ring-blue-300 flex h-8 flex-1 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-hidden ${selectedTab === 2 ? "bg-gray-800 text-gray-200" : "text-gray-700"}`}
+                    className={`ui-focus-visible:outline-none ui-focus-visible:ring ui-focus-visible:ring-pink-300 flex h-8 flex-1 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-hidden ${selectedTab === 2 ? 'bg-gray-800 text-gray-200' : 'text-gray-700'}`}
                   >
                     <svg
-                      className={`fill-current ${selectedTab === 2 ? "text-gray-400" : "text-gray-500"}`}
+                      className={`fill-current ${selectedTab === 2 ? 'text-gray-400' : 'text-gray-500'}`}
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
@@ -73,10 +73,10 @@ export default function BusinessCategories() {
                 </Tab>
                 <Tab as={Fragment}>
                   <button
-                    className={`ui-focus-visible:outline-none ui-focus-visible:ring ui-focus-visible:ring-blue-300 flex h-8 flex-1 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-hidden ${selectedTab === 3 ? "bg-gray-800 text-gray-200" : "text-gray-700"}`}
+                    className={`ui-focus-visible:outline-none ui-focus-visible:ring ui-focus-visible:ring-pink-300 flex h-8 flex-1 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-hidden ${selectedTab === 3 ? 'bg-gray-800 text-gray-200' : 'text-gray-700'}`}
                   >
                     <svg
-                      className={`fill-current ${selectedTab === 3 ? "text-gray-400" : "text-gray-500"}`}
+                      className={`fill-current ${selectedTab === 3 ? 'text-gray-400' : 'text-gray-500'}`}
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
@@ -94,7 +94,7 @@ export default function BusinessCategories() {
               {/* Small blue dots */}
               <div className="absolute -z-10">
                 <svg
-                  className="fill-blue-500"
+                  className="fill-pink-500"
                   xmlns="http://www.w3.org/2000/svg"
                   width={164}
                   height={41}
@@ -205,7 +205,7 @@ export default function BusinessCategories() {
                 >
                   <g opacity="0.6" filter="url(#filter0_f_2044_9)">
                     <path
-                      className="fill-blue-500"
+                      className="fill-pink-500"
                       fillRule="evenodd"
                       clipRule="evenodd"
                       d="M80 112C62.3269 112 48 97.6731 48 80C48 62.3269 62.3269 48 80 48C97.6731 48 171 62.3269 171 80C171 97.6731 97.6731 112 80 112ZM352 112C369.673 112 384 97.6731 384 80C384 62.3269 369.673 48 352 48C334.327 48 261 62.3269 261 80C261 97.6731 334.327 112 352 112Z"
@@ -239,9 +239,9 @@ export default function BusinessCategories() {
               {/* Horizontal lines */}
               <div className="absolute inset-x-0 top-0 -z-10 h-px bg-linear-to-r from-transparent via-gray-200 to-transparent mix-blend-multiply"></div>
               <div className="absolute inset-x-0 bottom-0 -z-10 h-px bg-linear-to-r from-transparent via-gray-200 to-transparent mix-blend-multiply"></div>
-              <div className="absolute inset-x-[200px] top-1/2 -z-10 h-px bg-linear-to-r from-transparent via-blue-500/60 to-transparent mix-blend-multiply"></div>
-              <div className="absolute inset-x-0 top-1/2 -z-10 h-px -translate-y-[82px] bg-linear-to-r from-transparent via-gray-200 to-transparent mix-blend-multiply before:absolute before:inset-y-0 before:w-24 before:animate-[line_10s_ease-in-out_infinite_both] before:bg-linear-to-r before:via-blue-500"></div>
-              <div className="absolute inset-x-0 top-1/2 -z-10 h-px translate-y-[82px] bg-linear-to-r from-transparent via-gray-200 to-transparent mix-blend-multiply before:absolute before:inset-y-0 before:w-24 before:animate-[line_10s_ease-in-out_infinite_5s_both] before:bg-linear-to-r before:via-blue-500"></div>
+              <div className="absolute inset-x-[200px] top-1/2 -z-10 h-px bg-linear-to-r from-transparent via-pink-500/60 to-transparent mix-blend-multiply"></div>
+              <div className="absolute inset-x-0 top-1/2 -z-10 h-px -translate-y-[82px] bg-linear-to-r from-transparent via-gray-200 to-transparent mix-blend-multiply before:absolute before:inset-y-0 before:w-24 before:animate-[line_10s_ease-in-out_infinite_both] before:bg-linear-to-r before:via-pink-500"></div>
+              <div className="absolute inset-x-0 top-1/2 -z-10 h-px translate-y-[82px] bg-linear-to-r from-transparent via-gray-200 to-transparent mix-blend-multiply before:absolute before:inset-y-0 before:w-24 before:animate-[line_10s_ease-in-out_infinite_5s_both] before:bg-linear-to-r before:via-pink-500"></div>
               {/* Diagonal lines */}
               <div className="absolute inset-x-[300px] top-1/2 -z-10 h-px rotate-[20deg] bg-linear-to-r from-transparent via-gray-200 to-transparent mix-blend-multiply"></div>
               <div className="absolute inset-x-[300px] top-1/2 -z-10 h-px -rotate-[20deg] bg-linear-to-r from-transparent via-gray-200 to-transparent mix-blend-multiply"></div>
@@ -249,7 +249,7 @@ export default function BusinessCategories() {
               <div className="absolute inset-y-0 left-1/2 -z-10 w-px -translate-x-[216px] bg-linear-to-b from-gray-200 to-transparent mix-blend-multiply"></div>
               <div className="absolute inset-y-0 left-1/2 -z-10 w-px translate-x-[216px] bg-linear-to-t from-gray-200 to-transparent mix-blend-multiply"></div>
               {/* Logos */}
-              <div className="absolute before:absolute before:-inset-3 before:animate-[spin_3s_linear_infinite] before:rounded-full before:border before:border-transparent before:[background:conic-gradient(from_180deg,transparent,var(--color-blue-500))_border-box] before:[mask-composite:exclude_!important] before:[mask:linear-gradient(white_0_0)_padding-box,_linear-gradient(white_0_0)]">
+              <div className="absolute before:absolute before:-inset-3 before:animate-[spin_3s_linear_infinite] before:rounded-full before:border before:border-transparent before:[background:conic-gradient(from_180deg,transparent,var(--color-pink-500))_border-box] before:[mask-composite:exclude_!important] before:[mask:linear-gradient(white_0_0)_padding-box,_linear-gradient(white_0_0)]">
                 <div className="animate-[breath_8s_ease-in-out_infinite_both]">
                   <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-lg shadow-black/[0.03] before:absolute before:inset-0 before:m-[8.334%] before:rounded-[inherit] before:border before:border-gray-700/5 before:bg-gray-200/60 before:[mask-image:linear-gradient(to_bottom,black,transparent)]">
                     <Image
@@ -498,7 +498,6 @@ export default function BusinessCategories() {
                   </Transition>
                 </TabPanel>
                 <TabPanel as={Fragment} static={true}>
-
                   <Transition
                     as="div"
                     show={selectedTab === 2}

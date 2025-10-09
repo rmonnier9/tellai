@@ -1,189 +1,189 @@
-import AppCard from "@/components/app-card";
-import IntegrationImg01 from "@/public/images/integration-01.svg";
-import IntegrationImg02 from "@/public/images/integration-02.svg";
-import IntegrationImg03 from "@/public/images/integration-03.svg";
-import IntegrationImg04 from "@/public/images/integration-04.svg";
-import IntegrationImg05 from "@/public/images/integration-05.svg";
-import IntegrationImg06 from "@/public/images/integration-06.svg";
-import IntegrationImg07 from "@/public/images/integration-07.svg";
-import IntegrationImg08 from "@/public/images/integration-08.svg";
-import IntegrationImg09 from "@/public/images/integration-09.svg";
-import IntegrationImg10 from "@/public/images/integration-10.svg";
-import IntegrationImg11 from "@/public/images/integration-11.svg";
-import IntegrationImg12 from "@/public/images/integration-12.svg";
-import IntegrationImg13 from "@/public/images/integration-13.svg";
-import IntegrationImg14 from "@/public/images/integration-14.svg";
-import IntegrationImg15 from "@/public/images/integration-15.svg";
-import IntegrationImg16 from "@/public/images/integration-16.svg";
-import IntegrationImg17 from "@/public/images/integration-17.svg";
-import IntegrationImg18 from "@/public/images/integration-18.svg";
-import IntegrationImg19 from "@/public/images/integration-19.svg";
-import IntegrationImg20 from "@/public/images/integration-20.svg";
-import IntegrationImg21 from "@/public/images/integration-21.svg";
+import AppCard from '@/components/app-card';
+import IntegrationImg01 from '@/public/images/integration-01.svg';
+import IntegrationImg02 from '@/public/images/integration-02.svg';
+import IntegrationImg03 from '@/public/images/integration-03.svg';
+import IntegrationImg04 from '@/public/images/integration-04.svg';
+import IntegrationImg05 from '@/public/images/integration-05.svg';
+import IntegrationImg06 from '@/public/images/integration-06.svg';
+import IntegrationImg07 from '@/public/images/integration-07.svg';
+import IntegrationImg08 from '@/public/images/integration-08.svg';
+import IntegrationImg09 from '@/public/images/integration-09.svg';
+import IntegrationImg10 from '@/public/images/integration-10.svg';
+import IntegrationImg11 from '@/public/images/integration-11.svg';
+import IntegrationImg12 from '@/public/images/integration-12.svg';
+import IntegrationImg13 from '@/public/images/integration-13.svg';
+import IntegrationImg14 from '@/public/images/integration-14.svg';
+import IntegrationImg15 from '@/public/images/integration-15.svg';
+import IntegrationImg16 from '@/public/images/integration-16.svg';
+import IntegrationImg17 from '@/public/images/integration-17.svg';
+import IntegrationImg18 from '@/public/images/integration-18.svg';
+import IntegrationImg19 from '@/public/images/integration-19.svg';
+import IntegrationImg20 from '@/public/images/integration-20.svg';
+import IntegrationImg21 from '@/public/images/integration-21.svg';
 
 export default function AppList() {
   const apps01 = [
     {
-      name: "Google Drive",
+      name: 'Google Drive',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg01,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "Linear",
+      name: 'Linear',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg02,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "Framer",
+      name: 'Framer',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg03,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "Retool",
+      name: 'Retool',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg04,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "Webflow",
+      name: 'Webflow',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg05,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "Syrus Inc.",
+      name: 'Syrus Inc.',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg06,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "Decipad",
+      name: 'Decipad',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg07,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "Zapier",
+      name: 'Zapier',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg08,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "Bonsai",
+      name: 'Bonsai',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg09,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "GitHub",
+      name: 'GitHub',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg10,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "Poppins",
+      name: 'Poppins',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg11,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "Jotform",
+      name: 'Jotform',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg12,
-      link: "#0",
+      link: '#0',
     },
   ];
 
   const apps02 = [
     {
-      name: "Miro",
+      name: 'Miro',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg13,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "WeTransfer",
+      name: 'WeTransfer',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg14,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "Hotjar",
+      name: 'Hotjar',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg15,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "GitLab",
+      name: 'GitLab',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg16,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "Coda",
+      name: 'Coda',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg17,
-      link: "#0",
+      link: '#0',
       badge: true,
     },
     {
-      name: "Airtable",
+      name: 'Airtable',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg18,
-      link: "#0",
+      link: '#0',
     },
   ];
 
   const apps03 = [
     {
-      name: "Klarna",
+      name: 'Klarna',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg19,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "Trustpilot",
+      name: 'Trustpilot',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg20,
-      link: "#0",
+      link: '#0',
     },
     {
-      name: "YouTube",
+      name: 'YouTube',
       description:
-        "Simple simplifies the process of building sites, landing pages, and any apps.",
+        'Simple simplifies the process of building sites, landing pages, and any apps.',
       image: IntegrationImg21,
-      link: "#0",
+      link: '#0',
     },
   ];
 
@@ -270,7 +270,7 @@ export default function AppList() {
               <div className="mb-5 flex items-center justify-between space-x-2">
                 <h2 className="truncate text-xl font-bold">Noteworthy</h2>
                 <a
-                  className="shrink-0 text-sm font-medium text-blue-500 transition hover:text-blue-600"
+                  className="shrink-0 text-sm font-medium text-pink-500 transition hover:text-pink-600"
                   href="#0"
                 >
                   View All
@@ -290,7 +290,7 @@ export default function AppList() {
               <div className="mb-5 flex items-center justify-between space-x-2">
                 <h2 className="truncate text-xl font-bold">Trending</h2>
                 <a
-                  className="shrink-0 text-sm font-medium text-blue-500 transition hover:text-blue-600"
+                  className="shrink-0 text-sm font-medium text-pink-500 transition hover:text-pink-600"
                   href="#0"
                 >
                   View All
@@ -310,7 +310,7 @@ export default function AppList() {
               <div className="mb-5 flex items-center justify-between space-x-2">
                 <h2 className="truncate text-xl font-bold">Coming soon</h2>
                 <a
-                  className="shrink-0 text-sm font-medium text-blue-500 transition hover:text-blue-600"
+                  className="shrink-0 text-sm font-medium text-pink-500 transition hover:text-pink-600"
                   href="#0"
                 >
                   View All
@@ -329,7 +329,7 @@ export default function AppList() {
           {/* Load more */}
           <div className="mt-12 text-center">
             <button className="btn-sm min-w-[220px] bg-gray-800 py-1.5 text-gray-200 shadow-sm hover:bg-gray-900">
-              Load more{" "}
+              Load more{' '}
               <span className="ml-2 tracking-normal text-gray-500">↓</span>
             </button>
           </div>
