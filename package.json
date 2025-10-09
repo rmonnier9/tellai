@@ -8,6 +8,7 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "build:ci": "pnpm --filter=db prisma:migrate:prod && pnpm run build",
     "db:ci": "pnpm --filter @workspace/db prisma:generate",
     "db:generate": "pnpm --filter @workspace/db drizzle:generate",
     "db:migrate": "pnpm --filter @workspace/db dirzzle:migrate",

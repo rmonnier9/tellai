@@ -223,7 +223,7 @@ model Article {
 
   // Scheduling
   scheduledDate DateTime
-  status        String   @default("pending") // pending, generated, published
+  status        ArticleStatus @default(pending)
 
   // Generated content (will be populated later)
   content      String?
@@ -303,6 +303,12 @@ model Job {
   @@unique([type, externalId], name: "unique_external_id")
   @@index([type])
   @@map("job")
+}
+
+enum ArticleStatus {
+  pending
+  generated
+  published
 }
 
 enum JobType {

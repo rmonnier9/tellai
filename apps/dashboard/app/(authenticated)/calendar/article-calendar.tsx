@@ -510,6 +510,13 @@ function ArticleCard({
   const isGenerating = job?.status === 'running' || job?.status === 'pending';
   const isDraggable = article.status === 'pending' && !isGenerating;
 
+  // Check if article is scheduled for today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const scheduledDate = new Date(article.scheduledDate);
+  scheduledDate.setHours(0, 0, 0, 0);
+  const isToday = scheduledDate.getTime() === today.getTime();
+
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: article.id,
@@ -593,8 +600,8 @@ function ArticleCard({
 
       {/* Action buttons */}
       <div className="space-y-1">
-        {/* Generate button - only show for pending articles */}
-        {article.status === 'pending' && (
+        {/* Generate button - only show for pending articles scheduled for today */}
+        {article.status === 'pending' && isToday && (
           <button
             onClick={(e) => {
               e.stopPropagation();
