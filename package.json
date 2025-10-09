@@ -12,7 +12,9 @@
     "db:generate": "pnpm --filter @workspace/db drizzle:generate",
     "db:migrate": "pnpm --filter @workspace/db dirzzle:migrate",
     "db:studio": "pnpm --filter @workspace/db dirzzle:studio",
-    "better-auth:generate": "dotenvx run -- npx @better-auth/cli generate --output ./packages/db/prisma/schema.prisma --config ./packages/auth/server.ts"
+    "better-auth:generate": "dotenvx run -- npx @better-auth/cli generate --output ./packages/db/prisma/schema.prisma --config ./packages/auth/server.ts",
+    "docker:up": "docker compose -f docker/docker-compose.deps.yml --env-file docker/docker.env up -d",
+    "docker:down": "docker compose -f docker/docker-compose.deps.yml down"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
