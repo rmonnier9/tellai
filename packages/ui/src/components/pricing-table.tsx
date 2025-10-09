@@ -22,9 +22,16 @@ const rightFeatures = [
 
 export default function Example() {
   const activeProductQuery = useActiveProduct();
+  const session = client.useSession();
+
+  const isLoading = session.isPending || activeProductQuery.isLoading;
+  const productId = activeProductQuery?.data?.id;
 
   const handleUpgrade = async () => {
-    if (!activeProductQuery?.data?.id) {
+    // Get the latest product ID at the time of click
+    const currentProductId = activeProductQuery?.data?.id;
+
+    if (!currentProductId) {
       return alert('No product id');
     }
 
@@ -32,7 +39,7 @@ export default function Example() {
       plan: 'premium',
       cancelUrl: '/',
       successUrl: '/',
-      referenceId: activeProductQuery?.data?.id,
+      referenceId: currentProductId,
       // annual: true, // Optional: upgrade to an annual plan
       // seats: 5, // Optional: for team plans
     });
@@ -68,9 +75,10 @@ export default function Example() {
 
               <button
                 onClick={handleUpgrade}
-                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl mb-6"
+                disabled={isLoading || !productId}
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Start 3-day Trial
+                {isLoading ? 'Loading...' : 'Start 3-day Trial'}
               </button>
 
               <div className="text-center lg:text-left">
