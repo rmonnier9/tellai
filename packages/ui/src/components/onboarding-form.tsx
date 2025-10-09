@@ -93,6 +93,18 @@ export function OnboardingForm() {
           sitemapUrl?: string;
         };
         form.setValue('sitemapUrl', resultWithSitemap.sitemapUrl || '');
+
+        // Clear any validation errors for the fields we just populated
+        form.clearErrors([
+          'name',
+          'description',
+          'language',
+          'country',
+          'logo',
+          'targetAudiences',
+          'sitemapUrl',
+        ]);
+
         setCurrentStep(2);
       } else if (result.status === 'failed') {
         throw new Error(result.error?.message || 'Failed to analyze website');
