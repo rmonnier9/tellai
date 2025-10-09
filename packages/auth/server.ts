@@ -19,8 +19,8 @@ const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const sendMagicLink = async (props: { email: string; url: string }) => {
-  await send({
-    from: process.env.EMAIL_FROM as string,
+  const tests = await send({
+    from: `Lovarank <${process.env.EMAIL_FROM as string}>`,
     to: props.email,
     subject: 'Verify your email address',
     replyTo: 'support@lovarank.com',
@@ -40,6 +40,8 @@ const sendMagicLink = async (props: { email: string; url: string }) => {
       url: props.url,
     }),
   });
+
+  console.log('TESTS_------------------_>', tests);
 };
 
 export const auth = betterAuth({
