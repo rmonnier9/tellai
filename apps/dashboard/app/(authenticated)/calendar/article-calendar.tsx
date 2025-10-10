@@ -602,7 +602,7 @@ function ArticleCard({
               <>
                 <span className="text-[10px]">•</span>
                 <span className="text-[10px]">
-                  Diff: {article.keywordDifficulty}%
+                  KD: {article.keywordDifficulty}
                 </span>
               </>
             )}
@@ -707,7 +707,7 @@ function ArticleCardDragOverlay({ article }: { article: Article }) {
             <>
               <span className="text-[10px]">•</span>
               <span className="text-[10px]">
-                Diff: {article.keywordDifficulty}%
+                KD: {article.keywordDifficulty}
               </span>
             </>
           )}
