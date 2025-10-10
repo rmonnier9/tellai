@@ -68,7 +68,7 @@ export async function generateKeywordIdeas(formData: FormData) {
     }
 
     // Execute the workflow
-    console.log('Starting keyword ideas workflow...');
+    console.log('Starting keyword discovery workflow...');
     const workflow = mastra.getWorkflow('keywordIdeasGeneratorWorkflow');
     const run = await workflow.createRunAsync();
 
@@ -91,46 +91,45 @@ export async function generateKeywordIdeas(formData: FormData) {
     // Extract the actual result from the workflow response
     const result = workflowResult.result;
 
-    // If using a real product ID, save the results to the database
+    // If using a real product ID, save the keywords to the database
     if (productId && result) {
       console.log(
-        `Saving ${result.articleIdeas.length} article ideas to database...`
+        `Saving ${result.keywords.length} discovered keywords to database...`
       );
 
       const articles = await Promise.all(
-        result.articleIdeas.map(async (idea: any) => {
+        result.keywords.map(async (keyword: any) => {
           return prisma.article.create({
             data: {
               productId: productId,
-              keyword: idea.keyword,
-              title: idea.title,
-              type: idea.type,
-              guideSubtype: idea.guideSubtype || null,
-              listicleSubtype: idea.listicleSubtype || null,
-              searchVolume: idea.searchVolume,
-              keywordDifficulty: idea.keywordDifficulty,
-              cpc: idea.cpc,
-              competition: idea.competition,
-              scheduledDate: new Date(idea.scheduledDate),
+              keyword: keyword.keyword,
+              title: null, // Will be generated in content workflow
+              type: null, // Will be determined in content workflow
+              guideSubtype: null,
+              listicleSubtype: null,
+              searchVolume: keyword.searchVolume,
+              keywordDifficulty: keyword.keywordDifficulty,
+              cpc: keyword.cpc || 0,
+              competition: keyword.competition || 0,
+              scheduledDate: new Date(keyword.scheduledDate), // 1 per day for 30 days
               status: 'pending',
             },
           });
         })
       );
 
-      console.log(`✅ Saved ${articles.length} articles to database`);
+      console.log(`✅ Saved ${articles.length} keywords to database`);
 
       return JSON.stringify(
         {
           success: true,
-          message: `Generated and saved ${articles.length} article ideas`,
+          message: `Discovered and saved ${articles.length} keywords`,
           ...result,
-          savedArticles: articles.map((a: any) => ({
+          savedKeywords: articles.map((a: any) => ({
             id: a.id,
             keyword: a.keyword,
-            title: a.title,
-            type: a.type,
-            scheduledDate: a.scheduledDate,
+            searchVolume: a.searchVolume,
+            keywordDifficulty: a.keywordDifficulty,
           })),
         },
         null,

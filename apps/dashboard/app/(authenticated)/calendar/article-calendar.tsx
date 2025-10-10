@@ -577,11 +577,13 @@ function ArticleCard({
         }`}
       >
         <div className="flex items-center gap-1 flex-wrap">
-          <span
-            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getTypeColor(article.type)}`}
-          >
-            {article.type}
-          </span>
+          {article.type && (
+            <span
+              className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getTypeColor(article.type)}`}
+            >
+              {article.type}
+            </span>
+          )}
           <span
             className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getStatusColor(article.status)}`}
           >
