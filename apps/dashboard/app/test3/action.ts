@@ -2,6 +2,10 @@
 
 import { mastra } from '@workspace/lib/mastra';
 import prisma from '@workspace/db/prisma/client';
+import {
+  VALID_GUIDE_SUBTYPES,
+  VALID_LISTICLE_SUBTYPES,
+} from '@workspace/lib/workflows/keyword-research-config';
 
 export async function generateKeywordIdeas(formData: FormData) {
   try {
@@ -99,14 +103,37 @@ export async function generateKeywordIdeas(formData: FormData) {
 
       const articles = await Promise.all(
         result.keywords.map(async (keyword: any) => {
+          // Validate and assign subtypes based on content type
+          const contentType = keyword.recommendedContentType;
+          const subtype = keyword.recommendedSubtype;
+
+          let guideSubtype = null;
+          let listicleSubtype = null;
+
+          if (
+            contentType === 'guide' &&
+            VALID_GUIDE_SUBTYPES.includes(subtype as any)
+          ) {
+            guideSubtype = subtype;
+          } else if (
+            contentType === 'listicle' &&
+            VALID_LISTICLE_SUBTYPES.includes(subtype as any)
+          ) {
+            listicleSubtype = subtype;
+          }
+
           return prisma.article.create({
             data: {
-              productId: productId,
+              product: {
+                connect: { id: productId },
+              },
               keyword: keyword.keyword,
               title: null, // Will be generated in content workflow
-              type: null, // Will be determined in content workflow
-              guideSubtype: null,
-              listicleSubtype: null,
+              // Content type recommendations from AI analysis
+              type: contentType || null,
+              guideSubtype,
+              listicleSubtype,
+              // SEO metrics from DataForSEO Labs API
               searchVolume: keyword.searchVolume,
               keywordDifficulty: keyword.keywordDifficulty,
               cpc: keyword.cpc || 0,
@@ -123,13 +150,16 @@ export async function generateKeywordIdeas(formData: FormData) {
       return JSON.stringify(
         {
           success: true,
-          message: `Discovered and saved ${articles.length} keywords`,
+          message: `Discovered and saved ${articles.length} keywords with content recommendations`,
           ...result,
           savedKeywords: articles.map((a: any) => ({
             id: a.id,
             keyword: a.keyword,
             searchVolume: a.searchVolume,
             keywordDifficulty: a.keywordDifficulty,
+            contentType: a.type,
+            subtype: a.guideSubtype || a.listicleSubtype,
+            scheduledDate: a.scheduledDate,
           })),
         },
         null,

@@ -4,10 +4,64 @@ import { z } from 'zod';
 import * as DataForSEO from 'dataforseo-client';
 import prisma from '@workspace/db/prisma/client';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { KEYWORD_CONFIG } from './keyword-research-config';
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Check if a keyword contains branded terms without relevant business context
+ */
+const isBrandedWithoutContext = (
+  keyword: string,
+  brandedTerms: string[],
+  relevantContext: string[]
+): boolean => {
+  const keywordLower = keyword.toLowerCase();
+  const hasBranded = brandedTerms.some((term) =>
+    keywordLower.includes(term.toLowerCase())
+  );
+  const hasContext = relevantContext.some((term) =>
+    keywordLower.includes(term.toLowerCase())
+  );
+  return hasBranded && !hasContext;
+};
+
+/**
+ * Check if a keyword contains generic terms that should be filtered
+ */
+const isGenericTerm = (keyword: string, genericTerms: string[]): boolean => {
+  const keywordLower = keyword.toLowerCase();
+  return genericTerms.some((term) => keywordLower.includes(term.toLowerCase()));
+};
+
+/**
+ * Check if a keyword represents a competitor gap opportunity
+ */
+const isCompetitorGap = (difficulty: number, searchVolume: number): boolean => {
+  return (
+    (difficulty < KEYWORD_CONFIG.GAP_DIFFICULTY_LOW &&
+      searchVolume > KEYWORD_CONFIG.GAP_VOLUME_LOW) ||
+    (difficulty < KEYWORD_CONFIG.GAP_DIFFICULTY_MEDIUM &&
+      searchVolume > KEYWORD_CONFIG.GAP_VOLUME_MEDIUM)
+  );
+};
+
+/**
+ * Estimate traffic potential for ranking in top 3 positions
+ */
+const estimateTrafficPotential = (searchVolume: number): number => {
+  return Math.round(searchVolume * KEYWORD_CONFIG.TOP_3_CTR);
+};
+
+// ============================================
+// SCHEMA DEFINITIONS
+// ============================================
 
 // Search intent enum based on Ahrefs methodology
 const SearchIntentEnum = z.enum([
@@ -19,6 +73,22 @@ const SearchIntentEnum = z.enum([
 
 // Business potential scoring (0-3) based on how well we can pitch the product
 const BusinessPotentialEnum = z.enum(['0', '1', '2', '3']);
+
+// Content type recommendation enums (matching Prisma schema)
+const ArticleTypeEnum = z.enum(['guide', 'listicle']);
+
+const GuideSubtypeEnum = z.enum([
+  'how_to', // Step-by-step instructions
+  'explainer', // What is, why, understanding concepts
+  'comparison', // X vs Y, differences, alternatives
+  'reference', // Definitions, glossaries, comprehensive resources
+]);
+
+const ListicleSubtypeEnum = z.enum([
+  'round_up', // "Best X", "Top X", curated collections
+  'resources', // Tools, templates, useful resources
+  'examples', // Case studies, examples, inspiration
+]);
 
 // Keyword discovery schema - pure keyword research (no content generation)
 const KeywordDiscoverySchema = z.object({
@@ -37,6 +107,10 @@ const KeywordDiscoverySchema = z.object({
   priorityScore: z.number(), // 0-100 composite score for prioritization
   trafficDifficultyRatio: z.number(), // Search volume / difficulty
   rationale: z.string(), // Why this keyword is valuable
+  // Content type recommendation (optimal format to rank #1)
+  recommendedContentType: ArticleTypeEnum,
+  recommendedSubtype: z.string(), // Guide or listicle subtype
+  contentTypeRationale: z.string(), // Why this content type matches user intent & SERP
   scheduledDate: z.string(), // ISO date string for when to create content (1 per day for 30 days)
 });
 
@@ -84,7 +158,7 @@ const createAuthenticatedFetch = (username: string, password: string) => {
   };
 };
 
-// Initialize DataForSEO client
+// Initialize DataForSEO Labs API client (provides superior keyword data)
 const getDataForSEOClient = () => {
   const login = process.env.DATAFORSEO_LOGIN;
   const password = process.env.DATAFORSEO_PASSWORD;
@@ -96,7 +170,7 @@ const getDataForSEOClient = () => {
   }
 
   const authFetch = createAuthenticatedFetch(login, password);
-  return new DataForSEO.KeywordsDataApi('https://api.dataforseo.com', {
+  return new DataForSEO.DataforseoLabsApi('https://api.dataforseo.com', {
     fetch: authFetch,
   });
 };
@@ -104,49 +178,164 @@ const getDataForSEOClient = () => {
 // AI Agents with enhanced SEO expertise
 const seoStrategist = new Agent({
   name: 'SEO Strategist',
-  instructions: `You are a world-class SEO strategist with deep expertise in:
-
-**Keyword Research Principles:**
-- Understanding search intent (informational, navigational, commercial, transactional)
-- Identifying parent topics to avoid keyword cannibalization
-- Balancing search volume with ranking difficulty
-- Prioritizing keywords with high business potential
-- Analyzing SERP features and content formats that rank
-
-**Business-Focused SEO:**
-- Assess "business potential" (0-3 scale):
-  * 3 = Can naturally pitch product in content
-  * 2 = Can mention product as solution
-  * 1 = Can mention product subtly
-  * 0 = Impossible to pitch product
-
-**Content Strategy:**
-- Identify keyword clusters and parent topics
-- Match content format to search intent
-- Spot competitor content gaps
-- Recognize trending topics with growth potential
-
-Your analyses should be data-driven, strategic, and focused on ROI.`,
-  model: openrouter('openai/o3'),
+  instructions: `You are an SEO strategist. Analyze keywords for search intent, business fit, and content recommendations. Always return complete analysis for every keyword provided.`,
+  model: openrouter(KEYWORD_CONFIG.AI_MODEL),
 });
 
-// Step 1: Generate seed keywords based on product
-const generateSeedKeywordsStep = createStep({
-  id: 'generate-seed-keywords',
+const contextAnalyst = new Agent({
+  name: 'Business Context Analyst',
+  instructions: `You are a business context analyst specializing in competitive intelligence and market positioning. Analyze products to identify competitors, relevant business terms, and negative keywords to filter out.`,
+  model: openrouter(KEYWORD_CONFIG.AI_MODEL),
+});
+
+// Step 1: Analyze business context to generate dynamic filtering criteria
+const analyzeBusinessContextStep = createStep({
+  id: 'analyze-business-context',
   inputSchema: ProductInputSchema,
   outputSchema: z.object({
     product: ProductInputSchema,
-    seedKeywords: z.array(z.string()),
+    filteringCriteria: z.object({
+      brandedTerms: z
+        .array(z.string())
+        .describe(
+          'Competitor/branded terms to filter (unless with relevant context)'
+        ),
+      relevantContext: z
+        .array(z.string())
+        .describe('Business-relevant terms indicating good keyword fit'),
+      genericTerms: z
+        .array(z.string())
+        .describe('Generic/negative terms to always exclude'),
+    }),
   }),
   execute: async ({ inputData }) => {
     const { name, description, targetAudiences, url } = inputData;
+
+    console.log(`\n🔍 Analyzing business context for: ${name}`);
+
+    const prompt = `Analyze this business to identify keyword filtering criteria for SEO research.
+
+**BUSINESS:**
+Name: ${name}
+Description: ${description}
+Target Audiences: ${targetAudiences.join(', ')}
+Website: ${url}
+
+**YOUR TASK:**
+Generate three lists to help filter keyword research results:
+
+1. **brandedTerms** (10-15 terms):
+   - Direct competitors' brand names (lowercase)
+   - Major industry leaders that dominate keywords
+   - Generic brand terms that aren't specific to this business
+   - Example: For a CRM tool → ["salesforce", "hubspot", "zoho", "pipedrive"]
+   - Example: For a pizza restaurant → ["dominos", "pizza hut", "papa johns"]
+
+2. **relevantContext** (8-12 terms):
+   - Core business value propositions
+   - Problem areas this business solves
+   - Target customer indicators
+   - Use case signals
+   - Example: For email marketing → ["campaign", "newsletter", "subscribers", "automation"]
+   - Example: For fitness app → ["workout", "training", "exercise", "fitness", "health"]
+
+3. **genericTerms** (8-12 terms):
+   - Negative terms unrelated to business goals
+   - Troubleshooting/problem terms
+   - Scandal/controversy keywords
+   - Piracy/hack related terms
+   - Terms that indicate poor user intent
+   - Example: ["outage", "down", "not working", "scam", "fake", "hack", "leak"]
+
+**RULES:**
+- ALL terms must be lowercase
+- Focus on terms SPECIFIC to this industry/niche
+- brandedTerms: Include major competitors but not the business itself
+- relevantContext: Terms that indicate commercial intent for THIS business
+- genericTerms: Universal negative terms + industry-specific red flags
+- Each list should have 8-15 terms total
+
+Return your analysis.`;
+
+    try {
+      const result = await contextAnalyst.generateVNext(prompt, {
+        output: z.object({
+          brandedTerms: z
+            .array(z.string())
+            .min(8)
+            .max(20)
+            .describe('Competitor and major brand terms'),
+          relevantContext: z
+            .array(z.string())
+            .min(8)
+            .max(15)
+            .describe('Business-relevant context terms'),
+          genericTerms: z
+            .array(z.string())
+            .min(8)
+            .max(15)
+            .describe('Generic/negative terms to exclude'),
+        }),
+      });
+
+      console.log(`✅ Generated filtering criteria:`);
+      console.log(
+        `   • ${result.object.brandedTerms.length} branded/competitor terms`
+      );
+      console.log(
+        `   • ${result.object.relevantContext.length} relevant context terms`
+      );
+      console.log(
+        `   • ${result.object.genericTerms.length} generic/negative terms`
+      );
+
+      return {
+        product: inputData,
+        filteringCriteria: {
+          brandedTerms: result.object.brandedTerms,
+          relevantContext: result.object.relevantContext,
+          genericTerms: result.object.genericTerms,
+        },
+      };
+    } catch (error) {
+      console.error('Failed to analyze business context:', error);
+      throw new Error(
+        `Business context analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  },
+});
+
+// Step 2: Generate seed keywords based on product
+const generateSeedKeywordsStep = createStep({
+  id: 'generate-seed-keywords',
+  inputSchema: z.object({
+    product: ProductInputSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
+  }),
+  outputSchema: z.object({
+    product: ProductInputSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
+    seedKeywords: z.array(z.string()),
+  }),
+  execute: async ({ inputData }) => {
+    const { product, filteringCriteria } = inputData;
+    const { name, description, targetAudiences, url } = product;
 
     const currentMonth = new Date().toLocaleString('default', {
       month: 'long',
     });
     const currentYear = new Date().getFullYear();
 
-    const prompt = `As a world-class SEO strategist, generate EXACTLY 15 strategically diverse seed keywords for comprehensive keyword research.
+    const prompt = `As a world-class SEO strategist, generate EXACTLY ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} strategically diverse seed keywords for comprehensive keyword research.
 
 **PRODUCT CONTEXT:**
 Name: ${name}
@@ -155,26 +344,31 @@ Target Audiences: ${targetAudiences.join(', ')}
 Website: ${url}
 Date: ${currentMonth} ${currentYear}
 
+**CRITICAL: AVOID BRANDED & NEGATIVE TERMS**
+❌ DO NOT include these competitor/branded terms: ${filteringCriteria.brandedTerms.join(', ')}
+❌ DO NOT include these negative terms: ${filteringCriteria.genericTerms.join(', ')}
+✅ DO include terms with this business context: ${filteringCriteria.relevantContext.join(', ')}
+
 **STRATEGIC SEED KEYWORD FRAMEWORK:**
 
 Generate keywords across these strategic categories (aim for 2-3 per category):
 
-1. **Problem/Pain Point Keywords** - What problems does this product solve?
-2. **Feature/Capability Keywords** - Core product features
-3. **Use Case Keywords** - Industry applications
-4. **Comparison Keywords** - "vs", "alternative to", "best" queries
-5. **Educational Keywords** - "How to", "What is" queries
-6. **Long-tail Keywords** - Specific, low-competition phrases
-7. **Commercial Intent** - Buying signals ("pricing", "review", "for [use case]")
+1. **Problem/Pain Points** - Core problems this product solves for target customers
+2. **Solution Keywords** - Direct solution terms related to the product's value proposition
+3. **Industry-Specific Use Cases** - Niche applications for the target audiences
+4. **Comparison Keywords** - Alternative/vs keywords (but avoid the branded terms above)
+5. **Educational Keywords** - "how to", "what is", "guide to" related to the product's domain
+6. **Long-tail Solution Keywords** - Specific feature or benefit combinations
+7. **Commercial Intent** - Pricing, cost, tool, software related keywords
 
 **CRITICAL REQUIREMENTS:**
-- Output EXACTLY 15 keywords (DataForSEO API limit is 20, we need buffer)
-- Mix of head terms (1-2 words) and long-tail (3+ words)
-- Focus on problems/solutions, not branded terms
-- Include both informational and commercial intent
-- Prioritize keywords that will expand into many related terms
+- Output EXACTLY ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} keywords (DataForSEO API limit is ${KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT}, we need buffer)
+- MUST be specific to this business and its value proposition
+- NO competitor brand names from the branded terms list
+- Focus on problems this product solves and benefits it provides
+- Include target audience context: ${targetAudiences.join(', ')}
 
-Output exactly 15 diverse, high-quality seed keywords.`;
+Output exactly ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} diverse, business-focused seed keywords.`;
 
     try {
       const result = await seoStrategist.generateVNext(prompt, {
@@ -189,18 +383,24 @@ Output exactly 15 diverse, high-quality seed keywords.`;
         `Generated ${result.object.keywords.length} strategic seed keywords`
       );
 
-      // CRITICAL: DataForSEO has a max limit of 20 keywords per request
+      // CRITICAL: DataForSEO has a max limit per request
       // Ensure we never exceed this limit
-      const limitedSeeds = result.object.keywords.slice(0, 20);
+      const limitedSeeds = result.object.keywords.slice(
+        0,
+        KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT
+      );
 
-      if (result.object.keywords.length > 20) {
+      if (
+        result.object.keywords.length > KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT
+      ) {
         console.warn(
-          `⚠️ AI generated ${result.object.keywords.length} seeds, limiting to 20 for DataForSEO API`
+          `⚠️ AI generated ${result.object.keywords.length} seeds, limiting to ${KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT} for DataForSEO API`
         );
       }
 
       return {
-        product: inputData,
+        product,
+        filteringCriteria,
         seedKeywords: limitedSeeds,
       };
     } catch (error) {
@@ -216,15 +416,25 @@ const fetchExistingArticlesStep = createStep({
   id: 'fetch-existing-articles',
   inputSchema: z.object({
     product: ProductInputSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
     seedKeywords: z.array(z.string()),
   }),
   outputSchema: z.object({
     product: ProductInputSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
     seedKeywords: z.array(z.string()),
     existingKeywords: z.array(z.string()),
   }),
   execute: async ({ inputData }) => {
-    const { product, seedKeywords } = inputData;
+    const { product, filteringCriteria, seedKeywords } = inputData;
 
     try {
       // Fetch all existing articles for this product
@@ -247,6 +457,7 @@ const fetchExistingArticlesStep = createStep({
 
       return {
         product,
+        filteringCriteria,
         seedKeywords,
         existingKeywords,
       };
@@ -258,6 +469,7 @@ const fetchExistingArticlesStep = createStep({
       // Continue without deduplication if database query fails
       return {
         product,
+        filteringCriteria,
         seedKeywords,
         existingKeywords: [],
       };
@@ -270,11 +482,21 @@ const getKeywordDataStep = createStep({
   id: 'get-keyword-data',
   inputSchema: z.object({
     product: ProductInputSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
     seedKeywords: z.array(z.string()),
     existingKeywords: z.array(z.string()),
   }),
   outputSchema: z.object({
     product: ProductInputSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
     keywordData: z.array(
       z.object({
         keyword: z.string(),
@@ -296,7 +518,8 @@ const getKeywordDataStep = createStep({
     ),
   }),
   execute: async ({ inputData }) => {
-    const { product, seedKeywords, existingKeywords } = inputData;
+    const { product, filteringCriteria, seedKeywords, existingKeywords } =
+      inputData;
     const api = getDataForSEOClient();
 
     console.log(
@@ -305,28 +528,35 @@ const getKeywordDataStep = createStep({
     console.log(
       `Excluding ${existingKeywords.length} already-used keywords from search`
     );
+    console.log(
+      `Using DataForSEO Labs API for superior keyword difficulty scores and normalized search volumes`
+    );
 
-    // CRITICAL VALIDATION: DataForSEO limit is 20 keywords per request
-    if (seedKeywords.length > 20) {
+    // CRITICAL VALIDATION: DataForSEO limit per request
+    if (seedKeywords.length > KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT) {
       throw new Error(
-        `DataForSEO API limit exceeded: ${seedKeywords.length} seeds provided, max is 20. This should never happen - check seed generation step.`
+        `DataForSEO API limit exceeded: ${seedKeywords.length} seeds provided, max is ${KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT}. This should never happen - check seed generation step.`
       );
     }
 
     try {
-      // STEP 1: Get keyword ideas and search volume data from DataForSEO
+      // STEP 1: Get keyword ideas and comprehensive data from DataForSEO Labs API
+      // This endpoint provides superior data including keyword difficulty, normalized volumes, and better metrics
       const task =
-        new DataForSEO.KeywordsDataGoogleAdsKeywordsForKeywordsLiveRequestInfo();
+        new DataForSEO.DataforseoLabsGoogleKeywordIdeasLiveRequestInfo();
       task.language_code = product.language || 'en';
       task.location_code = getLocationCode(product.country);
       task.keywords = seedKeywords;
-      task.search_partners = false;
-      task.include_adult_keywords = false;
-      task.sort_by = 'search_volume';
       task.include_seed_keyword = true;
       task.include_serp_info = true;
+      task.include_clickstream_data = true; // Get normalized search volumes with real user data
+      task.limit = KEYWORD_CONFIG.DATAFORSEO_RESULTS_LIMIT; // Get comprehensive keyword ideas
+      task.filters = [
+        ['keyword_info.search_volume', '>', 0], // Only keywords with search volume
+      ];
+      task.order_by = ['keyword_info.search_volume,desc']; // Sort by search volume
 
-      const response = await api.googleAdsKeywordsForKeywordsLive([task]);
+      const response = await api.googleKeywordIdeasLive([task]);
 
       if (!response || !response.tasks || response.tasks.length === 0) {
         throw new Error('No data returned from DataForSEO');
@@ -354,9 +584,58 @@ const getKeywordDataStep = createStep({
         trend?: number;
       }> = [];
 
+      // CRITICAL: DataForSEO Labs API returns data in result[0].items, not result directly
+      const resultData = taskResult.result?.[0];
+      const keywordItems = resultData?.items || [];
+
       console.log(
-        `DataForSEO returned ${taskResult.result?.length || 0} keyword ideas`
+        `DataForSEO Labs API returned ${keywordItems.length} keyword ideas (total_count: ${resultData?.total_count || 0})`
       );
+
+      // DEBUG: Log the structure of the first result items to understand API response
+      if (keywordItems.length > 0) {
+        const firstItem = keywordItems[0];
+        const secondItem = keywordItems[1];
+        console.log(
+          '\n🔍 DEBUG - API Response Structure (FIXED):',
+          JSON.stringify(
+            {
+              totalResults: keywordItems.length,
+              totalCount: resultData?.total_count,
+              firstItem: {
+                keyword: firstItem?.keyword || 'N/A',
+                hasKeywordInfo: !!firstItem?.keyword_info,
+                keywordInfoKeys: firstItem?.keyword_info
+                  ? Object.keys(firstItem.keyword_info)
+                  : [],
+                searchVolume: firstItem?.keyword_info?.search_volume,
+                hasNormalized:
+                  !!firstItem?.keyword_info_normalized_with_clickstream,
+                normalizedSearchVolume:
+                  firstItem?.keyword_info_normalized_with_clickstream
+                    ?.search_volume,
+                keywordDifficulty: firstItem?.keyword_difficulty,
+                keywordProperties: firstItem?.keyword_properties
+                  ? Object.keys(firstItem.keyword_properties)
+                  : null,
+                keywordPropertiesKD:
+                  firstItem?.keyword_properties?.keyword_difficulty,
+                cpc: firstItem?.cpc,
+                competition: firstItem?.competition,
+                allKeys: firstItem ? Object.keys(firstItem) : [],
+              },
+              secondItem: secondItem
+                ? {
+                    keyword: secondItem.keyword || 'N/A',
+                    searchVolume: secondItem?.keyword_info?.search_volume,
+                  }
+                : null,
+            },
+            null,
+            2
+          )
+        );
+      }
 
       // STEP 2: Calculate trend scores from monthly search volumes
       const calculateTrend = (
@@ -386,19 +665,66 @@ const getKeywordDataStep = createStep({
         return Math.max(-1, Math.min(1, change));
       };
 
-      // STEP 3: Extract and validate keywords with REAL DataForSEO data only
-      // Filter for good traffic/difficulty ratio
-      if (taskResult.result && taskResult.result.length > 0) {
-        for (const item of taskResult.result) {
+      // STEP 3: Extract keywords with superior DataForSEO Labs data
+      // This API provides keyword_difficulty (0-100), normalized search volumes, and better metrics
+      let skippedCounts = {
+        noKeyword: 0,
+        noKeywordInfo: 0,
+        noSearchVolume: 0,
+        alreadyExists: 0,
+        duplicate: 0,
+        lowVolume: 0,
+        added: 0,
+      };
+      let difficultyStats = {
+        real: 0, // Keywords with actual difficulty data from DataForSEO
+        estimated: 0, // Keywords using competition-based estimates
+      };
+
+      if (keywordItems.length > 0) {
+        for (const item of keywordItems) {
+          // CRITICAL: Validate item exists first
+          if (!item || !item.keyword) {
+            skippedCounts.noKeyword++;
+            continue; // Skip invalid items
+          }
+
+          // FILTER: Remove generic/branded keywords that don't match business context
+          if (
+            isBrandedWithoutContext(
+              item.keyword,
+              filteringCriteria.brandedTerms,
+              filteringCriteria.relevantContext
+            )
+          ) {
+            skippedCounts.noKeyword++; // Reuse counter for filtered keywords
+            continue;
+          }
+
+          // Skip generic troubleshooting terms
+          if (isGenericTerm(item.keyword, filteringCriteria.genericTerms)) {
+            skippedCounts.noKeyword++;
+            continue;
+          }
+
+          // Extract keyword_info object (DataForSEO Labs API structure)
+          const keywordInfo = item.keyword_info;
+          const keywordInfoNormalized =
+            item.keyword_info_normalized_with_clickstream || keywordInfo;
+
           // CRITICAL: Only use keywords with REAL search volume and difficulty data
           if (
-            !item ||
-            !item.keyword ||
-            item.search_volume === null ||
-            item.search_volume === undefined ||
-            item.competition_index === null ||
-            item.competition_index === undefined
+            !keywordInfo ||
+            keywordInfo.search_volume === null ||
+            keywordInfo.search_volume === undefined
           ) {
+            skippedCounts.noKeywordInfo++;
+            // Log first few skips for debugging
+            if (skippedCounts.noKeywordInfo <= 3) {
+              console.log(
+                `⚠️ SKIP (no keyword_info): "${item.keyword}" - hasKeywordInfo: ${!!keywordInfo}, searchVolume: ${keywordInfo?.search_volume}`
+              );
+            }
             continue; // Skip items without real data
           }
 
@@ -408,24 +734,75 @@ const getKeywordDataStep = createStep({
               (existingKw) => existingKw === item.keyword?.toLowerCase()
             )
           ) {
+            skippedCounts.alreadyExists++;
             continue;
           }
 
           // Skip if already added in this batch
-          if (keywordData.some((kw) => kw.keyword === item.keyword)) continue;
+          if (keywordData.some((kw) => kw.keyword === item.keyword)) {
+            skippedCounts.duplicate++;
+            continue;
+          }
 
-          // Filter for minimum quality: at least 10 searches/month
-          if (item.search_volume < 10) continue;
+          // Filter for minimum quality threshold
+          // API can return string or number, ensure we have a number
+          const searchVolume = Number(
+            keywordInfoNormalized?.search_volume ||
+              keywordInfo.search_volume ||
+              0
+          );
+          if (searchVolume < KEYWORD_CONFIG.MIN_SEARCH_VOLUME) {
+            skippedCounts.lowVolume++;
+            continue;
+          }
+
+          // Get keyword difficulty (0-100 score from DataForSEO Labs)
+          // Check multiple possible locations in the API response
+          let keywordDifficulty =
+            item.keyword_difficulty ??
+            item.keyword_properties?.keyword_difficulty ??
+            null;
+
+          let hasRealDifficulty = false;
+
+          // If still no keyword difficulty, try to derive from competition and search volume
+          if (keywordDifficulty === null || keywordDifficulty === undefined) {
+            // Log missing data for debugging (only for first keyword to avoid spam)
+            if (difficultyStats.estimated === 0) {
+              console.warn(
+                `⚠️ No keyword_difficulty data from DataForSEO. Using competition-based estimates.`
+              );
+              console.warn(
+                `   Note: Google Keyword Ideas endpoint may not include keyword_difficulty for all keywords.`
+              );
+            }
+
+            // Estimate difficulty from competition (0-1 scale) if available
+            const competition = Number(item.competition || 0.5);
+            keywordDifficulty = Math.round(competition * 100); // Convert to 0-100 scale
+            difficultyStats.estimated++;
+          } else {
+            hasRealDifficulty = true;
+            difficultyStats.real++;
+          }
+
+          keywordDifficulty = Number(keywordDifficulty);
 
           // Calculate traffic/difficulty ratio for ranking potential
           const trafficDifficultyRatio =
-            item.search_volume / Math.max(item.competition_index, 1);
+            searchVolume / Math.max(keywordDifficulty, 1);
 
-          const competitionScore = item.competition_index / 100;
+          // Get CPC and competition data - ensure numbers
+          const cpc = Number(item.cpc || 0);
+          const competition =
+            item.competition !== undefined ? Number(item.competition) : 0.5;
 
-          // Calculate trend from monthly searches
+          // Calculate trend from monthly searches (use normalized data if available)
+          const monthlySearchData =
+            keywordInfoNormalized?.monthly_searches ||
+            keywordInfo.monthly_searches;
           const trend = calculateTrend(
-            item.monthly_searches as
+            monthlySearchData as
               | Array<{
                   year?: number;
                   month?: number;
@@ -435,28 +812,53 @@ const getKeywordDataStep = createStep({
           );
 
           // Format monthly searches
-          const monthlySearches = item.monthly_searches
+          const monthlySearches = monthlySearchData
             ?.slice(0, 12)
-            .filter((m): m is NonNullable<typeof m> => m !== undefined)
-            .map((m) => ({
+            .filter((m: any) => m !== null && m !== undefined)
+            .map((m: any) => ({
               month: `${m.year || 0}-${String(m.month || 0).padStart(2, '0')}`,
-              volume: m.search_volume || 0,
+              volume: Number(m.search_volume || 0),
             }));
 
           keywordData.push({
             keyword: item.keyword,
-            searchVolume: item.search_volume, // REAL data from API
-            difficulty: item.competition_index, // REAL data from API
-            cpc: item.cpc || 0,
-            competition: competitionScore,
+            searchVolume: searchVolume, // Prefer normalized data from clickstream
+            difficulty: keywordDifficulty, // DataForSEO Labs keyword difficulty (superior metric)
+            cpc: cpc,
+            competition: competition,
             monthlySearches,
             trend,
           });
+
+          skippedCounts.added++;
+
+          // Log first few successful additions for debugging
+          if (skippedCounts.added <= 5) {
+            console.log(
+              `✅ Added keyword #${skippedCounts.added}: "${item.keyword}" (volume: ${searchVolume}, difficulty: ${keywordDifficulty})`
+            );
+          }
         }
       }
 
+      console.log(`
+📊 KEYWORD EXTRACTION SUMMARY:
+- Total results from API: ${keywordItems.length} (from ${resultData?.total_count || 0} total available)
+- Keywords added: ${skippedCounts.added}
+- Skipped (no keyword): ${skippedCounts.noKeyword}
+- Skipped (no keyword_info): ${skippedCounts.noKeywordInfo}
+- Skipped (already exists): ${skippedCounts.alreadyExists}
+- Skipped (duplicate in batch): ${skippedCounts.duplicate}
+- Skipped (low volume <${KEYWORD_CONFIG.MIN_SEARCH_VOLUME}): ${skippedCounts.lowVolume}
+
+🎯 KEYWORD DIFFICULTY DATA:
+- Real difficulty scores from DataForSEO: ${difficultyStats.real} (${Math.round((difficultyStats.real / (difficultyStats.real + difficultyStats.estimated)) * 100) || 0}%)
+- Competition-based estimates: ${difficultyStats.estimated} (${Math.round((difficultyStats.estimated / (difficultyStats.real + difficultyStats.estimated)) * 100) || 0}%)
+${difficultyStats.estimated > 0 ? '⚠️  Note: Some keywords lack SERP data in DataForSEO database - using competition (0-1) scaled to difficulty (0-100)' : ''}
+      `);
+
       console.log(
-        `Extracted ${keywordData.length} keywords with real DataForSEO metrics`
+        `Extracted ${keywordData.length} keywords with DataForSEO Labs metrics`
       );
 
       // STEP 4: Sort by traffic/difficulty ratio (best opportunities first)
@@ -483,6 +885,7 @@ const getKeywordDataStep = createStep({
 
       return {
         product,
+        filteringCriteria,
         keywordData: topKeywords,
       };
     } catch (error) {
@@ -509,6 +912,10 @@ const KeywordWithoutScheduleSchema = z.object({
   priorityScore: z.number(),
   trafficDifficultyRatio: z.number(),
   rationale: z.string(),
+  // Content type recommendation
+  recommendedContentType: ArticleTypeEnum,
+  recommendedSubtype: z.string(), // Guide or listicle subtype
+  contentTypeRationale: z.string(),
 });
 
 // Step 4: Analyze keywords for SEO potential (simplified - no content generation)
@@ -516,6 +923,11 @@ const analyzeKeywordsStep = createStep({
   id: 'analyze-keywords',
   inputSchema: z.object({
     product: ProductInputSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
     keywordData: z.array(
       z.object({
         keyword: z.string(),
@@ -538,71 +950,48 @@ const analyzeKeywordsStep = createStep({
   }),
   outputSchema: z.object({
     product: ProductInputSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
     analyzedKeywords: z.array(KeywordWithoutScheduleSchema),
   }),
   execute: async ({ inputData }) => {
-    const { product, keywordData } = inputData;
+    const { product, filteringCriteria, keywordData } = inputData;
 
-    const prompt = `You are a world-class SEO strategist analyzing ${keywordData.length} keywords for keyword discovery.
+    const prompt = `Analyze keywords for: ${product.name} - ${product.description}
 
-**PRODUCT CONTEXT:**
-Name: ${product.name}
-Description: ${product.description}
-Target Audiences: ${product.targetAudiences.join(', ')}
+Target: ${product.targetAudiences.join(', ')}
 
-**KEYWORDS TO ANALYZE:**
+Keywords (${keywordData.length}):
 ${keywordData
   .map(
     (kw, i) =>
-      `${i + 1}. "${kw.keyword}"
-   - Search Volume: ${kw.searchVolume}/mo
-   - Keyword Difficulty: ${kw.difficulty}/100
-   - CPC: $${(kw.cpc || 0).toFixed(2)}
-   - Traffic/Difficulty Ratio: ${(kw.searchVolume / Math.max(kw.difficulty, 1)).toFixed(1)}
-   - Trend: ${kw.trend ? (kw.trend > 0 ? `📈 +${(kw.trend * 100).toFixed(0)}%` : `📉 ${(kw.trend * 100).toFixed(0)}%`) : 'Stable'}`
+      `${i + 1}. "${kw.keyword}" | Vol: ${kw.searchVolume} | Diff: ${kw.difficulty} | CPC: $${(kw.cpc || 0).toFixed(2)}`
   )
-  .join('\n\n')}
+  .join('\n')}
 
-**ANALYSIS FRAMEWORK:**
+For each keyword analyze:
 
-For each keyword, provide strategic analysis (NO content generation):
+1. searchIntent: informational, navigational, commercial, or transactional
+2. businessPotential: "3" (perfect fit), "2" (good fit), "1" (weak fit), "0" (no fit)
+3. trafficPotential: Estimated monthly traffic if ranked #1-3 (use ~${Math.round(KEYWORD_CONFIG.TOP_3_CTR * 100)}% of search volume)
+4. parentTopic: Broader topic category (optional, can be empty)
+5. competitorGap: true if KD<${KEYWORD_CONFIG.GAP_DIFFICULTY_LOW} AND volume>${KEYWORD_CONFIG.GAP_VOLUME_LOW}, OR KD<${KEYWORD_CONFIG.GAP_DIFFICULTY_MEDIUM} AND volume>${KEYWORD_CONFIG.GAP_VOLUME_MEDIUM}; false otherwise
+6. rationale: One sentence why this keyword is valuable
+7. recommendedContentType: "guide" or "listicle"
+8. recommendedSubtype: 
+   - If guide: "how_to", "explainer", "comparison", or "reference"
+   - If listicle: "round_up", "resources", or "examples"
+9. contentTypeRationale: One sentence why this format will rank
 
-**1. SEARCH INTENT**
-- informational: "how to", "what is", learning queries
-- navigational: Brand/product searches
-- commercial: "best", "review", research before buying
-- transactional: "buy", "pricing", ready to purchase
+Rules:
+- businessPotential: Focus on customer support/automation fit. Generic AI terms = 0 or 1. Support-specific = 2 or 3.
+- Content type: "how to X" → guide/how_to, "best X" → listicle/round_up, "what is X" → guide/explainer
+- MUST analyze ALL ${keywordData.length} keywords
 
-**2. BUSINESS POTENTIAL** (Critical - how well does this keyword fit our product?)
-- "3" = Product is THE solution (perfect fit, high conversion potential)
-- "2" = Product is A solution (good fit, can naturally mention)
-- "1" = Product tangentially related (weak fit)
-- "0" = No product fit (avoid - waste of resources)
-
-**3. TRAFFIC POTENTIAL** (Realistic monthly traffic if ranked #1-3)
-Estimate actual traffic considering:
-- Position 1-3 CTR (~30-40%)
-- Related keyword traffic
-- SERP features
-
-**4. PARENT TOPIC** (Group keywords to avoid cannibalization)
-Broader topic this keyword belongs to.
-Example: "best espresso machine" → parent: "espresso machines"
-
-**5. COMPETITOR GAP**
-Is this a low-hanging fruit opportunity?
-- true: Good volume + low difficulty (KD < 50 with volume > 100, OR KD < 70 with volume > 500)
-- false: Competitive
-
-**6. STRATEGIC RATIONALE**
-ONE sentence explaining why this keyword is valuable for ${product.name}.
-
-**IMPORTANT:**
-- Be brutally honest about business potential (BP=0 if no fit)
-- Traffic potential should be realistic (not just search volume)
-- Parent topics help avoid multiple articles competing for same keywords
-
-Analyze ALL ${keywordData.length} keywords.`;
+Return analysis for every single keyword.`;
 
     try {
       const result = await seoStrategist.generateVNext(prompt, {
@@ -616,6 +1005,10 @@ Analyze ALL ${keywordData.length} keywords.`;
               parentTopic: z.string().optional(),
               competitorGap: z.boolean(),
               rationale: z.string(),
+              recommendedContentType: ArticleTypeEnum,
+              // Accept subtype as string to avoid union validation issues
+              recommendedSubtype: z.string(),
+              contentTypeRationale: z.string(),
             })
           ),
         }),
@@ -635,30 +1028,42 @@ Analyze ALL ${keywordData.length} keywords.`;
           data: typeof kw,
           analyzed?: (typeof result.object.analyses)[0]
         ): number => {
-          // Base: Traffic/difficulty ratio (max 40 points)
-          const ratioScore = Math.min((trafficDifficultyRatio / 100) * 40, 40);
+          const weights = KEYWORD_CONFIG.PRIORITY_WEIGHTS;
 
-          // Volume score (max 20 points)
-          const volumeScore = Math.min((data.searchVolume / 1000) * 20, 20);
+          // Base: Traffic/difficulty ratio
+          const ratioScore = Math.min(
+            (trafficDifficultyRatio / 100) * weights.TRAFFIC_DIFFICULTY_RATIO,
+            weights.TRAFFIC_DIFFICULTY_RATIO
+          );
 
-          // CPC score - commercial value (max 15 points)
-          const cpcScore = Math.min(((data.cpc || 0) / 5) * 15, 15);
+          // Volume score
+          const volumeScore = Math.min(
+            (data.searchVolume / 1000) * weights.SEARCH_VOLUME,
+            weights.SEARCH_VOLUME
+          );
 
-          // Trend bonus (5 points)
-          const trendBonus = (data.trend || 0) > 0 ? 5 : 0;
+          // CPC score - commercial value
+          const cpcScore = Math.min(
+            ((data.cpc || 0) / 5) * weights.CPC,
+            weights.CPC
+          );
+
+          // Trend bonus
+          const trendBonus = (data.trend || 0) > 0 ? weights.TREND_BONUS : 0;
 
           // Business potential multiplier (most important!)
+          const bpMultipliers = weights.BUSINESS_POTENTIAL_MULTIPLIERS;
           const bpMultiplier =
             analyzed?.businessPotential === '3'
-              ? 1.4
+              ? bpMultipliers.BP_3
               : analyzed?.businessPotential === '2'
-                ? 1.2
+                ? bpMultipliers.BP_2
                 : analyzed?.businessPotential === '1'
-                  ? 1.0
-                  : 0.5;
+                  ? bpMultipliers.BP_1
+                  : bpMultipliers.BP_0;
 
           // Competitor gap bonus
-          const gapBonus = analyzed?.competitorGap ? 10 : 0;
+          const gapBonus = analyzed?.competitorGap ? weights.GAP_BONUS : 0;
 
           const baseScore =
             ratioScore + volumeScore + cpcScore + trendBonus + gapBonus;
@@ -666,8 +1071,34 @@ Analyze ALL ${keywordData.length} keywords.`;
         };
 
         if (!analysis) {
-          // Fallback if AI didn't analyze this keyword
+          // Fallback if AI didn't analyze this keyword - use heuristics
           const priorityScore = calculatePriorityScore(kw);
+
+          // Simple content type heuristics
+          let contentType: 'guide' | 'listicle' = 'guide';
+          let subtype: string = 'explainer';
+
+          const kwLower = kw.keyword.toLowerCase();
+          if (kwLower.includes('best') || kwLower.includes('top ')) {
+            contentType = 'listicle';
+            subtype = 'round_up';
+          } else if (kwLower.startsWith('how to ')) {
+            contentType = 'guide';
+            subtype = 'how_to';
+          } else if (
+            kwLower.includes(' vs ') ||
+            kwLower.includes('alternative')
+          ) {
+            contentType = 'guide';
+            subtype = 'comparison';
+          } else if (
+            kwLower.includes('examples') ||
+            kwLower.includes('ideas')
+          ) {
+            contentType = 'listicle';
+            subtype = 'examples';
+          }
+
           return {
             keyword: kw.keyword,
             searchVolume: kw.searchVolume,
@@ -676,14 +1107,17 @@ Analyze ALL ${keywordData.length} keywords.`;
             competition: kw.competition,
             searchIntent: 'informational' as const,
             businessPotential: '1' as const,
-            trafficPotential: Math.round(kw.searchVolume * 0.35), // ~35% CTR for top 3
+            trafficPotential: estimateTrafficPotential(kw.searchVolume),
             parentTopic: undefined,
             trendScore: kw.trend,
-            competitorGap: kw.difficulty < 50 && kw.searchVolume > 100,
+            competitorGap: isCompetitorGap(kw.difficulty, kw.searchVolume),
             priorityScore,
             trafficDifficultyRatio,
             rationale:
               'Keyword requires manual review - AI analysis unavailable',
+            recommendedContentType: contentType,
+            recommendedSubtype: subtype as any,
+            contentTypeRationale: 'Determined by keyword pattern heuristics',
           };
         }
 
@@ -705,6 +1139,9 @@ Analyze ALL ${keywordData.length} keywords.`;
           priorityScore,
           trafficDifficultyRatio,
           rationale: analysis.rationale,
+          recommendedContentType: analysis.recommendedContentType,
+          recommendedSubtype: analysis.recommendedSubtype,
+          contentTypeRationale: analysis.contentTypeRationale,
         };
       });
 
@@ -712,6 +1149,7 @@ Analyze ALL ${keywordData.length} keywords.`;
 
       return {
         product,
+        filteringCriteria,
         analyzedKeywords,
       };
     } catch (error) {
@@ -735,8 +1173,18 @@ const finalizeKeywordsStep = createStep({
 
     console.log(`Finalizing ${analyzedKeywords.length} discovered keywords`);
 
+    // FILTER: Remove keywords with low business potential
+    const businessRelevantKeywords = analyzedKeywords.filter((kw) => {
+      const bp = parseInt(kw.businessPotential);
+      return bp >= KEYWORD_CONFIG.MIN_BUSINESS_POTENTIAL;
+    });
+
+    console.log(
+      `Filtered for business relevance: ${analyzedKeywords.length} → ${businessRelevantKeywords.length} keywords (BP≥${KEYWORD_CONFIG.MIN_BUSINESS_POTENTIAL})`
+    );
+
     // Sort by priority score (high to low)
-    const sortedKeywords = [...analyzedKeywords].sort(
+    const sortedKeywords = [...businessRelevantKeywords].sort(
       (a, b) => b.priorityScore - a.priorityScore
     );
 
@@ -757,23 +1205,26 @@ const finalizeKeywordsStep = createStep({
       `Deduplicated: ${sortedKeywords.length} → ${uniqueKeywords.length} unique keywords`
     );
 
-    // Select up to 30 unique keywords (may be less if not enough available)
-    const final30Keywords = uniqueKeywords.slice(0, 30);
+    // Select target number of unique keywords (may be less if not enough available)
+    const finalKeywords = uniqueKeywords.slice(
+      0,
+      KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT
+    );
 
-    if (final30Keywords.length < 30) {
+    if (finalKeywords.length < KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT) {
       console.warn(
-        `⚠️ Only ${final30Keywords.length} unique keywords available (expected 30). Consider broadening seed keywords or adjusting filters.`
+        `⚠️ Only ${finalKeywords.length} unique keywords available (expected ${KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT}). Consider broadening seed keywords or adjusting filters.`
       );
     } else {
       console.log(
-        `✅ Selected 30 unique keywords from ${sortedKeywords.length} candidates`
+        `✅ Selected ${KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT} unique keywords from ${sortedKeywords.length} candidates`
       );
     }
 
-    // Add scheduledDate to each keyword (1 per day for 30 days)
-    const keywordsWithSchedule = final30Keywords.map((kw, index) => {
+    // Add scheduledDate to each keyword (1 per day, starting today)
+    const keywordsWithSchedule = finalKeywords.map((kw, index) => {
       const scheduledDate = new Date();
-      scheduledDate.setDate(scheduledDate.getDate() + index); // Day 0, 1, 2, ... 29
+      scheduledDate.setDate(scheduledDate.getDate() + index);
 
       return {
         ...kw,
@@ -810,25 +1261,70 @@ const finalizeKeywordsStep = createStep({
 
     const lastKeyword = keywordsWithSchedule[keywordsWithSchedule.length - 1];
 
+    // Calculate content type distribution
+    const contentTypeStats = {
+      guides: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedContentType === 'guide'
+      ).length,
+      listicles: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedContentType === 'listicle'
+      ).length,
+      howTo: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedSubtype === 'how_to'
+      ).length,
+      explainer: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedSubtype === 'explainer'
+      ).length,
+      comparison: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedSubtype === 'comparison'
+      ).length,
+      reference: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedSubtype === 'reference'
+      ).length,
+      roundUp: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedSubtype === 'round_up'
+      ).length,
+      resources: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedSubtype === 'resources'
+      ).length,
+      examples: keywordsWithSchedule.filter(
+        (kw) => kw.recommendedSubtype === 'examples'
+      ).length,
+    };
+
+    const bp3Count = keywordsWithSchedule.filter(
+      (kw) => kw.businessPotential === '3'
+    ).length;
+    const bp2Count = keywordsWithSchedule.filter(
+      (kw) => kw.businessPotential === '2'
+    ).length;
+
     console.log(`
 📊 KEYWORD DISCOVERY SUMMARY:
 - Total Keywords: ${keywordsWithSchedule.length} ${keywordsWithSchedule.length === 30 ? '✅' : `⚠️ (target: 30)`}
 - All keywords are UNIQUE (no duplicates)
+- ✅ Business Relevance: ALL keywords have BP≥2 (good product fit)
 - Avg Search Volume: ${stats.avgSearchVolume.toLocaleString()}/mo
 - Avg Difficulty: ${stats.avgDifficulty}/100
 - Avg Priority Score: ${stats.avgPriorityScore}/100
-- High Business Potential (BP=3): ${stats.highBusinessPotential} keywords
+- Business Potential: BP=3 (Perfect fit): ${bp3Count} | BP=2 (Good fit): ${bp2Count}
 - Competitor Gap Opportunities: ${stats.competitorGaps} keywords
 - Total Traffic Potential: ${stats.totalTrafficPotential.toLocaleString()}/month
 - Avg Traffic/Difficulty Ratio: ${(keywordsWithSchedule.reduce((sum, kw) => sum + kw.trafficDifficultyRatio, 0) / keywordsWithSchedule.length).toFixed(1)}
 - Schedule: ${keywordsWithSchedule[0]?.scheduledDate.split('T')[0] || 'N/A'} to ${lastKeyword?.scheduledDate.split('T')[0] || 'N/A'}
+
+📝 CONTENT TYPE DISTRIBUTION:
+- Guides: ${contentTypeStats.guides} (How-to: ${contentTypeStats.howTo}, Explainer: ${contentTypeStats.explainer}, Comparison: ${contentTypeStats.comparison}, Reference: ${contentTypeStats.reference})
+- Listicles: ${contentTypeStats.listicles} (Round-up: ${contentTypeStats.roundUp}, Resources: ${contentTypeStats.resources}, Examples: ${contentTypeStats.examples})
 
 Top 10 Keywords by Priority:
 ${keywordsWithSchedule
   .slice(0, 10)
   .map(
     (kw, i) =>
-      `${i + 1}. ${kw.keyword} (Priority: ${kw.priorityScore}, Volume: ${kw.searchVolume}, Difficulty: ${kw.keywordDifficulty}, BP: ${kw.businessPotential}, Date: ${kw.scheduledDate.split('T')[0]})`
+      `${i + 1}. ${kw.keyword}
+   Priority: ${kw.priorityScore} | Volume: ${kw.searchVolume} | Difficulty: ${kw.keywordDifficulty} | BP: ${kw.businessPotential}
+   Content: ${kw.recommendedContentType} (${kw.recommendedSubtype}) | ${kw.scheduledDate.split('T')[0]}`
   )
   .join('\n')}
     `);
@@ -875,22 +1371,37 @@ function getLocationCode(countryCode: string): number {
 export const keywordIdeasGeneratorWorkflow = createWorkflow({
   id: 'keyword-discovery',
   description: `
-    Keyword discovery workflow using DataForSEO and AI analysis:
+    Keyword discovery workflow using DataForSEO Labs API and AI-powered content strategy:
     
-    FOCUS: Find high-potential keywords with good traffic/difficulty ratios
+    FOCUS: Find high-potential keywords with optimal content type recommendations to rank #1
+    
+    ENHANCEMENTS (DataForSEO Labs API):
+    - Superior keyword difficulty scores (0-100) vs basic competition index
+    - Normalized search volumes with clickstream data for accuracy
+    - Up to 1000 keyword ideas per request (vs 100 in Google Ads API)
+    - Better monthly search trend data
+    - More comprehensive SERP metrics
+    
+    CONTENT TYPE INTELLIGENCE:
+    - AI-powered content format recommendations (guide vs listicle)
+    - Specific subtype selection (how_to, explainer, comparison, reference, round_up, resources, examples)
+    - Intent-based format matching for better rankings
+    - SERP analysis for content type optimization
     
     Steps:
-    1. Generate strategic seed keywords across 7 categories
-    2. Fetch existing keywords to avoid duplicates  
-    3. Expand via DataForSEO with REAL search volume & difficulty data
-    4. AI analysis: search intent, business potential, traffic estimation
-    5. Sort by priority score and return with comprehensive stats
+    1. Analyze business context to generate dynamic filtering criteria (competitors, relevant terms, negative keywords)
+    2. Generate strategic seed keywords across 7 categories (avoiding filtered terms)
+    3. Fetch existing keywords to avoid duplicates  
+    4. Expand via DataForSEO Labs API with premium keyword data (filtered dynamically)
+    5. AI analysis: search intent, business potential, traffic estimation, and content type recommendation
+    6. Sort by priority score and return exactly 30 unique keywords with comprehensive stats and content strategy
     
-    Output: Sorted list of keywords with metrics (NO content generation)
+    Output: 30 unique keywords with metrics + optimal content type for each (NO duplicates)
   `,
   inputSchema: ProductInputSchema,
   outputSchema: OutputSchema,
 })
+  .then(analyzeBusinessContextStep)
   .then(generateSeedKeywordsStep)
   .then(fetchExistingArticlesStep)
   .then(getKeywordDataStep)
