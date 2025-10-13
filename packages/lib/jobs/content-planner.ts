@@ -48,15 +48,21 @@ export const contentPlanner = async (job: Job) => {
   const result = workflowResult.result;
 
   // If using a real product ID, save the results to the database
-  if (productId && result?.articleIdeas?.length > 0) {
+  if (productId && result?.keywords?.length > 0) {
     const articles = await prisma.article.createMany({
-      data: result.articleIdeas.map((idea: any) => ({
+      data: result.keywords.map((idea: any) => ({
         productId: productId,
         keyword: idea.keyword,
-        title: idea.title,
-        type: idea.type,
-        guideSubtype: idea.guideSubtype || null,
-        listicleSubtype: idea.listicleSubtype || null,
+        title: idea.keyword, // Use keyword as initial title
+        type: idea.recommendedContentType,
+        guideSubtype:
+          idea.recommendedContentType === 'guide'
+            ? idea.recommendedSubtype
+            : null,
+        listicleSubtype:
+          idea.recommendedContentType === 'listicle'
+            ? idea.recommendedSubtype
+            : null,
         searchVolume: idea.searchVolume,
         keywordDifficulty: idea.keywordDifficulty,
         cpc: idea.cpc,
