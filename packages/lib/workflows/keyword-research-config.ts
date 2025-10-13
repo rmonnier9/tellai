@@ -11,12 +11,12 @@
 
 export const KEYWORD_CONFIG = {
   // Seed keyword generation
-  SEED_KEYWORDS_COUNT: 15, // Number of seed keywords to generate (max 20 for DataForSEO)
+  SEED_KEYWORDS_COUNT: 40, // Number of seed keywords to generate (increased for better mid-tail/long-tail coverage)
   FINAL_KEYWORDS_COUNT: 30, // Target number of final keywords to return
 
-  // DataForSEO API limits
-  DATAFORSEO_SEED_LIMIT: 20, // Max seeds per API request
-  DATAFORSEO_RESULTS_LIMIT: 1000, // Max keyword ideas to fetch
+  // DataForSEO API limits (we'll batch if needed)
+  DATAFORSEO_SEED_LIMIT: 20, // Max seeds per single API request
+  DATAFORSEO_RESULTS_LIMIT: 1000, // Max keyword ideas to fetch per batch
 
   // Filtering thresholds
   MIN_SEARCH_VOLUME: 10, // Minimum monthly search volume

@@ -496,49 +496,69 @@ Decision: ${businessIntelligence.funnelStages.decision.slice(0, 5).join(', ')}..
 ❌ Unsupported: ${businessIntelligence.negativeKeywords.unsupportedUseCases.join(', ')}
 
 **YOUR MISSION:**
-Generate ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} seed keywords that will expand into high-converting long-tail keywords.
+Generate ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} DIVERSE seed keywords with strong emphasis on MID-TAIL (3-4 words) and LONG-TAIL (5+ words) variations that will expand into high-converting keyword clusters.
 
-**STRATEGIC FRAMEWORK - Distribute seeds across:**
+**SEED DIVERSITY REQUIREMENTS:**
+- **30% Short-tail** (2-3 words): Core topics - e.g., "customer support automation"
+- **45% Mid-tail** (3-4 words): Specific use cases - e.g., "automate customer support emails"
+- **25% Long-tail** (5+ words): Very specific queries - e.g., "how to automate customer support responses for small business"
 
-1. **ICP Pain Point Keywords (${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.25)} seeds ~25%)**
+**KEYWORD LENGTH PATTERNS TO INCLUDE:**
+- Question-based: "how to [achieve JTBD]", "what is [solution]", "why [pain point]"
+- Modifier-based: "best [solution] for [ICP]", "[solution] guide for [audience]"
+- Problem-solution: "[pain point] solution", "fix [problem] with [solution type]"
+- Use-case specific: "[solution] for [industry/role]", "[feature] to [outcome]"
+- Comparison-based: "[solution A] vs [solution B]", "[solution] alternatives for [ICP]"
+
+**STRATEGIC FRAMEWORK - Distribute ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} seeds across:**
+
+1. **ICP Pain Point Keywords (~${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.25)} seeds, 25%)**
    - Exact pain points from ICP analysis
    - Problems the target customer faces daily
-   - Frustrations with current solutions
-   - Example: "manually tracking customer emails" → "track customer emails automatically"
+   - Include question format: "how to solve [pain point]"
+   - Include long-tail: "[pain point] solution for [ICP demographic]"
+   - Example short: "track customer emails"
+   - Example mid: "automatically track customer emails"
+   - Example long: "how to automatically track customer support emails for small teams"
 
-2. **JTBD Functional Job Keywords (${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.25)} seeds ~25%)**
+2. **JTBD Functional Job Keywords (~${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.25)} seeds, 25%)**
    - What customers are trying to accomplish
-   - Task-oriented search terms
-   - Outcome-based keywords
-   - Example: "automate customer support responses"
+   - Task-oriented search terms with context
+   - Include role/industry modifiers
+   - Example short: "automate support responses"
+   - Example mid: "automate customer support ticket responses"
+   - Example long: "automate repetitive customer support responses for saas companies"
 
-3. **Funnel-Aware Keywords (${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.3)} seeds ~30%)**
-   - Awareness stage (problem discovery): ~10%
-   - Consideration stage (solution research): ~10%  
-   - Decision stage (ready to buy): ~10%
-   - Use the funnel stage keywords as inspiration but create NEW variations
+3. **Funnel-Aware Keywords (~${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.3)} seeds, 30%)**
+   - Awareness (problem): "challenges with [problem]", "why [pain point] happens"
+   - Consideration (solution): "[solution type] guide", "best [solution] for [ICP]"
+   - Decision (purchase): "[solution] pricing for [ICP]", "implement [solution] for [use case]"
+   - Mix short, mid, and long-tail across all stages
 
-4. **Value Proposition Keywords (${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.2)} seeds ~20%)**
-   - Unique differentiators from value props
-   - Feature + benefit combinations
-   - Competitive advantages as search terms
-   - Example: "AI-powered email automation for small business"
+4. **Value Proposition Keywords (~${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.2)} seeds, 20%)**
+   - Feature + benefit + ICP combinations
+   - Competitive advantage phrases
+   - Example short: "ai customer support"
+   - Example mid: "ai powered support automation"
+   - Example long: "ai powered customer support automation for growing saas companies"
 
 **CRITICAL REQUIREMENTS:**
 - Output EXACTLY ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} unique keywords
+- At least 45% must be MID-TAIL (3-4 words) - this is the sweet spot for conversions
+- At least 25% must be LONG-TAIL (5+ words) - these convert best and rank easier
 - Each keyword MUST align with the ICP (right customer, right intent, right stage)
-- Focus on COMMERCIAL INTENT - people who will PAY for this solution
+- Include varied modifiers: how to, best, guide, for [ICP], solution, tool, software
 - NO competitor brands, NO generic terms, NO wrong ICP terms
 - All keywords lowercase
-- Mix of short (2-3 words) and long-tail (4-6 words) seeds
-- DataForSEO limit: ${KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT} (we add buffer)
+- NO overly broad 1-word seeds
 
-**QUALITY OVER QUANTITY:**
-These seeds will expand to 100+ keywords. Choose seeds that will branch into valuable, business-relevant long-tail keywords.
+**EXPANSION STRATEGY:**
+These ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} diverse seeds will expand to 100+ related keywords via DataForSEO. 
+Choose seeds that will branch into different keyword clusters (problem-focused, solution-focused, comparison-focused, etc.).
 
-Think like a growth marketer: CAC < LTV. Every keyword should attract someone who NEEDS this solution and can AFFORD it.
+Think: Each seed should unlock a unique cluster of 20-30 related mid-tail and long-tail keywords.
 
-Output exactly ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} business-oriented seed keywords.`;
+Output exactly ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} business-oriented seed keywords with heavy emphasis on 3-6 word phrases.`;
 
     try {
       const result = await seoStrategist.generateVNext(prompt, {
@@ -555,26 +575,34 @@ Output exactly ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} business-oriented seed keyw
         `Generated ${result.object.keywords.length} business-oriented seed keywords`
       );
 
-      // CRITICAL: DataForSEO has a max limit per request
-      // Ensure we never exceed this limit
-      const limitedSeeds = result.object.keywords.slice(
-        0,
-        KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT
+      // Log keyword length distribution for debugging
+      const shortTail = result.object.keywords.filter(
+        (k) => k.split(' ').length <= 3
+      ).length;
+      const midTail = result.object.keywords.filter(
+        (k) => k.split(' ').length >= 3 && k.split(' ').length <= 4
+      ).length;
+      const longTail = result.object.keywords.filter(
+        (k) => k.split(' ').length >= 5
+      ).length;
+
+      console.log(`📊 Seed keyword distribution:`);
+      console.log(
+        `   • Short-tail (2-3 words): ${shortTail} (${Math.round((shortTail / result.object.keywords.length) * 100)}%)`
+      );
+      console.log(
+        `   • Mid-tail (3-4 words): ${midTail} (${Math.round((midTail / result.object.keywords.length) * 100)}%)`
+      );
+      console.log(
+        `   • Long-tail (5+ words): ${longTail} (${Math.round((longTail / result.object.keywords.length) * 100)}%)`
       );
 
-      if (
-        result.object.keywords.length > KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT
-      ) {
-        console.warn(
-          `⚠️ AI generated ${result.object.keywords.length} seeds, limiting to ${KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT} for DataForSEO API`
-        );
-      }
-
+      // Return ALL seeds - we'll batch DataForSEO calls in the next step if needed
       return {
         product,
         businessIntelligence,
         filteringCriteria,
-        seedKeywords: limitedSeeds,
+        seedKeywords: result.object.keywords,
       };
     } catch (error) {
       throw new Error(
@@ -717,46 +745,89 @@ const getKeywordDataStep = createStep({
       `Using DataForSEO Labs API for superior keyword difficulty scores and normalized search volumes`
     );
 
-    // CRITICAL VALIDATION: DataForSEO limit per request
-    if (seedKeywords.length > KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT) {
-      throw new Error(
-        `DataForSEO API limit exceeded: ${seedKeywords.length} seeds provided, max is ${KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT}. This should never happen - check seed generation step.`
-      );
-    }
-
     try {
-      // STEP 1: Get keyword ideas and comprehensive data from DataForSEO Labs API
-      // This endpoint provides superior data including keyword difficulty, normalized volumes, and better metrics
-      const task =
-        new DataForSEO.DataforseoLabsGoogleKeywordIdeasLiveRequestInfo();
-      task.language_code = product.language || 'en';
-      task.location_code = getLocationCode(product.country);
-      task.keywords = seedKeywords;
-      task.include_seed_keyword = true;
-      task.include_serp_info = true;
-      task.include_clickstream_data = true; // Get normalized search volumes with real user data
-      task.limit = KEYWORD_CONFIG.DATAFORSEO_RESULTS_LIMIT; // Get comprehensive keyword ideas
-      task.filters = [
-        ['keyword_info.search_volume', '>', 0], // Only keywords with search volume
-      ];
-      task.order_by = ['keyword_info.search_volume,desc']; // Sort by search volume
+      // STEP 1: Batch seeds if we exceed DataForSEO limit per request
+      const batchSize = KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT;
+      const batches: string[][] = [];
 
-      const response = await api.googleKeywordIdeasLive([task]);
-
-      if (!response || !response.tasks || response.tasks.length === 0) {
-        throw new Error('No data returned from DataForSEO');
+      for (let i = 0; i < seedKeywords.length; i += batchSize) {
+        batches.push(seedKeywords.slice(i, i + batchSize));
       }
 
-      const taskResult = response.tasks[0];
-      if (!taskResult) {
-        throw new Error('No task result returned from DataForSEO');
-      }
+      console.log(
+        `📦 Batching ${seedKeywords.length} seeds into ${batches.length} DataForSEO API call(s) (max ${batchSize} seeds per call)`
+      );
 
-      if (taskResult.status_code !== 20000) {
-        throw new Error(
-          `DataForSEO error: ${taskResult.status_message || 'Unknown error'}`
+      // STEP 2: Execute all batches and aggregate results
+      const allKeywordItems: any[] = [];
+      let totalCount = 0;
+
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+        const batch = batches[batchIndex];
+        if (!batch || batch.length === 0) {
+          console.warn(`⚠️ Skipping empty batch ${batchIndex + 1}`);
+          continue;
+        }
+
+        console.log(
+          `📡 Fetching batch ${batchIndex + 1}/${batches.length} with ${batch.length} seeds...`
         );
+
+        const task =
+          new DataForSEO.DataforseoLabsGoogleKeywordIdeasLiveRequestInfo();
+        task.language_code = product.language || 'en';
+        task.location_code = getLocationCode(product.country);
+        task.keywords = batch;
+        task.include_seed_keyword = true;
+        task.include_serp_info = true;
+        task.include_clickstream_data = true; // Get normalized search volumes with real user data
+        task.limit = KEYWORD_CONFIG.DATAFORSEO_RESULTS_LIMIT; // Get comprehensive keyword ideas per batch
+        task.filters = [
+          ['keyword_info.search_volume', '>', 0], // Only keywords with search volume
+        ];
+        task.order_by = ['keyword_info.search_volume,desc']; // Sort by search volume
+
+        const response = await api.googleKeywordIdeasLive([task]);
+
+        if (!response || !response.tasks || response.tasks.length === 0) {
+          throw new Error(
+            `No data returned from DataForSEO for batch ${batchIndex + 1}`
+          );
+        }
+
+        const taskResult = response.tasks[0];
+        if (!taskResult) {
+          throw new Error(
+            `No task result returned from DataForSEO for batch ${batchIndex + 1}`
+          );
+        }
+
+        if (taskResult.status_code !== 20000) {
+          throw new Error(
+            `DataForSEO error in batch ${batchIndex + 1}: ${taskResult.status_message || 'Unknown error'}`
+          );
+        }
+
+        // CRITICAL: DataForSEO Labs API returns data in result[0].items, not result directly
+        const resultData = taskResult.result?.[0];
+        const batchItems = resultData?.items || [];
+
+        console.log(
+          `✅ Batch ${batchIndex + 1}/${batches.length} returned ${batchItems.length} keyword ideas (total_count: ${resultData?.total_count || 0})`
+        );
+
+        // Aggregate results from this batch
+        allKeywordItems.push(...batchItems);
+        totalCount += resultData?.total_count || 0;
       }
+
+      // STEP 3: Log aggregated results
+      console.log(`\n📊 DataForSEO Labs API Summary:`);
+      console.log(`   • Total batches processed: ${batches.length}`);
+      console.log(
+        `   • Total keyword ideas retrieved: ${allKeywordItems.length}`
+      );
+      console.log(`   • Total available keywords: ${totalCount}`);
 
       const keywordData: Array<{
         keyword: string;
@@ -769,60 +840,12 @@ const getKeywordDataStep = createStep({
         trend?: number;
       }> = [];
 
-      // CRITICAL: DataForSEO Labs API returns data in result[0].items, not result directly
-      const resultData = taskResult.result?.[0];
-      const keywordItems = resultData?.items || [];
+      // Use aggregated results instead of single batch
+      const keywordItems = allKeywordItems;
 
-      console.log(
-        `DataForSEO Labs API returned ${keywordItems.length} keyword ideas (total_count: ${resultData?.total_count || 0})`
-      );
+      console.log(`\nProcessing ${keywordItems.length} total keyword ideas...`);
 
-      // DEBUG: Log the structure of the first result items to understand API response
-      if (keywordItems.length > 0) {
-        const firstItem = keywordItems[0];
-        const secondItem = keywordItems[1];
-        console.log(
-          '\n🔍 DEBUG - API Response Structure (FIXED):',
-          JSON.stringify(
-            {
-              totalResults: keywordItems.length,
-              totalCount: resultData?.total_count,
-              firstItem: {
-                keyword: firstItem?.keyword || 'N/A',
-                hasKeywordInfo: !!firstItem?.keyword_info,
-                keywordInfoKeys: firstItem?.keyword_info
-                  ? Object.keys(firstItem.keyword_info)
-                  : [],
-                searchVolume: firstItem?.keyword_info?.search_volume,
-                hasNormalized:
-                  !!firstItem?.keyword_info_normalized_with_clickstream,
-                normalizedSearchVolume:
-                  firstItem?.keyword_info_normalized_with_clickstream
-                    ?.search_volume,
-                keywordDifficulty: firstItem?.keyword_difficulty,
-                keywordProperties: firstItem?.keyword_properties
-                  ? Object.keys(firstItem.keyword_properties)
-                  : null,
-                keywordPropertiesKD:
-                  firstItem?.keyword_properties?.keyword_difficulty,
-                cpc: firstItem?.cpc,
-                competition: firstItem?.competition,
-                allKeys: firstItem ? Object.keys(firstItem) : [],
-              },
-              secondItem: secondItem
-                ? {
-                    keyword: secondItem.keyword || 'N/A',
-                    searchVolume: secondItem?.keyword_info?.search_volume,
-                  }
-                : null,
-            },
-            null,
-            2
-          )
-        );
-      }
-
-      // STEP 2: Calculate trend scores from monthly search volumes
+      // STEP 4: Calculate trend scores from monthly search volumes
       const calculateTrend = (
         monthlySearches?: Array<{
           year?: number;
@@ -850,7 +873,7 @@ const getKeywordDataStep = createStep({
         return Math.max(-1, Math.min(1, change));
       };
 
-      // STEP 3: Extract keywords with superior DataForSEO Labs data
+      // STEP 5: Extract keywords with superior DataForSEO Labs data
       // This API provides keyword_difficulty (0-100), normalized search volumes, and better metrics
       let skippedCounts = {
         noKeyword: 0,
@@ -1028,7 +1051,7 @@ const getKeywordDataStep = createStep({
 
       console.log(`
 📊 KEYWORD EXTRACTION SUMMARY:
-- Total results from API: ${keywordItems.length} (from ${resultData?.total_count || 0} total available)
+- Total results from API (all batches): ${keywordItems.length} (from ${totalCount} total available)
 - Keywords added: ${skippedCounts.added}
 - Skipped (no keyword): ${skippedCounts.noKeyword}
 - Skipped (no keyword_info): ${skippedCounts.noKeywordInfo}
@@ -1046,7 +1069,7 @@ ${difficultyStats.estimated > 0 ? '⚠️  Note: Some keywords lack SERP data in
         `Extracted ${keywordData.length} keywords with DataForSEO Labs metrics`
       );
 
-      // STEP 4: Sort by traffic/difficulty ratio (best opportunities first)
+      // STEP 6: Sort by traffic/difficulty ratio (best opportunities first)
       // This ensures we prioritize keywords with good search volume vs ranking difficulty
       keywordData.sort((a, b) => {
         const ratioA = a.searchVolume / Math.max(a.difficulty, 1);
