@@ -125,6 +125,59 @@ const ProductInputSchema = z.object({
   url: z.string(),
 });
 
+// Enhanced business intelligence schema for ICP, JTBD, and funnel analysis
+const BusinessIntelligenceSchema = z.object({
+  idealCustomerProfile: z.object({
+    demographics: z
+      .array(z.string())
+      .describe('Who are they? (role, company size, industry)'),
+    psychographics: z.array(z.string()).describe('How do they think/behave?'),
+    painPoints: z
+      .array(z.string())
+      .describe('What problems keep them up at night?'),
+  }),
+  jobsToBeDone: z.array(
+    z.object({
+      functionalJob: z
+        .string()
+        .describe('What task are they trying to accomplish?'),
+      emotionalJob: z.string().describe('How do they want to feel?'),
+      socialJob: z
+        .string()
+        .optional()
+        .describe('How do they want to be perceived?'),
+    })
+  ),
+  funnelStages: z.object({
+    awareness: z
+      .array(z.string())
+      .describe('Top-of-funnel: problem discovery keywords'),
+    consideration: z
+      .array(z.string())
+      .describe('Mid-funnel: solution research keywords'),
+    decision: z
+      .array(z.string())
+      .describe('Bottom-funnel: ready-to-buy keywords'),
+  }),
+  valuePropositions: z
+    .array(z.string())
+    .describe('Unique value propositions vs competitors'),
+  negativeKeywords: z.object({
+    wrongICP: z
+      .array(z.string())
+      .describe('Keywords indicating wrong customer profile'),
+    wrongIntent: z
+      .array(z.string())
+      .describe('Keywords with wrong purchase/usage intent'),
+    competitors: z
+      .array(z.string())
+      .describe('Direct competitor brand terms to avoid'),
+    unsupportedUseCases: z
+      .array(z.string())
+      .describe('Use cases the product does not solve'),
+  }),
+});
+
 // Keyword discovery output schema
 const OutputSchema = z.object({
   productId: z.string(),
@@ -188,12 +241,13 @@ const contextAnalyst = new Agent({
   model: openrouter(KEYWORD_CONFIG.AI_MODEL),
 });
 
-// Step 1: Analyze business context to generate dynamic filtering criteria
+// Step 1: Analyze business context with ICP, JTBD, and funnel intelligence
 const analyzeBusinessContextStep = createStep({
   id: 'analyze-business-context',
   inputSchema: ProductInputSchema,
   outputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z
         .array(z.string())
@@ -211,91 +265,164 @@ const analyzeBusinessContextStep = createStep({
   execute: async ({ inputData }) => {
     const { name, description, targetAudiences, url } = inputData;
 
-    console.log(`\n🔍 Analyzing business context for: ${name}`);
+    console.log(
+      `\n🔍 Analyzing business context with ICP & JTBD framework for: ${name}`
+    );
 
-    const prompt = `Analyze this business to identify keyword filtering criteria for SEO research.
+    const prompt = `You are a business strategist and SEO expert. Perform a DEEP business analysis to generate business-oriented keyword research strategy.
 
-**BUSINESS:**
+**BUSINESS CONTEXT:**
 Name: ${name}
 Description: ${description}
 Target Audiences: ${targetAudiences.join(', ')}
 Website: ${url}
 
-**YOUR TASK:**
-Generate three lists to help filter keyword research results:
+**YOUR MISSION:**
+Extract strategic business intelligence to drive keyword discovery that CONVERTS, not just ranks.
 
-1. **brandedTerms** (10-15 terms):
-   - Direct competitors' brand names (lowercase)
-   - Major industry leaders that dominate keywords
-   - Generic brand terms that aren't specific to this business
-   - Example: For a CRM tool → ["salesforce", "hubspot", "zoho", "pipedrive"]
-   - Example: For a pizza restaurant → ["dominos", "pizza hut", "papa johns"]
+**PART 1: IDEAL CUSTOMER PROFILE (ICP)**
+Identify WHO will buy this product:
 
-2. **relevantContext** (8-12 terms):
-   - Core business value propositions
-   - Problem areas this business solves
-   - Target customer indicators
-   - Use case signals
-   - Example: For email marketing → ["campaign", "newsletter", "subscribers", "automation"]
-   - Example: For fitness app → ["workout", "training", "exercise", "fitness", "health"]
+1. **demographics** (5-8 items): Concrete attributes
+   - Job titles/roles (e.g., "marketing manager", "small business owner")
+   - Company size (e.g., "1-10 employees", "enterprise 500+")
+   - Industry verticals (e.g., "e-commerce", "SaaS", "healthcare")
+   - Geographic markets
+   - Budget/pricing tier indicators
 
-3. **genericTerms** (8-12 terms):
-   - Negative terms unrelated to business goals
-   - Troubleshooting/problem terms
-   - Scandal/controversy keywords
-   - Piracy/hack related terms
-   - Terms that indicate poor user intent
-   - Example: ["outage", "down", "not working", "scam", "fake", "hack", "leak"]
+2. **psychographics** (4-6 items): How they think/behave
+   - Personality traits (e.g., "data-driven", "hands-on", "time-starved")
+   - Preferred channels (e.g., "reads reddit", "attends webinars")
+   - Decision-making style (e.g., "needs social proof", "price-sensitive")
 
-**RULES:**
+3. **painPoints** (5-8 items): Specific problems they face
+   - Current struggles (e.g., "manually managing spreadsheets")
+   - Frustrations with alternatives (e.g., "existing tools too complex")
+   - Business impact (e.g., "losing customers to slow response times")
+
+**PART 2: JOBS TO BE DONE (JTBD)**
+What are customers "hiring" this product to do? Generate 4-6 jobs:
+
+Each job must include:
+- **functionalJob**: The literal task (e.g., "track customer emails automatically")
+- **emotionalJob**: Desired feeling (e.g., "feel confident I'm not missing leads")
+- **socialJob** (optional): Perception (e.g., "be seen as data-driven by my team")
+
+**PART 3: FUNNEL STAGES**
+Generate 8-12 keywords PER stage based on ICP & JTBD:
+
+1. **awareness** (problem-focused): What they search BEFORE knowing solutions exist
+   - Problem symptom keywords
+   - Industry challenge terms
+   - "How to solve X" patterns
+
+2. **consideration** (solution-focused): Researching solution categories
+   - Solution category terms
+   - Comparison keywords (feature A vs feature B, not brands)
+   - Educational content keywords
+
+3. **decision** (purchase-focused): Ready to buy, evaluating options
+   - High-intent commercial terms
+   - Pricing/cost related keywords
+   - Implementation/setup keywords
+
+**PART 4: VALUE PROPOSITIONS**
+List 4-6 unique value props that differentiate from competitors:
+   - What makes this product different/better?
+   - Unique features or approaches
+   - Competitive advantages
+
+**PART 5: NEGATIVE KEYWORDS**
+Define what to EXCLUDE for better business fit:
+
+1. **wrongICP** (6-10 terms): Keywords indicating wrong customer
+   - Wrong market segment (B2B product getting B2C keywords)
+   - Wrong company size (enterprise tool getting solopreneur searches)
+   - Wrong use cases
+
+2. **wrongIntent** (6-10 terms): Wrong purchase/usage intent
+   - DIY/free-only seekers when product is paid
+   - Troubleshooting competitor problems
+   - Informational only (no commercial intent)
+
+3. **competitors** (8-12 terms): Direct competitor brands to avoid
+   - Competitor brand names (lowercase)
+   - Their product names
+   - Major category leaders
+
+4. **unsupportedUseCases** (5-8 terms): What product does NOT do
+   - Features not offered
+   - Industries not served
+   - Use cases out of scope
+
+**CRITICAL RULES:**
 - ALL terms must be lowercase
-- Focus on terms SPECIFIC to this industry/niche
-- brandedTerms: Include major competitors but not the business itself
-- relevantContext: Terms that indicate commercial intent for THIS business
-- genericTerms: Universal negative terms + industry-specific red flags
-- Each list should have 8-15 terms total
+- Be SPECIFIC to this business, not generic marketing advice
+- Focus on COMMERCIAL INTENT throughout the funnel
+- ICP should be narrow and actionable
+- JTBD should reveal search behavior patterns
+- Funnel keywords should progress from problem → solution → purchase
+- Negative keywords should be comprehensive to filter aggressively
 
-Return your analysis.`;
+Think like a growth marketer optimizing for CAC and LTV, not just traffic.
+
+Return your complete analysis.`;
 
     try {
       const result = await contextAnalyst.generateVNext(prompt, {
-        output: z.object({
-          brandedTerms: z
-            .array(z.string())
-            .min(8)
-            .max(20)
-            .describe('Competitor and major brand terms'),
-          relevantContext: z
-            .array(z.string())
-            .min(8)
-            .max(15)
-            .describe('Business-relevant context terms'),
-          genericTerms: z
-            .array(z.string())
-            .min(8)
-            .max(15)
-            .describe('Generic/negative terms to exclude'),
-        }),
+        output: BusinessIntelligenceSchema,
       });
 
-      console.log(`✅ Generated filtering criteria:`);
+      console.log(`✅ Generated business intelligence:`);
       console.log(
-        `   • ${result.object.brandedTerms.length} branded/competitor terms`
+        `   • ICP Demographics: ${result.object.idealCustomerProfile.demographics.length} attributes`
       );
       console.log(
-        `   • ${result.object.relevantContext.length} relevant context terms`
+        `   • ICP Psychographics: ${result.object.idealCustomerProfile.psychographics.length} traits`
       );
       console.log(
-        `   • ${result.object.genericTerms.length} generic/negative terms`
+        `   • ICP Pain Points: ${result.object.idealCustomerProfile.painPoints.length} problems`
       );
+      console.log(
+        `   • Jobs To Be Done: ${result.object.jobsToBeDone.length} jobs`
+      );
+      console.log(
+        `   • Awareness Keywords: ${result.object.funnelStages.awareness.length} terms`
+      );
+      console.log(
+        `   • Consideration Keywords: ${result.object.funnelStages.consideration.length} terms`
+      );
+      console.log(
+        `   • Decision Keywords: ${result.object.funnelStages.decision.length} terms`
+      );
+      console.log(
+        `   • Value Propositions: ${result.object.valuePropositions.length} differentiators`
+      );
+      console.log(
+        `   • Negative Keywords: ${result.object.negativeKeywords.wrongICP.length + result.object.negativeKeywords.wrongIntent.length + result.object.negativeKeywords.competitors.length + result.object.negativeKeywords.unsupportedUseCases.length} filters`
+      );
+
+      // Convert business intelligence into legacy filtering format for compatibility
+      const filteringCriteria = {
+        brandedTerms: result.object.negativeKeywords.competitors,
+        relevantContext: [
+          ...result.object.idealCustomerProfile.demographics.flatMap((d) =>
+            d.toLowerCase().split(/\s+/)
+          ),
+          ...result.object.valuePropositions.flatMap((v) =>
+            v.toLowerCase().split(/\s+/)
+          ),
+        ].slice(0, 15),
+        genericTerms: [
+          ...result.object.negativeKeywords.wrongIntent,
+          ...result.object.negativeKeywords.unsupportedUseCases,
+        ],
+      };
 
       return {
         product: inputData,
-        filteringCriteria: {
-          brandedTerms: result.object.brandedTerms,
-          relevantContext: result.object.relevantContext,
-          genericTerms: result.object.genericTerms,
-        },
+        businessIntelligence: result.object,
+        filteringCriteria,
       };
     } catch (error) {
       console.error('Failed to analyze business context:', error);
@@ -306,11 +433,12 @@ Return your analysis.`;
   },
 });
 
-// Step 2: Generate seed keywords based on product
+// Step 2: Generate business-oriented seed keywords using ICP, JTBD, and funnel intelligence
 const generateSeedKeywordsStep = createStep({
   id: 'generate-seed-keywords',
   inputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z.array(z.string()),
       relevantContext: z.array(z.string()),
@@ -319,6 +447,7 @@ const generateSeedKeywordsStep = createStep({
   }),
   outputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z.array(z.string()),
       relevantContext: z.array(z.string()),
@@ -327,7 +456,7 @@ const generateSeedKeywordsStep = createStep({
     seedKeywords: z.array(z.string()),
   }),
   execute: async ({ inputData }) => {
-    const { product, filteringCriteria } = inputData;
+    const { product, businessIntelligence, filteringCriteria } = inputData;
     const { name, description, targetAudiences, url } = product;
 
     const currentMonth = new Date().toLocaleString('default', {
@@ -335,7 +464,7 @@ const generateSeedKeywordsStep = createStep({
     });
     const currentYear = new Date().getFullYear();
 
-    const prompt = `As a world-class SEO strategist, generate EXACTLY ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} strategically diverse seed keywords for comprehensive keyword research.
+    const prompt = `As an expert growth marketer and SEO strategist, generate EXACTLY ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} BUSINESS-ORIENTED seed keywords that will drive CONVERSIONS, not just traffic.
 
 **PRODUCT CONTEXT:**
 Name: ${name}
@@ -344,43 +473,86 @@ Target Audiences: ${targetAudiences.join(', ')}
 Website: ${url}
 Date: ${currentMonth} ${currentYear}
 
-**CRITICAL: AVOID BRANDED & NEGATIVE TERMS**
-❌ DO NOT include these competitor/branded terms: ${filteringCriteria.brandedTerms.join(', ')}
-❌ DO NOT include these negative terms: ${filteringCriteria.genericTerms.join(', ')}
-✅ DO include terms with this business context: ${filteringCriteria.relevantContext.join(', ')}
+**IDEAL CUSTOMER PROFILE:**
+Demographics: ${businessIntelligence.idealCustomerProfile.demographics.join(' | ')}
+Pain Points: ${businessIntelligence.idealCustomerProfile.painPoints.join(' | ')}
+Psychographics: ${businessIntelligence.idealCustomerProfile.psychographics.join(' | ')}
 
-**STRATEGIC SEED KEYWORD FRAMEWORK:**
+**JOBS TO BE DONE:**
+${businessIntelligence.jobsToBeDone.map((job, i) => `${i + 1}. Functional: ${job.functionalJob} | Emotional: ${job.emotionalJob}${job.socialJob ? ` | Social: ${job.socialJob}` : ''}`).join('\n')}
 
-Generate keywords across these strategic categories (aim for 2-3 per category):
+**VALUE PROPOSITIONS:**
+${businessIntelligence.valuePropositions.map((vp, i) => `${i + 1}. ${vp}`).join('\n')}
 
-1. **Problem/Pain Points** - Core problems this product solves for target customers
-2. **Solution Keywords** - Direct solution terms related to the product's value proposition
-3. **Industry-Specific Use Cases** - Niche applications for the target audiences
-4. **Comparison Keywords** - Alternative/vs keywords (but avoid the branded terms above)
-5. **Educational Keywords** - "how to", "what is", "guide to" related to the product's domain
-6. **Long-tail Solution Keywords** - Specific feature or benefit combinations
-7. **Commercial Intent** - Pricing, cost, tool, software related keywords
+**FUNNEL STAGE KEYWORDS (for context):**
+Awareness: ${businessIntelligence.funnelStages.awareness.slice(0, 5).join(', ')}...
+Consideration: ${businessIntelligence.funnelStages.consideration.slice(0, 5).join(', ')}...
+Decision: ${businessIntelligence.funnelStages.decision.slice(0, 5).join(', ')}...
+
+**NEGATIVE KEYWORDS TO AVOID:**
+❌ Competitors: ${filteringCriteria.brandedTerms.join(', ')}
+❌ Wrong ICP: ${businessIntelligence.negativeKeywords.wrongICP.join(', ')}
+❌ Wrong Intent: ${businessIntelligence.negativeKeywords.wrongIntent.join(', ')}
+❌ Unsupported: ${businessIntelligence.negativeKeywords.unsupportedUseCases.join(', ')}
+
+**YOUR MISSION:**
+Generate ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} seed keywords that will expand into high-converting long-tail keywords.
+
+**STRATEGIC FRAMEWORK - Distribute seeds across:**
+
+1. **ICP Pain Point Keywords (${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.25)} seeds ~25%)**
+   - Exact pain points from ICP analysis
+   - Problems the target customer faces daily
+   - Frustrations with current solutions
+   - Example: "manually tracking customer emails" → "track customer emails automatically"
+
+2. **JTBD Functional Job Keywords (${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.25)} seeds ~25%)**
+   - What customers are trying to accomplish
+   - Task-oriented search terms
+   - Outcome-based keywords
+   - Example: "automate customer support responses"
+
+3. **Funnel-Aware Keywords (${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.3)} seeds ~30%)**
+   - Awareness stage (problem discovery): ~10%
+   - Consideration stage (solution research): ~10%  
+   - Decision stage (ready to buy): ~10%
+   - Use the funnel stage keywords as inspiration but create NEW variations
+
+4. **Value Proposition Keywords (${Math.ceil(KEYWORD_CONFIG.SEED_KEYWORDS_COUNT * 0.2)} seeds ~20%)**
+   - Unique differentiators from value props
+   - Feature + benefit combinations
+   - Competitive advantages as search terms
+   - Example: "AI-powered email automation for small business"
 
 **CRITICAL REQUIREMENTS:**
-- Output EXACTLY ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} keywords (DataForSEO API limit is ${KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT}, we need buffer)
-- MUST be specific to this business and its value proposition
-- NO competitor brand names from the branded terms list
-- Focus on problems this product solves and benefits it provides
-- Include target audience context: ${targetAudiences.join(', ')}
+- Output EXACTLY ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} unique keywords
+- Each keyword MUST align with the ICP (right customer, right intent, right stage)
+- Focus on COMMERCIAL INTENT - people who will PAY for this solution
+- NO competitor brands, NO generic terms, NO wrong ICP terms
+- All keywords lowercase
+- Mix of short (2-3 words) and long-tail (4-6 words) seeds
+- DataForSEO limit: ${KEYWORD_CONFIG.DATAFORSEO_SEED_LIMIT} (we add buffer)
 
-Output exactly ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} diverse, business-focused seed keywords.`;
+**QUALITY OVER QUANTITY:**
+These seeds will expand to 100+ keywords. Choose seeds that will branch into valuable, business-relevant long-tail keywords.
+
+Think like a growth marketer: CAC < LTV. Every keyword should attract someone who NEEDS this solution and can AFFORD it.
+
+Output exactly ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} business-oriented seed keywords.`;
 
     try {
       const result = await seoStrategist.generateVNext(prompt, {
         output: z.object({
           keywords: z
             .array(z.string())
-            .describe('Strategically diverse seed keywords for expansion'),
+            .describe(
+              'Business-oriented seed keywords aligned with ICP, JTBD, and funnel stages'
+            ),
         }),
       });
 
       console.log(
-        `Generated ${result.object.keywords.length} strategic seed keywords`
+        `Generated ${result.object.keywords.length} business-oriented seed keywords`
       );
 
       // CRITICAL: DataForSEO has a max limit per request
@@ -400,6 +572,7 @@ Output exactly ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} diverse, business-focused s
 
       return {
         product,
+        businessIntelligence,
         filteringCriteria,
         seedKeywords: limitedSeeds,
       };
@@ -411,11 +584,12 @@ Output exactly ${KEYWORD_CONFIG.SEED_KEYWORDS_COUNT} diverse, business-focused s
   },
 });
 
-// Step 2: Fetch existing articles to avoid duplicates
+// Step 3: Fetch existing articles to avoid duplicates
 const fetchExistingArticlesStep = createStep({
   id: 'fetch-existing-articles',
   inputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z.array(z.string()),
       relevantContext: z.array(z.string()),
@@ -425,6 +599,7 @@ const fetchExistingArticlesStep = createStep({
   }),
   outputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z.array(z.string()),
       relevantContext: z.array(z.string()),
@@ -434,7 +609,8 @@ const fetchExistingArticlesStep = createStep({
     existingKeywords: z.array(z.string()),
   }),
   execute: async ({ inputData }) => {
-    const { product, filteringCriteria, seedKeywords } = inputData;
+    const { product, businessIntelligence, filteringCriteria, seedKeywords } =
+      inputData;
 
     try {
       // Fetch all existing articles for this product
@@ -457,6 +633,7 @@ const fetchExistingArticlesStep = createStep({
 
       return {
         product,
+        businessIntelligence,
         filteringCriteria,
         seedKeywords,
         existingKeywords,
@@ -469,6 +646,7 @@ const fetchExistingArticlesStep = createStep({
       // Continue without deduplication if database query fails
       return {
         product,
+        businessIntelligence,
         filteringCriteria,
         seedKeywords,
         existingKeywords: [],
@@ -477,11 +655,12 @@ const fetchExistingArticlesStep = createStep({
   },
 });
 
-// Step 3: Get comprehensive keyword data from DataForSEO
+// Step 4: Get comprehensive keyword data from DataForSEO
 const getKeywordDataStep = createStep({
   id: 'get-keyword-data',
   inputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z.array(z.string()),
       relevantContext: z.array(z.string()),
@@ -492,6 +671,7 @@ const getKeywordDataStep = createStep({
   }),
   outputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z.array(z.string()),
       relevantContext: z.array(z.string()),
@@ -518,8 +698,13 @@ const getKeywordDataStep = createStep({
     ),
   }),
   execute: async ({ inputData }) => {
-    const { product, filteringCriteria, seedKeywords, existingKeywords } =
-      inputData;
+    const {
+      product,
+      businessIntelligence,
+      filteringCriteria,
+      seedKeywords,
+      existingKeywords,
+    } = inputData;
     const api = getDataForSEOClient();
 
     console.log(
@@ -885,6 +1070,7 @@ ${difficultyStats.estimated > 0 ? '⚠️  Note: Some keywords lack SERP data in
 
       return {
         product,
+        businessIntelligence,
         filteringCriteria,
         keywordData: topKeywords,
       };
@@ -918,11 +1104,12 @@ const KeywordWithoutScheduleSchema = z.object({
   contentTypeRationale: z.string(),
 });
 
-// Step 4: Analyze keywords for SEO potential (simplified - no content generation)
+// Step 5: Analyze keywords for business potential using ICP & JTBD
 const analyzeKeywordsStep = createStep({
   id: 'analyze-keywords',
   inputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z.array(z.string()),
       relevantContext: z.array(z.string()),
@@ -950,6 +1137,7 @@ const analyzeKeywordsStep = createStep({
   }),
   outputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
     filteringCriteria: z.object({
       brandedTerms: z.array(z.string()),
       relevantContext: z.array(z.string()),
@@ -958,13 +1146,26 @@ const analyzeKeywordsStep = createStep({
     analyzedKeywords: z.array(KeywordWithoutScheduleSchema),
   }),
   execute: async ({ inputData }) => {
-    const { product, filteringCriteria, keywordData } = inputData;
+    const { product, businessIntelligence, filteringCriteria, keywordData } =
+      inputData;
 
-    const prompt = `Analyze keywords for: ${product.name} - ${product.description}
+    const prompt = `You are a growth marketing expert. Analyze keywords for BUSINESS POTENTIAL using the ICP and JTBD framework.
 
-Target: ${product.targetAudiences.join(', ')}
+**PRODUCT:** ${product.name}
+${product.description}
 
-Keywords (${keywordData.length}):
+**IDEAL CUSTOMER PROFILE:**
+Demographics: ${businessIntelligence.idealCustomerProfile.demographics.join(' | ')}
+Pain Points: ${businessIntelligence.idealCustomerProfile.painPoints.join(' | ')}
+Psychographics: ${businessIntelligence.idealCustomerProfile.psychographics.join(' | ')}
+
+**JOBS TO BE DONE:**
+${businessIntelligence.jobsToBeDone.map((job, i) => `${i + 1}. ${job.functionalJob} (Emotional: ${job.emotionalJob})`).join('\n')}
+
+**VALUE PROPOSITIONS:**
+${businessIntelligence.valuePropositions.map((vp, i) => `${i + 1}. ${vp}`).join('\n')}
+
+**KEYWORDS TO ANALYZE (${keywordData.length}):**
 ${keywordData
   .map(
     (kw, i) =>
@@ -972,26 +1173,55 @@ ${keywordData
   )
   .join('\n')}
 
-For each keyword analyze:
+**YOUR TASK:**
+For EACH keyword, analyze:
 
-1. searchIntent: informational, navigational, commercial, or transactional
-2. businessPotential: "3" (perfect fit), "2" (good fit), "1" (weak fit), "0" (no fit)
-3. trafficPotential: Estimated monthly traffic if ranked #1-3 (use ~${Math.round(KEYWORD_CONFIG.TOP_3_CTR * 100)}% of search volume)
-4. parentTopic: Broader topic category (optional, can be empty)
-5. competitorGap: true if KD<${KEYWORD_CONFIG.GAP_DIFFICULTY_LOW} AND volume>${KEYWORD_CONFIG.GAP_VOLUME_LOW}, OR KD<${KEYWORD_CONFIG.GAP_DIFFICULTY_MEDIUM} AND volume>${KEYWORD_CONFIG.GAP_VOLUME_MEDIUM}; false otherwise
-6. rationale: One sentence why this keyword is valuable
-7. recommendedContentType: "guide" or "listicle"
-8. recommendedSubtype: 
+1. **searchIntent**: 
+   - informational: "how to", "what is", learning
+   - navigational: looking for specific brand/page
+   - commercial: "best", "review", researching options
+   - transactional: "buy", "pricing", ready to purchase
+
+2. **businessPotential** (CRITICAL - be strict):
+   - "3" = PERFECT fit: Searcher matches ICP, has pain point we solve, shows buying intent
+   - "2" = GOOD fit: Matches ICP OR pain point, moderate commercial intent
+   - "1" = WEAK fit: Tangentially related, low commercial intent
+   - "0" = NO fit: Wrong ICP, wrong problem, no business value
+   
+   **Scoring criteria:**
+   - Does searcher match ICP demographics? (+1 point)
+   - Does keyword relate to a JTBD functional job? (+1 point)
+   - Does keyword indicate they have our ICP's pain points? (+1 point)
+   - High CPC or commercial intent? (boost to "3" if otherwise "2")
+   - Wrong ICP or intent? (force to "0" or "1")
+
+3. **trafficPotential**: Estimated monthly traffic if ranked #1-3 (use ~${Math.round(KEYWORD_CONFIG.TOP_3_CTR * 100)}% of search volume)
+
+4. **parentTopic**: Broader category (e.g., "email marketing", "customer support") - helps avoid keyword cannibalization
+
+5. **competitorGap**: true if KD<${KEYWORD_CONFIG.GAP_DIFFICULTY_LOW} AND volume>${KEYWORD_CONFIG.GAP_VOLUME_LOW}, OR KD<${KEYWORD_CONFIG.GAP_DIFFICULTY_MEDIUM} AND volume>${KEYWORD_CONFIG.GAP_VOLUME_MEDIUM}; false otherwise
+
+6. **rationale**: One sentence explaining businessPotential score based on ICP & JTBD fit
+
+7. **recommendedContentType**: "guide" or "listicle"
+
+8. **recommendedSubtype**: 
    - If guide: "how_to", "explainer", "comparison", or "reference"
    - If listicle: "round_up", "resources", or "examples"
-9. contentTypeRationale: One sentence why this format will rank
 
-Rules:
-- businessPotential: Focus on customer support/automation fit. Generic AI terms = 0 or 1. Support-specific = 2 or 3.
-- Content type: "how to X" → guide/how_to, "best X" → listicle/round_up, "what is X" → guide/explainer
+9. **contentTypeRationale**: Why this format matches user intent & will rank
+
+**CRITICAL RULES:**
+- Be STRICT with businessPotential scoring - focus on conversion potential, not just traffic
+- Consider ICP fit: wrong customer profile = BP ≤ 1
+- Consider JTBD alignment: keyword must relate to what customer is trying to accomplish
+- Consider pain point match: does this keyword indicate they have our ICP's problems?
+- High-volume generic keywords with no business fit = BP 0 or 1
 - MUST analyze ALL ${keywordData.length} keywords
 
-Return analysis for every single keyword.`;
+Think: "Will someone searching this keyword actually BUY our product?"
+
+Return complete analysis for EVERY keyword.`;
 
     try {
       const result = await seoStrategist.generateVNext(prompt, {
@@ -1149,6 +1379,7 @@ Return analysis for every single keyword.`;
 
       return {
         product,
+        businessIntelligence,
         filteringCriteria,
         analyzedKeywords,
       };
@@ -1160,16 +1391,22 @@ Return analysis for every single keyword.`;
   },
 });
 
-// Step 5: Finalize and return discovered keywords with stats
+// Step 6: Finalize and return discovered keywords with stats
 const finalizeKeywordsStep = createStep({
   id: 'finalize-keywords',
   inputSchema: z.object({
     product: ProductInputSchema,
+    businessIntelligence: BusinessIntelligenceSchema,
+    filteringCriteria: z.object({
+      brandedTerms: z.array(z.string()),
+      relevantContext: z.array(z.string()),
+      genericTerms: z.array(z.string()),
+    }),
     analyzedKeywords: z.array(KeywordWithoutScheduleSchema),
   }),
   outputSchema: OutputSchema,
   execute: async ({ inputData }) => {
-    const { product, analyzedKeywords } = inputData;
+    const { product, businessIntelligence, analyzedKeywords } = inputData;
 
     console.log(`Finalizing ${analyzedKeywords.length} discovered keywords`);
 
@@ -1367,15 +1604,42 @@ function getLocationCode(countryCode: string): number {
   return locationMap[countryCode.toUpperCase()] || 2840; // Default to US
 }
 
-// Keyword discovery workflow - focused on finding high-potential keywords
+// Business-oriented keyword discovery workflow - focused on CONVERSIONS, not just rankings
 export const keywordIdeasGeneratorWorkflow = createWorkflow({
   id: 'keyword-discovery',
   description: `
-    Keyword discovery workflow using DataForSEO Labs API and AI-powered content strategy:
+    BUSINESS-ORIENTED Keyword Discovery Workflow using ICP, JTBD, and DataForSEO Labs API:
     
-    FOCUS: Find high-potential keywords with optimal content type recommendations to rank #1
+    PHILOSOPHY: Drive conversions by targeting keywords that match your Ideal Customer Profile
+    and Jobs To Be Done framework. Focus on CAC < LTV, not just traffic.
     
-    ENHANCEMENTS (DataForSEO Labs API):
+    BUSINESS INTELLIGENCE FRAMEWORK:
+    1. ICP Analysis (Ideal Customer Profile):
+       - Demographics: who are your buyers?
+       - Psychographics: how do they think and behave?
+       - Pain points: what problems do they face?
+    
+    2. JTBD Analysis (Jobs To Be Done):
+       - Functional jobs: what tasks are they trying to accomplish?
+       - Emotional jobs: how do they want to feel?
+       - Social jobs: how do they want to be perceived?
+    
+    3. Funnel-Aware Keyword Generation:
+       - Awareness stage: problem discovery (top of funnel)
+       - Consideration stage: solution research (middle of funnel)
+       - Decision stage: ready to purchase (bottom of funnel)
+    
+    4. Value Proposition Mapping:
+       - Map keywords to unique differentiators
+       - Focus on competitive advantages
+    
+    5. Negative Keyword Intelligence:
+       - Wrong ICP filters (B2B vs B2C, company size, etc.)
+       - Wrong intent filters (free-only, DIY, troubleshooting competitors)
+       - Competitor brand exclusions
+       - Unsupported use case filters
+    
+    TECHNICAL ENHANCEMENTS (DataForSEO Labs API):
     - Superior keyword difficulty scores (0-100) vs basic competition index
     - Normalized search volumes with clickstream data for accuracy
     - Up to 1000 keyword ideas per request (vs 100 in Google Ads API)
@@ -1388,15 +1652,15 @@ export const keywordIdeasGeneratorWorkflow = createWorkflow({
     - Intent-based format matching for better rankings
     - SERP analysis for content type optimization
     
-    Steps:
-    1. Analyze business context to generate dynamic filtering criteria (competitors, relevant terms, negative keywords)
-    2. Generate strategic seed keywords across 7 categories (avoiding filtered terms)
+    WORKFLOW STEPS:
+    1. Analyze business with ICP & JTBD framework → extract business intelligence
+    2. Generate business-oriented seed keywords (25% pain points, 25% JTBD, 30% funnel-aware, 20% value props)
     3. Fetch existing keywords to avoid duplicates  
-    4. Expand via DataForSEO Labs API with premium keyword data (filtered dynamically)
-    5. AI analysis: search intent, business potential, traffic estimation, and content type recommendation
-    6. Sort by priority score and return exactly 30 unique keywords with comprehensive stats and content strategy
+    4. Expand via DataForSEO Labs API with premium keyword data + aggressive filtering
+    5. AI analysis with strict business potential scoring based on ICP & JTBD fit
+    6. Sort by priority score and return exactly 30 unique, high-converting keywords
     
-    Output: 30 unique keywords with metrics + optimal content type for each (NO duplicates)
+    OUTPUT: 30 unique keywords that will attract buyers who match your ICP, have your target pain points, and show commercial intent (NO duplicates, NO low business potential)
   `,
   inputSchema: ProductInputSchema,
   outputSchema: OutputSchema,

@@ -613,7 +613,7 @@ function ArticleCard({
       {/* Action buttons */}
       <div className="space-y-1">
         {/* Generate button - only show for pending articles scheduled for today */}
-        {article.status === 'pending' && isToday && (
+        {article.status === 'pending' && (
           <button
             onClick={(e) => {
               e.stopPropagation();
