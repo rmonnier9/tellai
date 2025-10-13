@@ -2,6 +2,17 @@ import { createWorkflow, createStep } from '@mastra/core/workflows';
 import { Agent } from '@mastra/core/agent';
 import { z } from 'zod';
 import { openai } from '@ai-sdk/openai';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
+
+// DataForSEO API credentials from environment
+const DATAFORSEO_LOGIN = process.env.DATAFORSEO_LOGIN || '';
+const DATAFORSEO_PASSWORD = process.env.DATAFORSEO_PASSWORD || '';
 
 // Content generation agent - using a more powerful model for better quality
 const contentWriter = new Agent({
@@ -19,7 +30,23 @@ Your writing must:
 - Balance informative content with engaging storytelling
 
 Never write content that feels like it came from a template or AI generator.`,
-  model: openai('gpt-4o'),
+  // model: openai('gpt-4o'),
+  model: openrouter('anthropic/claude-sonnet-4.5'),
+});
+
+// SERP Analysis agent
+const serpAnalyzer = new Agent({
+  name: 'SERP Analyzer',
+  instructions: `You are an expert SEO analyst who examines top-ranking content to identify patterns, gaps, and opportunities.
+
+Your analysis should:
+- Identify the content type and structure that ranks well
+- Extract key topics, sections, and content depth
+- Find gaps and unanswered questions in competing content
+- Identify LSI keywords and semantic variations used
+- Analyze technical SEO elements (titles, headers, meta)
+- Provide actionable insights for content creation`,
+  model: openrouter('anthropic/claude-sonnet-4.5'),
 });
 
 // Input schema - now accepts the full data instead of just ID
@@ -56,6 +83,42 @@ const inputSchema = z.object({
   }),
 });
 
+// Competitive Brief Schema
+const competitiveBriefSchema = z.object({
+  targetInformation: z.object({
+    primaryKeyword: z.string(),
+    lsiKeywords: z.array(z.string()),
+    searchIntent: z.string(),
+  }),
+  competitiveAnalysis: z.object({
+    targetWordCountMin: z.number(),
+    targetWordCountMax: z.number(),
+    topPages: z.array(
+      z.object({
+        url: z.string(),
+        title: z.string(),
+        wordCount: z.number(),
+        mainPoints: z.array(z.string()),
+        headings: z.array(z.string()),
+      })
+    ),
+    contentGaps: z.array(z.string()),
+    unansweredQuestions: z.array(z.string()),
+  }),
+  contentStructure: z.object({
+    requiredSections: z.array(z.string()),
+    keywordPlacements: z.array(z.string()),
+    imageSuggestions: z.array(z.string()),
+    internalLinkingOpportunities: z.array(z.string()),
+  }),
+  technicalElements: z.object({
+    titleTagGuidelines: z.string(),
+    metaDescriptionGuidelines: z.string(),
+    schemaMarkupType: z.string(),
+    headerHierarchy: z.string(),
+  }),
+});
+
 // Output schema
 const outputSchema = z.object({
   articleId: z.string(),
@@ -67,21 +130,628 @@ const outputSchema = z.object({
   slug: z.string().describe('URL-friendly slug'),
 });
 
-// Generate article content with AI
+// Step 1: Fetch SERP Results from DataForSEO
+const fetchSerpResultsStep = createStep({
+  id: 'fetch-serp-results',
+  inputSchema,
+  outputSchema: inputSchema.extend({
+    serpResults: z.array(
+      z.object({
+        position: z.number(),
+        url: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+      })
+    ),
+  }),
+  execute: async ({ inputData }) => {
+    const { articleData, productData } = inputData;
+
+    try {
+      // Prepare DataForSEO API request
+      const requestData = [
+        {
+          keyword: articleData.keyword,
+          location_code: productData.country === 'US' ? 2840 : undefined, // Default to US
+          language_code: productData.language || 'en',
+          device: 'desktop',
+          os: 'windows',
+          depth: 10, // Get top 10 results
+        },
+      ];
+
+      // Make API request to DataForSEO
+      const response = await axios.post(
+        'https://api.dataforseo.com/v3/serp/google/organic/live/advanced',
+        requestData,
+        {
+          auth: {
+            username: DATAFORSEO_LOGIN,
+            password: DATAFORSEO_PASSWORD,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (
+        !response.data ||
+        !response.data.tasks ||
+        response.data.tasks.length === 0
+      ) {
+        throw new Error('No SERP results returned from DataForSEO');
+      }
+
+      const task = response.data.tasks[0];
+      if (task.status_code !== 20000) {
+        throw new Error(
+          `DataForSEO API error: ${task.status_message || 'Unknown error'}`
+        );
+      }
+
+      // Extract organic results (exclude ads)
+      const items = task.result?.[0]?.items || [];
+      const organicResults = items
+        .filter(
+          (item: any) => item.type === 'organic' && item.url && item.title
+        )
+        .slice(0, 3) // Get top 3 organic results
+        .map((item: any, index: number) => ({
+          position: item.rank_absolute || index + 1,
+          url: item.url,
+          title: item.title,
+          description: item.description || '',
+        }));
+
+      if (organicResults.length === 0) {
+        console.warn(
+          'No organic results found, proceeding without SERP analysis'
+        );
+      }
+
+      return {
+        ...inputData,
+        serpResults: organicResults,
+      };
+    } catch (error) {
+      console.error('Error fetching SERP results:', error);
+      // Continue workflow without SERP data rather than failing
+      return {
+        ...inputData,
+        serpResults: [],
+      };
+    }
+  },
+});
+
+// Step 2: Fetch and Parse Top Competitors' Content
+const fetchCompetitorContentStep = createStep({
+  id: 'fetch-competitor-content',
+  inputSchema: inputSchema.extend({
+    serpResults: z.array(
+      z.object({
+        position: z.number(),
+        url: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+      })
+    ),
+  }),
+  outputSchema: inputSchema.extend({
+    serpResults: z.array(
+      z.object({
+        position: z.number(),
+        url: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+      })
+    ),
+    competitorContent: z.array(
+      z.object({
+        url: z.string(),
+        title: z.string(),
+        metaDescription: z.string(),
+        headings: z.array(z.string()),
+        wordCount: z.number(),
+        contentPreview: z.string(),
+      })
+    ),
+  }),
+  execute: async ({ inputData }) => {
+    const { serpResults } = inputData;
+
+    if (!serpResults || serpResults.length === 0) {
+      return {
+        ...inputData,
+        competitorContent: [],
+      };
+    }
+
+    const competitorContent = [];
+
+    // Fetch and parse each competitor's page
+    for (const result of serpResults) {
+      try {
+        const response = await axios.get(result.url, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          },
+          timeout: 10000,
+          maxRedirects: 5,
+        });
+
+        const $ = cheerio.load(response.data);
+
+        // Remove script, style, and nav elements
+        $('script, style, nav, footer, header').remove();
+
+        // Extract headings
+        const headings: string[] = [];
+        $('h1, h2, h3, h4').each((_, el) => {
+          const text = $(el).text().trim();
+          if (text) headings.push(text);
+        });
+
+        // Extract meta description
+        const metaDescription =
+          $('meta[name="description"]').attr('content') ||
+          $('meta[property="og:description"]').attr('content') ||
+          '';
+
+        // Extract main content text
+        const bodyText = $('body').text();
+        const words = bodyText.split(/\s+/).filter((w) => w.length > 0);
+        const wordCount = words.length;
+
+        // Get content preview (first 1000 characters of cleaned text)
+        const contentPreview = bodyText
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 1000);
+
+        competitorContent.push({
+          url: result.url,
+          title: result.title,
+          metaDescription,
+          headings,
+          wordCount,
+          contentPreview,
+        });
+      } catch (error) {
+        console.error(
+          `Error fetching competitor content from ${result.url}:`,
+          error
+        );
+        // Continue with other results
+      }
+    }
+
+    return {
+      ...inputData,
+      competitorContent,
+    };
+  },
+});
+
+// Step 3: Generate Competitive Analysis Brief
+const generateCompetitiveBriefStep = createStep({
+  id: 'generate-competitive-brief',
+  inputSchema: inputSchema.extend({
+    serpResults: z.array(
+      z.object({
+        position: z.number(),
+        url: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+      })
+    ),
+    competitorContent: z.array(
+      z.object({
+        url: z.string(),
+        title: z.string(),
+        metaDescription: z.string(),
+        headings: z.array(z.string()),
+        wordCount: z.number(),
+        contentPreview: z.string(),
+      })
+    ),
+  }),
+  outputSchema: inputSchema.extend({
+    serpResults: z.any(),
+    competitorContent: z.any(),
+    competitiveBrief: competitiveBriefSchema,
+  }),
+  execute: async ({ inputData }) => {
+    const { articleData, competitorContent } = inputData;
+
+    // If no competitor data, generate a basic brief
+    if (!competitorContent || competitorContent.length === 0) {
+      const basicBrief = {
+        targetInformation: {
+          primaryKeyword: articleData.keyword,
+          lsiKeywords: [],
+          searchIntent: 'informational',
+        },
+        competitiveAnalysis: {
+          targetWordCountMin: 1500,
+          targetWordCountMax: 2500,
+          topPages: [],
+          contentGaps: [],
+          unansweredQuestions: [],
+        },
+        contentStructure: {
+          requiredSections: [],
+          keywordPlacements: [
+            'title',
+            'introduction',
+            'headings',
+            'conclusion',
+          ],
+          imageSuggestions: [],
+          internalLinkingOpportunities: [],
+        },
+        technicalElements: {
+          titleTagGuidelines: `Include "${articleData.keyword}" near the beginning, keep under 60 characters`,
+          metaDescriptionGuidelines:
+            'Write compelling 150-160 character description with keyword',
+          schemaMarkupType: 'Article',
+          headerHierarchy:
+            'Use H1 for title, H2 for main sections, H3 for subsections',
+        },
+      };
+
+      return {
+        ...inputData,
+        competitiveBrief: basicBrief,
+      };
+    }
+
+    // Generate detailed analysis using AI
+    const analysisPrompt = `You are analyzing the top-ranking content for the keyword: "${articleData.keyword}"
+
+Your goal is to create an ACTIONABLE competitive brief that will guide content creation to BEAT the competition.
+
+## COMPETITOR DATA
+
+${competitorContent
+  .map(
+    (comp, idx) => `
+### Competitor ${idx + 1} - ${comp.title}
+- **URL**: ${comp.url}
+- **Meta Description**: ${comp.metaDescription}
+- **Word Count**: ${comp.wordCount}
+- **Heading Structure** (${comp.headings.length} total):
+${comp.headings
+  .slice(0, 15)
+  .map((h) => `  - ${h}`)
+  .join('\n')}
+${comp.headings.length > 15 ? `  ... and ${comp.headings.length - 15} more headings` : ''}
+- **Content Preview**: ${comp.contentPreview}
+`
+  )
+  .join('\n')}
+
+## YOUR TASK
+
+Create a comprehensive competitive brief that will guide the creation of content that OUTRANKS these competitors.
+
+### 1. Target Information
+
+**Primary Keyword**: Confirm the main keyword being targeted (should be: "${articleData.keyword}")
+
+**LSI Keywords**: Identify 5-10 semantic/LSI keywords that appear across multiple competitors. Look for:
+- Variations of the main keyword
+- Related terms used in headings
+- Technical jargon or terminology
+- Common phrases that signal the topic
+
+**Search Intent**: Determine the dominant search intent:
+- "informational" - User wants to learn/understand
+- "commercial" - User is researching to buy/compare
+- "transactional" - User is ready to take action
+- "navigational" - User wants to find a specific resource
+
+### 2. Competitive Analysis
+
+**Word Count Analysis**:
+- Minimum: [shortest article word count]
+- Maximum: [longest article word count]
+- Recommended: Aim for 10-20% more than the average
+
+**Top Pages Main Points**: For EACH competitor, identify 3-5 main points/topics they cover.
+
+**Content Gaps**: Identify 3-7 important topics that are MISSING or under-covered:
+- What questions aren't fully answered?
+- What details are glossed over?
+- What perspectives are missing?
+- What examples/data are absent?
+
+**Unanswered Questions**: List 3-7 specific questions that users might still have after reading these articles.
+
+### 3. Content Structure (CRITICAL FOR DYNAMIC STRUCTURE)
+
+**Required Sections**: Based on the heading analysis, identify 5-10 ESSENTIAL sections that a comprehensive article MUST include. Extract these from the common patterns in competitor headings. Format as clear section titles (not full sentences).
+
+Examples:
+- "Introduction to [Topic]"
+- "How [Topic] Works"
+- "Benefits and Advantages"
+- "Common Challenges"
+- "Best Practices"
+- "Step-by-Step Guide"
+- "Comparison of Options"
+- "Pricing and Costs"
+- "Tips for Success"
+
+**Keyword Placements**: Specify WHERE the keyword should appear:
+- "title" - in the H1
+- "introduction" - first paragraph
+- "first_h2" - first H2 heading
+- "headings" - multiple H2/H3 headings
+- "body" - naturally throughout
+- "conclusion" - final section
+- "meta" - meta description
+
+**Image Suggestions**: Identify 3-5 specific places where images/visuals would add value:
+- "Diagram showing [specific concept]"
+- "Infographic with [specific data]"
+- "Screenshot of [specific example]"
+- "Chart comparing [specific items]"
+
+**Internal Linking Opportunities**: Suggest 2-4 types of related content that should be linked:
+- "Link to related guide on [topic]"
+- "Reference tutorial on [specific skill]"
+- "Connect to comparison of [alternatives]"
+
+### 4. Technical Elements
+
+**Title Tag**: Provide specific guidelines:
+- "Start with '[keyword]', keep under 60 characters, include benefit/hook"
+- Be specific about structure
+
+**Meta Description**: Provide specific guidelines:
+- "Include '[keyword]' in first 20 chars, mention [key benefit], add CTA, keep 150-160 chars"
+- Be specific about what to include
+
+**Schema Markup**: Choose the most appropriate type:
+- "Article" - standard article
+- "HowTo" - step-by-step guide
+- "FAQPage" - Q&A format
+- "Product" - product review/comparison
+- "VideoObject" - includes video
+
+**Header Hierarchy**: Describe the structure:
+- "H1 for title, 5-7 H2 sections, 2-3 H3 under each H2, avoid H4"
+- Be specific about the expected structure
+
+## IMPORTANT GUIDELINES
+
+- Be SPECIFIC and ACTIONABLE in every recommendation
+- Base everything on actual patterns in the competitor data
+- Identify gaps that represent real opportunities
+- Your analysis will DIRECTLY drive the content structure
+- The "Required Sections" are CRITICAL - these will become the article outline
+
+Be thorough and specific. This brief will determine the success of the content.`;
+
+    try {
+      const result = await serpAnalyzer.generateVNext(analysisPrompt, {
+        output: competitiveBriefSchema,
+      });
+
+      return {
+        ...inputData,
+        competitiveBrief: result.object,
+      };
+    } catch (error) {
+      console.error('Error generating competitive brief:', error);
+      // Fallback to basic brief
+      const fallbackBrief = {
+        targetInformation: {
+          primaryKeyword: articleData.keyword,
+          lsiKeywords: [],
+          searchIntent: 'informational',
+        },
+        competitiveAnalysis: {
+          targetWordCountMin: Math.min(
+            ...competitorContent.map((c) => c.wordCount)
+          ),
+          targetWordCountMax: Math.max(
+            ...competitorContent.map((c) => c.wordCount)
+          ),
+          topPages: competitorContent.map((c) => ({
+            url: c.url,
+            title: c.title,
+            wordCount: c.wordCount,
+            mainPoints: [],
+            headings: c.headings.slice(0, 10),
+          })),
+          contentGaps: [],
+          unansweredQuestions: [],
+        },
+        contentStructure: {
+          requiredSections: [],
+          keywordPlacements: [
+            'title',
+            'introduction',
+            'headings',
+            'conclusion',
+          ],
+          imageSuggestions: [],
+          internalLinkingOpportunities: [],
+        },
+        technicalElements: {
+          titleTagGuidelines: `Include "${articleData.keyword}" near the beginning, keep under 60 characters`,
+          metaDescriptionGuidelines:
+            'Write compelling 150-160 character description with keyword',
+          schemaMarkupType: 'Article',
+          headerHierarchy:
+            'Use H1 for title, H2 for main sections, H3 for subsections',
+        },
+      };
+
+      return {
+        ...inputData,
+        competitiveBrief: fallbackBrief,
+      };
+    }
+  },
+});
+
+// Step 4: Generate article content with AI (now using competitive brief)
 const generateContentStep = createStep({
   id: 'generate-content',
-  inputSchema,
+  inputSchema: inputSchema.extend({
+    serpResults: z.any(),
+    competitorContent: z.any(),
+    competitiveBrief: competitiveBriefSchema,
+  }),
   outputSchema,
   execute: async ({ inputData }) => {
-    const { articleId, articleData, productData } = inputData;
+    const { articleId, articleData, productData, competitiveBrief } = inputData;
 
-    // Determine article structure based on type and subtype
+    // Generate dynamic structure guidelines based on competitive analysis
     let structureGuidelines = '';
 
-    if (articleData.type === 'guide') {
-      switch (articleData.guideSubtype) {
-        case 'how_to':
-          structureGuidelines = `
+    // Build structure based on competitive insights
+    const hasCompetitiveData =
+      competitiveBrief.competitiveAnalysis.topPages.length > 0;
+
+    if (hasCompetitiveData) {
+      // Dynamic structure based on actual SERP analysis
+      const avgWordCount = Math.round(
+        (competitiveBrief.competitiveAnalysis.targetWordCountMin +
+          competitiveBrief.competitiveAnalysis.targetWordCountMax) /
+          2
+      );
+
+      structureGuidelines = `
+## ADAPTIVE CONTENT STRUCTURE (Based on SERP Analysis)
+
+**Your article must adapt to the competitive landscape while providing unique value.**
+
+### 1. REQUIRED SECTIONS (From Competitive Analysis)
+
+Based on what's working for top-ranking content, your article MUST include these sections:
+
+${
+  competitiveBrief.contentStructure.requiredSections.length > 0
+    ? competitiveBrief.contentStructure.requiredSections
+        .map((section, idx) => `${idx + 1}. **${section}**`)
+        .join('\n')
+    : '(No specific sections identified - use standard structure for this content type)'
+}
+
+### 2. TARGET LENGTH & DEPTH
+
+- **Target Word Count**: ${competitiveBrief.competitiveAnalysis.targetWordCountMin}-${competitiveBrief.competitiveAnalysis.targetWordCountMax} words (aim for ~${avgWordCount} words)
+- **Depth Level**: Match or exceed the detail level of top-ranking content
+- **Content Density**: Provide substantial value in each section, not just filler
+
+### 3. COMPETITIVE PATTERNS (What's Working)
+
+Top-ranking pages use these structural patterns:
+
+${competitiveBrief.competitiveAnalysis.topPages
+  .map(
+    (page, idx) => `
+**Pattern ${idx + 1}** (from ${page.title}):
+- Main sections: ${page.headings.slice(0, 5).join(' → ')}
+- Approach: ${page.mainPoints.slice(0, 3).join('; ') || 'Comprehensive coverage of topic'}
+- Word count: ${page.wordCount} words`
+  )
+  .join('\n')}
+
+**Your structure should:**
+- Learn from these patterns but DON'T copy them
+- Combine the best aspects of each approach
+- Add your own unique organization where it improves clarity
+
+### 4. CONTENT GAPS TO FILL (Your Competitive Advantage)
+
+These important topics are MISSING or UNDER-COVERED in top-ranking content:
+
+${
+  competitiveBrief.competitiveAnalysis.contentGaps.length > 0
+    ? competitiveBrief.competitiveAnalysis.contentGaps
+        .map(
+          (gap, idx) =>
+            `${idx + 1}. ${gap} - **Include a dedicated section for this**`
+        )
+        .join('\n')
+    : '(No major gaps identified - focus on doing everything better)'
+}
+
+### 5. UNANSWERED QUESTIONS (Address These)
+
+Competitors leave these questions unanswered - YOU should answer them:
+
+${
+  competitiveBrief.competitiveAnalysis.unansweredQuestions.length > 0
+    ? competitiveBrief.competitiveAnalysis.unansweredQuestions
+        .map((q, idx) => `${idx + 1}. ${q}`)
+        .join('\n')
+    : '(No major unanswered questions - ensure comprehensive coverage)'
+}
+
+### 6. RECOMMENDED ARTICLE FLOW
+
+Based on competitive analysis and content type (${articleData.type}${articleData.guideSubtype ? ` - ${articleData.guideSubtype}` : ''}${articleData.listicleSubtype ? ` - ${articleData.listicleSubtype}` : ''}), structure your article as:
+
+1. **Introduction** (150-200 words)
+   - Hook with the problem/opportunity
+   - Preview what you'll cover (including the gaps you'll fill)
+   - Set expectations
+
+${
+  competitiveBrief.contentStructure.requiredSections.length > 0
+    ? competitiveBrief.contentStructure.requiredSections
+        .map(
+          (section, idx) => `
+${idx + 2}. **${section}**
+   - Provide comprehensive coverage
+   - Include specific examples and data
+   - ${idx < competitiveBrief.competitiveAnalysis.contentGaps.length ? `Address gap: ${competitiveBrief.competitiveAnalysis.contentGaps[idx]}` : 'Add unique insights'}`
+        )
+        .join('\n')
+    : `
+2-N. **Main Content Sections** (adapt to your specific topic)
+   - Follow the structural patterns observed in top-ranking content
+   - Ensure each section adds unique value
+   - Fill the identified content gaps`
+}
+
+FINAL. **Conclusion** (100-150 words)
+   - Summarize key takeaways
+   - Provide actionable next steps
+   - Encourage engagement
+
+### 7. VISUAL CONTENT PLACEMENT
+
+${
+  competitiveBrief.contentStructure.imageSuggestions.length > 0
+    ? `Suggested image/visual placements:\n${competitiveBrief.contentStructure.imageSuggestions.map((sugg, idx) => `${idx + 1}. ${sugg}`).join('\n')}`
+    : 'Include relevant images, diagrams, or visual aids where they enhance understanding'
+}
+
+**CRITICAL**: This structure is adaptive based on competitive analysis. If the data suggests a different organization would serve readers better, adapt accordingly. The goal is to create content that BEATS the competition, not just matches it.
+`;
+    } else {
+      // Fallback to content-type-based structure when no competitive data
+      structureGuidelines = `
+## CONTENT STRUCTURE (Standard for ${articleData.type})
+
+**Note**: Limited competitive data available. Using standard structure for this content type.
+
+`;
+
+      // Add content-type specific structure as fallback
+      if (articleData.type === 'guide') {
+        switch (articleData.guideSubtype) {
+          case 'how_to':
+            structureGuidelines += `
 This is a HOW-TO GUIDE. Structure your article to provide clear, step-by-step instructions:
 
 1. **Introduction** (150-200 words)
@@ -113,10 +783,10 @@ This is a HOW-TO GUIDE. Structure your article to provide clear, step-by-step in
    - Summarize what was accomplished
    - Suggest next steps or related topics
    - Encourage reader action or engagement`;
-          break;
+            break;
 
-        case 'explainer':
-          structureGuidelines = `
+          case 'explainer':
+            structureGuidelines += `
 This is an EXPLAINER GUIDE. Structure your article to educate and clarify:
 
 1. **Introduction** (150-200 words)
@@ -155,10 +825,10 @@ This is an EXPLAINER GUIDE. Structure your article to educate and clarify:
    - Recap the key insights
    - Reinforce the importance or relevance
    - Suggest next steps for learning more`;
-          break;
+            break;
 
-        case 'comparison':
-          structureGuidelines = `
+          case 'comparison':
+            structureGuidelines += `
 This is a COMPARISON GUIDE. Structure your article to help readers make informed decisions:
 
 1. **Introduction** (150-200 words)
@@ -198,10 +868,10 @@ This is a COMPARISON GUIDE. Structure your article to help readers make informed
    - Summarize key findings
    - Offer a nuanced recommendation (not just "one is best")
    - Help readers identify their best fit`;
-          break;
+            break;
 
-        case 'reference':
-          structureGuidelines = `
+          case 'reference':
+            structureGuidelines += `
 This is a REFERENCE GUIDE. Structure your article as a comprehensive resource:
 
 1. **Introduction** (100-150 words)
@@ -231,12 +901,12 @@ This is a REFERENCE GUIDE. Structure your article as a comprehensive resource:
    - Provide community resources
 
 Make this guide comprehensive, well-organized, and easily searchable.`;
-          break;
-      }
-    } else if (articleData.type === 'listicle') {
-      switch (articleData.listicleSubtype) {
-        case 'round_up':
-          structureGuidelines = `
+            break;
+        }
+      } else if (articleData.type === 'listicle') {
+        switch (articleData.listicleSubtype) {
+          case 'round_up':
+            structureGuidelines += `
 This is a ROUND-UP LISTICLE. Structure your article to showcase the best options:
 
 1. **Introduction** (150-200 words)
@@ -270,10 +940,10 @@ This is a ROUND-UP LISTICLE. Structure your article to showcase the best options
    - Recap top recommendations
    - Offer final guidance
    - Invite reader engagement`;
-          break;
+            break;
 
-        case 'resources':
-          structureGuidelines = `
+          case 'resources':
+            structureGuidelines += `
 This is a RESOURCES LISTICLE. Structure your article as a curated collection:
 
 1. **Introduction** (150-200 words)
@@ -303,10 +973,10 @@ This is a RESOURCES LISTICLE. Structure your article as a curated collection:
    - Encourage readers to explore the resources
    - Invite them to share their favorites
    - Mention any resources you're watching for future inclusion`;
-          break;
+            break;
 
-        case 'examples':
-          structureGuidelines = `
+          case 'examples':
+            structureGuidelines += `
 This is an EXAMPLES LISTICLE. Structure your article to showcase real-world instances:
 
 1. **Introduction** (150-200 words)
@@ -342,11 +1012,12 @@ This is an EXAMPLES LISTICLE. Structure your article to showcase real-world inst
    - Summarize key lessons
    - Inspire action
    - Encourage readers to share their own examples`;
-          break;
+            break;
+        }
       }
-    }
+    } // Close else block for fallback structure
 
-    // Build comprehensive prompt
+    // Build comprehensive prompt with competitive brief
     const prompt = `You are writing an SEO-optimized article that must sound completely natural and human-written.
 
 ## ARTICLE DETAILS
@@ -360,6 +1031,81 @@ This is an EXAMPLES LISTICLE. Structure your article to showcase real-world inst
 - Keyword Difficulty: ${articleData.keywordDifficulty || 'Unknown'}
 ${articleData.cpc ? `- CPC: $${articleData.cpc}` : ''}
 ${articleData.competition ? `- Competition: ${articleData.competition}` : ''}
+
+## COMPETITIVE ANALYSIS BRIEF
+
+Based on analysis of the top 3 ranking pages for "${articleData.keyword}":
+
+### Target Information
+- **Primary Keyword**: ${competitiveBrief.targetInformation.primaryKeyword}
+- **Search Intent**: ${competitiveBrief.targetInformation.searchIntent}
+${
+  competitiveBrief.targetInformation.lsiKeywords.length > 0
+    ? `- **LSI Keywords to Include**: ${competitiveBrief.targetInformation.lsiKeywords.join(', ')}`
+    : ''
+}
+
+### Competitive Insights
+- **Target Word Count**: ${competitiveBrief.competitiveAnalysis.targetWordCountMin}-${competitiveBrief.competitiveAnalysis.targetWordCountMax} words
+${
+  competitiveBrief.competitiveAnalysis.topPages.length > 0
+    ? `
+**Top Ranking Pages**:
+${competitiveBrief.competitiveAnalysis.topPages
+  .map(
+    (page, idx) => `
+${idx + 1}. ${page.title} (${page.wordCount} words)
+   URL: ${page.url}
+   Key sections: ${page.headings.slice(0, 5).join(', ')}
+   ${page.mainPoints.length > 0 ? `Main points: ${page.mainPoints.join('; ')}` : ''}`
+  )
+  .join('\n')}`
+    : ''
+}
+${
+  competitiveBrief.competitiveAnalysis.contentGaps.length > 0
+    ? `
+**Content Gaps to Fill**:
+${competitiveBrief.competitiveAnalysis.contentGaps.map((gap) => `- ${gap}`).join('\n')}`
+    : ''
+}
+${
+  competitiveBrief.competitiveAnalysis.unansweredQuestions.length > 0
+    ? `
+**Unanswered Questions to Address**:
+${competitiveBrief.competitiveAnalysis.unansweredQuestions.map((q) => `- ${q}`).join('\n')}`
+    : ''
+}
+
+### Content Structure Recommendations
+${
+  competitiveBrief.contentStructure.requiredSections.length > 0
+    ? `**Required Sections**: ${competitiveBrief.contentStructure.requiredSections.join(', ')}`
+    : ''
+}
+${
+  competitiveBrief.contentStructure.keywordPlacements.length > 0
+    ? `**Keyword Placement**: ${competitiveBrief.contentStructure.keywordPlacements.join(', ')}`
+    : ''
+}
+${
+  competitiveBrief.contentStructure.imageSuggestions.length > 0
+    ? `**Image Suggestions**: ${competitiveBrief.contentStructure.imageSuggestions.join('; ')}`
+    : ''
+}
+${
+  competitiveBrief.contentStructure.internalLinkingOpportunities.length > 0
+    ? `**Internal Linking**: ${competitiveBrief.contentStructure.internalLinkingOpportunities.join('; ')}`
+    : ''
+}
+
+### Technical SEO Requirements
+- **Title Tag**: ${competitiveBrief.technicalElements.titleTagGuidelines}
+- **Meta Description**: ${competitiveBrief.technicalElements.metaDescriptionGuidelines}
+- **Schema Markup**: ${competitiveBrief.technicalElements.schemaMarkupType}
+- **Header Hierarchy**: ${competitiveBrief.technicalElements.headerHierarchy}
+
+**IMPORTANT**: Use this competitive analysis to inform your content, but DO NOT copy or replicate competitor content. Your article must be original, more comprehensive, and fill the identified gaps while being more valuable to readers.
 
 ## PRODUCT/BRAND CONTEXT
 
@@ -500,9 +1246,12 @@ Now write an exceptional, SEO-optimized article that will rank well and provide 
 export const articleContentGeneratorWorkflow = createWorkflow({
   id: 'article-content-generator',
   description:
-    'Generates SEO-optimized article content from article and product data',
+    'Generates SEO-optimized article content with competitive SERP analysis',
   inputSchema,
   outputSchema,
 })
+  .then(fetchSerpResultsStep)
+  .then(fetchCompetitorContentStep)
+  .then(generateCompetitiveBriefStep)
   .then(generateContentStep)
   .commit();
