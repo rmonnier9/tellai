@@ -5,7 +5,7 @@ import {
   LanguagesIcon,
   RefreshCcwIcon,
   SquarePenIcon,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function FeaturesHome() {
   return (
@@ -119,7 +119,7 @@ export default function FeaturesHome() {
               </h3>
               <p className="text-[15px] text-gray-700">
                 Optimize your content to appear in ChatGPT, Perplexity, and
-                other AI-driven results — the new frontier of SEO.
+                other AI-driven results, the new frontier of SEO.
               </p>
             </article>
             <article>
