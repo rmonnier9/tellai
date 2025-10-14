@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -206,6 +207,12 @@ export function OnboardingForm() {
       // This will save the data and redirect to home page
       await completeOnboardingAndRedirect(data);
     } catch (error) {
+      // Next.js throws NEXT_REDIRECT error to handle redirects in server actions
+      // We need to re-throw it so the redirect can complete
+      if (isRedirectError(error)) {
+        throw error;
+      }
+
       console.error('Error submitting onboarding:', error);
       toast.error('An error occurred', {
         description: 'Please try again later.',
