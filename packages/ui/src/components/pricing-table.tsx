@@ -23,30 +23,47 @@ const rightFeatures = [
   'Custom Features requests',
 ];
 
-export default function Example() {
+interface PricingTableProps {
+  initialProduct?: {
+    id: string;
+    subscription?: {
+      status: string | null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [key: string]: any;
+    } | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+  } | null;
+}
+
+export default function Example({ initialProduct }: PricingTableProps) {
   const router = useRouter();
   const activeProductQuery = useActiveProduct({
     swrConfig: {
       refreshInterval: 5000,
+      // If we have initial data, use it as fallback
+      fallbackData: initialProduct,
     },
   });
   const session = client.useSession();
   const { referralId } = useRewardful();
 
   const isLoading = session.isPending || activeProductQuery.isLoading;
-  const productId = activeProductQuery?.data?.id;
+  // Use initialProduct if activeProductQuery hasn't loaded yet
+  const productData = activeProductQuery?.data || initialProduct;
+  const productId = productData?.id;
   const hasAlreadySubscribed =
-    activeProductQuery?.data?.subscription?.status === 'active' ||
-    activeProductQuery?.data?.subscription?.status === 'trialing';
+    productData?.subscription?.status === 'active' ||
+    productData?.subscription?.status === 'trialing';
 
   console.log('hasAlreadySubscribed', hasAlreadySubscribed);
 
   const handleUpgrade = async () => {
     // Get the latest product ID at the time of click
-    const currentProductId = activeProductQuery?.data?.id;
+    const currentProductId = productData?.id;
 
     if (!currentProductId) {
-      return alert("No product id");
+      return alert('No product id');
     }
 
     if (referralId) {
@@ -67,7 +84,7 @@ export default function Example() {
     if (hasAlreadySubscribed) {
       router.replace('/');
     }
-  }, [hasAlreadySubscribed]);
+  }, [hasAlreadySubscribed, router]);
 
   return (
     <div className="max-w-7xl">
@@ -120,7 +137,7 @@ export default function Example() {
           {/* Right side - Features */}
           <div className="p-8 sm:p-12 lg:flex-1">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              What's included:
+              What&apos;s included:
             </h3>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
