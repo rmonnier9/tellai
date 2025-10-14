@@ -1,5 +1,6 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
+import Script from "next/script";
 
 import "./css/style.css";
 
@@ -34,6 +35,10 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col overflow-hidden supports-[overflow:clip]:overflow-clip">
           {children}
         </div>
+        <Script src="https://r.wdfl.co/rw.js" data-rewardful="5770ad"></Script>
+        <Script id="rewardful-queue" strategy="beforeInteractive">
+          {`(function(w,r){w._rwq=r;w[r]=w[r]||function(){(w[r].q=w[r].q||[]).push(arguments)}})(window,'rewardful');`}
+        </Script>
       </body>
       <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
     </html>

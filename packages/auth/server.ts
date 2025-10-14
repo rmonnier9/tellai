@@ -220,6 +220,26 @@ export const auth = betterAuth({
           { user, session, plan, subscription },
           request
         ) => {
+          let referralId: string | undefined;
+
+          if (request && request.headers) {
+            const cookieHeader = request.headers.get("cookie");
+            if (cookieHeader) {
+              const cookies = cookieHeader.split(";").reduce(
+                (acc, cookie) => {
+                  const [key, value] = cookie.trim().split("=");
+                  if (key && value) {
+                    acc[key] = value;
+                  }
+                  return acc;
+                },
+                {} as Record<string, string>
+              );
+
+              referralId = cookies["rewardful_referral"];
+            }
+          }
+
           return {
             params: {
               allow_promotion_codes: true,
@@ -230,10 +250,8 @@ export const auth = betterAuth({
               automatic_tax: {
                 enabled: true,
               },
-              // metadata: {
-              //   planType: 'business',
-              //   referralCode: user.metadata?.referralCode,
-              // },
+              // https://app.getrewardful.com/setup/code?platform=stripe_checkout_server
+              client_reference_id: referralId,
             },
             // options: {
             // idempotencyKey: `sub_${user.id}_${plan.name}_${Date.now()}`,

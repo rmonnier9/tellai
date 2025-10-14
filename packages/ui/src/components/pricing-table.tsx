@@ -1,10 +1,11 @@
 'use client';
 
-import { Check, Info } from 'lucide-react';
 import { client } from '@workspace/auth/client';
-import useActiveProduct from '../hooks/use-active-product';
-import { useEffect } from 'react';
+import { Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import useActiveProduct from '../hooks/use-active-product';
+import { useRewardful } from '../hooks/use-rewardful';
 
 const leftFeatures = [
   '30 Articles a month generated and published on auto-pilot',
@@ -30,6 +31,7 @@ export default function Example() {
     },
   });
   const session = client.useSession();
+  const { referralId } = useRewardful();
 
   const isLoading = session.isPending || activeProductQuery.isLoading;
   const productId = activeProductQuery?.data?.id;
@@ -44,7 +46,11 @@ export default function Example() {
     const currentProductId = activeProductQuery?.data?.id;
 
     if (!currentProductId) {
-      return alert('No product id');
+      return alert("No product id");
+    }
+
+    if (referralId) {
+      document.cookie = `rewardful_referral=${referralId}; path=/; max-age=3600; SameSite=Lax`;
     }
 
     await client.subscription.upgrade({
