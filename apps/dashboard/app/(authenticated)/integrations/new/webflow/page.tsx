@@ -1,6 +1,4 @@
 import { AppSidebar } from '@/components/app-sidebar';
-import prisma from '@workspace/db/prisma/client';
-import { getArticle } from '@workspace/lib/server-actions/get-article';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,31 +13,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
-import { notFound } from 'next/navigation';
-import { ArticleDisplay } from './article-display';
+import { WebflowIntegrationForm } from '@workspace/ui/components/webflow-integration-form';
 
-export default async function ArticlePage({
-  params,
-}: {
-  params: Promise<{ articleId: string }>;
-}) {
-  const { articleId } = await params;
-  const article = await getArticle({ articleId });
-
-  if (!article) {
-    notFound();
-  }
-
-  // Get all credentials for this product
-  const credentials = await prisma.credential.findMany({
-    where: {
-      productId: article.productId,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
-
+export default function WebflowIntegrationPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -58,17 +34,19 @@ export default async function ArticlePage({
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/calendar">Calendar</BreadcrumbLink>
+                  <BreadcrumbLink href="/integrations">
+                    Integrations
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Article</BreadcrumbPage>
+                  <BreadcrumbPage>Create Webflow Integration</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
         </header>
-        <ArticleDisplay article={article} credentials={credentials} />
+        <WebflowIntegrationForm />
       </SidebarInset>
     </SidebarProvider>
   );

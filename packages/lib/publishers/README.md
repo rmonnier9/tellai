@@ -10,6 +10,7 @@ Each integration type has its own publisher class that extends `BasePublisher`:
 
 - **ShopifyPublisher** - Publishes to Shopify blog via Admin API
 - **WordPressPublisher** - Publishes to WordPress via REST API  
+- **WebflowPublisher** - Publishes to Webflow CMS via REST API
 - **WebhookPublisher** - Sends article data to custom webhook endpoints
 
 ### How It Works
@@ -97,6 +98,13 @@ interface BasePublisher {
 - Basic Auth with Application Password
 - Converts markdown to HTML
 - Sets author ID and publishing status
+
+### Webflow
+- Uses REST API v2
+- Bearer token authentication
+- Converts markdown to HTML
+- Publishes to specified CMS collection
+- Supports draft and live publishing status
 
 ### Webhook
 - POST request with JSON payload

@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { publishArticle } from '@workspace/lib/server-actions/publish-article';
+import { publishToCredential } from '@workspace/lib/server-actions/publish-to-credential';
+import { Badge } from '@workspace/ui/components/badge';
+import { Button } from '@workspace/ui/components/button';
 import {
   Card,
   CardContent,
@@ -8,26 +11,24 @@ import {
   CardHeader,
   CardTitle,
 } from '@workspace/ui/components/card';
-import { Badge } from '@workspace/ui/components/badge';
-import { Button } from '@workspace/ui/components/button';
-import { Separator } from '@workspace/ui/components/separator';
 import { MarkdownContent } from '@workspace/ui/components/markdown-content';
+import { Separator } from '@workspace/ui/components/separator';
+import { toast } from '@workspace/ui/lib/toast';
 import {
-  Calendar,
-  TrendingUp,
-  DollarSign,
-  Eye,
-  Copy,
-  Check,
-  ExternalLink,
-  FileText,
   BarChart3,
+  Calendar,
+  Check,
+  Copy,
+  DollarSign,
+  ExternalLink,
+  Eye,
+  FileText,
   Loader2,
   Send,
+  TrendingUp,
 } from 'lucide-react';
-import { toast } from '@workspace/ui/lib/toast';
-import { publishArticle } from '@workspace/lib/server-actions/publish-article';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 type Article = {
   id: string;
@@ -64,10 +65,27 @@ type Article = {
   }>;
 };
 
-export function ArticleDisplay({ article }: { article: Article }) {
+type Credential = {
+  id: string;
+  type: string;
+  name: string | null;
+  config: Record<string, unknown>;
+  createdAt: Date;
+};
+
+export function ArticleDisplay({
+  article,
+  credentials = [],
+}: {
+  article: Article;
+  credentials?: Credential[];
+}) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishingCredentials, setPublishingCredentials] = useState<
+    Set<string>
+  >(new Set());
 
   const handleCopy = async () => {
     if (article.content) {
@@ -106,6 +124,63 @@ export function ArticleDisplay({ article }: { article: Article }) {
       setIsPublishing(false);
     }
   };
+
+  const handlePublishToIntegration = async (
+    credentialId: string,
+    credentialName: string
+  ) => {
+    setPublishingCredentials((prev) => new Set(prev).add(credentialId));
+    try {
+      await publishToCredential({
+        articleId: article.id,
+        credentialId,
+      });
+
+      toast.success(`Successfully published to ${credentialName}!`);
+
+      // Refresh the page to show updated publications
+      router.refresh();
+    } catch (error) {
+      toast.error('Failed to publish', {
+        description:
+          error instanceof Error
+            ? error.message
+            : `Could not publish to ${credentialName}`,
+      });
+    } finally {
+      setPublishingCredentials((prev) => {
+        const next = new Set(prev);
+        next.delete(credentialId);
+        return next;
+      });
+    }
+  };
+
+  // Get icon for integration type
+  const getIntegrationIcon = (type: string) => {
+    switch (type) {
+      case 'shopify':
+        return '🛍️';
+      case 'wordpress':
+        return '📝';
+      case 'webflow':
+        return '🌊';
+      case 'webhook':
+        return '🔗';
+      case 'notion':
+        return '📓';
+      default:
+        return '🔌';
+    }
+  };
+
+  // Filter out credentials that have already been published to
+  const publishedCredentialIds = new Set(
+    article.publications.map((pub) => pub.credential.id)
+  );
+  const availableCredentials = credentials.filter(
+    (cred) => !publishedCredentialIds.has(cred.id)
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -311,6 +386,69 @@ export function ArticleDisplay({ article }: { article: Article }) {
             </div>
           </div>
 
+          {/* Available Integrations */}
+          {availableCredentials.length > 0 && article.content && (
+            <Card className="bg-muted/50">
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Available Integrations
+                </CardTitle>
+                <CardDescription>
+                  Publish this article to your configured integrations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {availableCredentials.map((credential) => (
+                    <div
+                      key={credential.id}
+                      className="flex items-center justify-between rounded-lg border bg-background p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                          {getIntegrationIcon(credential.type)}
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {credential.name ||
+                              credential.type.charAt(0).toUpperCase() +
+                                credential.type.slice(1)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Not yet published
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          handlePublishToIntegration(
+                            credential.id,
+                            credential.name || credential.type
+                          )
+                        }
+                        disabled={publishingCredentials.has(credential.id)}
+                      >
+                        {publishingCredentials.has(credential.id) ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Publishing...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Publish
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Publications */}
           {article.publications && article.publications.length > 0 && (
             <Card className="bg-muted/50">
@@ -329,9 +467,7 @@ export function ArticleDisplay({ article }: { article: Article }) {
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                          {publication.credential.type === 'shopify' && '🛍️'}
-                          {publication.credential.type === 'wordpress' && '📝'}
-                          {publication.credential.type === 'webhook' && '🔗'}
+                          {getIntegrationIcon(publication.credential.type)}
                         </div>
                         <div>
                           <p className="font-medium">

@@ -1,13 +1,13 @@
 'use server';
 
-import prisma from '@workspace/db/prisma/client';
-import getSession from '../get-session';
-import { CredentialType } from '@workspace/db/prisma/client';
+import prisma, { CredentialType } from '@workspace/db/prisma/client';
 import {
   ShopifyCredentialSchema,
-  WordPressCredentialSchema,
+  WebflowCredentialSchema,
   WebhookCredentialSchema,
+  WordPressCredentialSchema,
 } from '../dtos';
+import getSession from '../get-session';
 
 type CreateCredentialInput =
   | {
@@ -21,6 +21,10 @@ type CreateCredentialInput =
   | {
       type: 'webhook';
       data: typeof WebhookCredentialSchema._type;
+    }
+  | {
+      type: 'webflow';
+      data: typeof WebflowCredentialSchema._type;
     };
 
 export async function createCredential(input: CreateCredentialInput) {
@@ -85,6 +89,20 @@ export async function createCredential(input: CreateCredentialInput) {
           webhookUrl: webhookData.webhookUrl,
           secret: webhookData.secret,
           headers: webhookData.headers ? JSON.parse(webhookData.headers) : null,
+        },
+      };
+      break;
+
+    case 'webflow':
+      const webflowData = WebflowCredentialSchema.parse(input.data);
+      credentialData = {
+        type: 'webflow' as CredentialType,
+        name: webflowData.name,
+        accessToken: webflowData.accessToken,
+        config: {
+          collectionId: webflowData.collectionId,
+          publishingStatus: webflowData.publishingStatus,
+          fieldMapping: webflowData.fieldMapping,
         },
       };
       break;

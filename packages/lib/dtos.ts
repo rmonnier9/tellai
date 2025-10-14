@@ -139,6 +139,22 @@ export const WebhookCredentialSchema = z.object({
 
 export type WebhookCredentialSchema = z.infer<typeof WebhookCredentialSchema>;
 
+export const WebflowCredentialSchema = z.object({
+  name: z.string().min(1, 'Integration name is required'),
+  accessToken: z.string().min(1, 'API token is required'),
+  collectionId: z.string().min(1, 'Collection ID is required'),
+  publishingStatus: z.enum(['live', 'draft']),
+  fieldMapping: z
+    .object({
+      titleField: z.string().optional(),
+      slugField: z.string().optional(),
+      contentField: z.string().optional(),
+    })
+    .optional(),
+});
+
+export type WebflowCredentialSchema = z.infer<typeof WebflowCredentialSchema>;
+
 export const QueueInputSchema = z.object({
   apiUrl: z.string(),
   body: z.any(),

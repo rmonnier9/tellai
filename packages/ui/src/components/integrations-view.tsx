@@ -1,17 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-  Plus,
-  Trash2,
-  ExternalLink,
-  Loader2,
-  CirclePlus,
-  ArrowUpRightIcon,
-} from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@workspace/ui/components/button';
-import { Card } from '@workspace/ui/components/card';
+import { deleteCredential } from '@workspace/lib/server-actions/delete-credential';
+import { getCredentials } from '@workspace/lib/server-actions/get-credentials';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,16 +12,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@workspace/ui/components/alert-dialog';
+import { Button } from '@workspace/ui/components/button';
+import { Card } from '@workspace/ui/components/card';
+import { CirclePlus, ExternalLink, Loader2, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { getCredentials } from '@workspace/lib/server-actions/get-credentials';
-import { deleteCredential } from '@workspace/lib/server-actions/delete-credential';
 import {
   Empty,
-  EmptyDescription,
-  EmptyMedia,
-  EmptyHeader,
-  EmptyTitle,
   EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
 } from './empty';
 
 type Credential = {
@@ -45,12 +38,14 @@ type Credential = {
 const integrationIcons: Record<string, string> = {
   shopify: '🛍️',
   wordpress: '📝',
+  webflow: '🌊',
   webhook: '🔗',
 };
 
 const integrationLabels: Record<string, string> = {
   shopify: 'Shopify',
   wordpress: 'WordPress',
+  webflow: 'Webflow',
   webhook: 'API Webhook',
 };
 
