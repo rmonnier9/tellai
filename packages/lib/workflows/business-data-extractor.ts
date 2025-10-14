@@ -28,7 +28,7 @@ const outputSchema = z.object({
     .describe('detailed description of what the business or product does'),
   targetAudiences: z
     .array(z.string())
-    .describe('list of potential target audiences'),
+    .describe('list of specific target audience segments'),
   sitemapUrl: z.string().describe('URL of the website sitemap'),
 });
 
@@ -282,9 +282,10 @@ Please provide:
 1. The business/product name
 2. The country code where the business operates (infer from domain, content, or context)
 3. A detailed description of what the business does (write this in the website's language: ${rawData.language})
-4. 3-5 specific target audience segments (write these in the website's language: ${rawData.language})
+4. 3-5 specific target audience segments - write these in the website's language: ${rawData.language}
 
 IMPORTANT: The description and target audiences MUST be written in the same language as the website (${rawData.language}), not in English.
+Target audiences should be SHORT but descriptive PHRASES (not full sentences), like labels or titles identifying specific professional groups or business types. Keep each under 10 words maximum.
 
 Be specific and accurate based on the content provided.`;
 
@@ -305,7 +306,7 @@ Be specific and accurate based on the content provided.`;
           targetAudiences: z
             .array(z.string())
             .describe(
-              'A list of 3-5 potential target audience segments for this business'
+              'A list of 3-5 specific and descriptive target audience segments (e.g., "Artisans et commerçants", "TPE/PME souhaitant piloter trésorerie")'
             ),
         }),
       });
