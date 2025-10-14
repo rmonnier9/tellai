@@ -3,6 +3,8 @@ import prisma from '@workspace/db/prisma/client';
 import { contentPlanner } from '@workspace/lib/jobs/content-planner';
 import { articleGeneration } from '@workspace/lib/jobs/article-generation';
 
+export const maxDuration = 800;
+
 export async function POST(request: NextRequest) {
   const { jobId } = (await request.json()) as { jobId: string };
 
