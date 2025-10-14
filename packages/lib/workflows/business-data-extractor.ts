@@ -3,13 +3,17 @@ import { Agent } from '@mastra/core/agent';
 import { z } from 'zod';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { openai } from '@ai-sdk/openai';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 // Business data extraction agent
 const businessAnalyzer = new Agent({
   name: 'Business Analyzer',
   instructions: `You are an expert business analyst. Extract structured business information from webpage content accurately and concisely.`,
-  model: openai('gpt-4o-mini'),
+  model: openrouter('anthropic/claude-sonnet-4.5'),
 });
 
 // Final output schema
@@ -266,6 +270,7 @@ const extractBusinessInfoStep = createStep({
     const prompt = `Analyze the following webpage content and extract business information.
 
 Website URL: ${url}
+Website Language: ${rawData.language}
 Page Title: ${rawData.title}
 Meta Site Name: ${rawData.metaSiteName}
 Meta Description: ${rawData.metaDescription}
@@ -276,8 +281,10 @@ Body Content: ${rawData.bodyText}
 Please provide:
 1. The business/product name
 2. The country code where the business operates (infer from domain, content, or context)
-3. A detailed description of what the business does (2-3 sentences)
-4. 3-5 specific target audience segments (e.g., "Small business owners", "E-commerce retailers", "Customer support teams")
+3. A detailed description of what the business does (write this in the website's language: ${rawData.language})
+4. 3-5 specific target audience segments (write these in the website's language: ${rawData.language})
+
+IMPORTANT: The description and target audiences MUST be written in the same language as the website (${rawData.language}), not in English.
 
 Be specific and accurate based on the content provided.`;
 
