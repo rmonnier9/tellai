@@ -20,7 +20,7 @@ export const KEYWORD_CONFIG = {
 
   // Filtering thresholds
   MIN_SEARCH_VOLUME: 10, // Minimum monthly search volume
-  MIN_BUSINESS_POTENTIAL: 2, // Minimum business potential score (0-3)
+  MIN_BUSINESS_POTENTIAL: 1, // Minimum business potential score (0-3) - accept weak fit or better
 
   // Traffic estimation
   TOP_3_CTR: 0.35, // Average CTR for positions 1-3 (35%)
@@ -47,8 +47,8 @@ export const KEYWORD_CONFIG = {
   },
 
   // AI Model configuration
-  AI_MODEL: 'openai/gpt-4o', // Model for analysis
-  AI_MODEL_SEED_GENERATION: 'openai/gpt-4o', // Model for seed keyword generation
+  AI_MODEL: 'anthropic/claude-sonnet-4.5', // Model for analysis
+  AI_MODEL_SEED_GENERATION: 'anthropic/claude-sonnet-4.5', // Model for seed keyword generation
 };
 
 // ============================================

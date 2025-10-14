@@ -5,6 +5,7 @@ import * as DataForSEO from 'dataforseo-client';
 import prisma from '@workspace/db/prisma/client';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { KEYWORD_CONFIG } from './keyword-research-config';
+import pMap from 'p-map';
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -77,18 +78,8 @@ const BusinessPotentialEnum = z.enum(['0', '1', '2', '3']);
 // Content type recommendation enums (matching Prisma schema)
 const ArticleTypeEnum = z.enum(['guide', 'listicle']);
 
-const GuideSubtypeEnum = z.enum([
-  'how_to', // Step-by-step instructions
-  'explainer', // What is, why, understanding concepts
-  'comparison', // X vs Y, differences, alternatives
-  'reference', // Definitions, glossaries, comprehensive resources
-]);
-
-const ListicleSubtypeEnum = z.enum([
-  'round_up', // "Best X", "Top X", curated collections
-  'resources', // Tools, templates, useful resources
-  'examples', // Case studies, examples, inspiration
-]);
+// Note: Guide and Listicle subtypes are defined in keyword-research-config.ts
+// and used as string type in schema to avoid union validation issues
 
 // Keyword discovery schema - pure keyword research (no content generation)
 const KeywordDiscoverySchema = z.object({
@@ -875,7 +866,7 @@ const getKeywordDataStep = createStep({
 
       // STEP 5: Extract keywords with superior DataForSEO Labs data
       // This API provides keyword_difficulty (0-100), normalized search volumes, and better metrics
-      let skippedCounts = {
+      const skippedCounts = {
         noKeyword: 0,
         noKeywordInfo: 0,
         noSearchVolume: 0,
@@ -884,7 +875,7 @@ const getKeywordDataStep = createStep({
         lowVolume: 0,
         added: 0,
       };
-      let difficultyStats = {
+      const difficultyStats = {
         real: 0, // Keywords with actual difficulty data from DataForSEO
         estimated: 0, // Keywords using competition-based estimates
       };
@@ -971,8 +962,6 @@ const getKeywordDataStep = createStep({
             item.keyword_properties?.keyword_difficulty ??
             null;
 
-          let hasRealDifficulty = false;
-
           // If still no keyword difficulty, try to derive from competition and search volume
           if (keywordDifficulty === null || keywordDifficulty === undefined) {
             // Log missing data for debugging (only for first keyword to avoid spam)
@@ -990,15 +979,10 @@ const getKeywordDataStep = createStep({
             keywordDifficulty = Math.round(competition * 100); // Convert to 0-100 scale
             difficultyStats.estimated++;
           } else {
-            hasRealDifficulty = true;
             difficultyStats.real++;
           }
 
           keywordDifficulty = Number(keywordDifficulty);
-
-          // Calculate traffic/difficulty ratio for ranking potential
-          const trafficDifficultyRatio =
-            searchVolume / Math.max(keywordDifficulty, 1);
 
           // Get CPC and competition data - ensure numbers
           const cpc = Number(item.cpc || 0);
@@ -1127,7 +1111,7 @@ const KeywordWithoutScheduleSchema = z.object({
   contentTypeRationale: z.string(),
 });
 
-// Step 5: Analyze keywords for business potential using ICP & JTBD
+// Step 5: Analyze keywords for business potential using ICP & JTBD (with batching)
 const analyzeKeywordsStep = createStep({
   id: 'analyze-keywords',
   inputSchema: z.object({
@@ -1172,7 +1156,29 @@ const analyzeKeywordsStep = createStep({
     const { product, businessIntelligence, filteringCriteria, keywordData } =
       inputData;
 
-    const prompt = `You are a growth marketing expert. Analyze keywords for BUSINESS POTENTIAL using the ICP and JTBD framework.
+    // CRITICAL: Batch keywords to avoid AI token limit issues
+    const BATCH_SIZE = 25; // Analyze 25 keywords at a time
+    const batches: (typeof keywordData)[] = [];
+
+    for (let i = 0; i < keywordData.length; i += BATCH_SIZE) {
+      batches.push(keywordData.slice(i, i + BATCH_SIZE));
+    }
+
+    console.log(
+      `📦 Analyzing ${keywordData.length} keywords in ${batches.length} batches (${BATCH_SIZE} keywords per batch)`
+    );
+
+    // Process batches in parallel with concurrency control
+    const allAnalyzedKeywords = await pMap(
+      batches,
+      async (batch, batchIndex) => {
+        if (!batch || batch.length === 0) return [];
+
+        console.log(
+          `🔍 Analyzing batch ${batchIndex + 1}/${batches.length} (${batch.length} keywords)...`
+        );
+
+        const prompt = `You are a growth marketing expert. Analyze keywords for BUSINESS POTENTIAL using the ICP and JTBD framework.
 
 **PRODUCT:** ${product.name}
 ${product.description}
@@ -1188,8 +1194,8 @@ ${businessIntelligence.jobsToBeDone.map((job, i) => `${i + 1}. ${job.functionalJ
 **VALUE PROPOSITIONS:**
 ${businessIntelligence.valuePropositions.map((vp, i) => `${i + 1}. ${vp}`).join('\n')}
 
-**KEYWORDS TO ANALYZE (${keywordData.length}):**
-${keywordData
+**KEYWORDS TO ANALYZE (${batch.length}):**
+${batch
   .map(
     (kw, i) =>
       `${i + 1}. "${kw.keyword}" | Vol: ${kw.searchVolume} | Diff: ${kw.difficulty} | CPC: $${(kw.cpc || 0).toFixed(2)}`
@@ -1197,7 +1203,7 @@ ${keywordData
   .join('\n')}
 
 **YOUR TASK:**
-For EACH keyword, analyze:
+For EACH of the ${batch.length} keywords above, analyze:
 
 1. **searchIntent**: 
    - informational: "how to", "what is", learning
@@ -1205,9 +1211,9 @@ For EACH keyword, analyze:
    - commercial: "best", "review", researching options
    - transactional: "buy", "pricing", ready to purchase
 
-2. **businessPotential** (CRITICAL - be strict):
+2. **businessPotential** (CRITICAL - be balanced and realistic):
    - "3" = PERFECT fit: Searcher matches ICP, has pain point we solve, shows buying intent
-   - "2" = GOOD fit: Matches ICP OR pain point, moderate commercial intent
+   - "2" = GOOD fit: Matches ICP OR pain point, moderate commercial intent  
    - "1" = WEAK fit: Tangentially related, low commercial intent
    - "0" = NO fit: Wrong ICP, wrong problem, no business value
    
@@ -1216,7 +1222,10 @@ For EACH keyword, analyze:
    - Does keyword relate to a JTBD functional job? (+1 point)
    - Does keyword indicate they have our ICP's pain points? (+1 point)
    - High CPC or commercial intent? (boost to "3" if otherwise "2")
-   - Wrong ICP or intent? (force to "0" or "1")
+   - Be GENEROUS with BP=2 for industry-relevant keywords
+   - Only use BP=0 for completely irrelevant keywords (competitor brands, wrong industries)
+   
+   **Target distribution:** Aim for ~40% BP=2, ~30% BP=3, ~30% BP=1 (avoid excessive BP=0)
 
 3. **trafficPotential**: Estimated monthly traffic if ranked #1-3 (use ~${Math.round(KEYWORD_CONFIG.TOP_3_CTR * 100)}% of search volume)
 
@@ -1235,182 +1244,202 @@ For EACH keyword, analyze:
 9. **contentTypeRationale**: Why this format matches user intent & will rank
 
 **CRITICAL RULES:**
-- Be STRICT with businessPotential scoring - focus on conversion potential, not just traffic
-- Consider ICP fit: wrong customer profile = BP ≤ 1
+- Be BALANCED with businessPotential scoring - we need enough keywords (target: 30 final keywords)
+- Consider ICP fit: exact customer profile = BP 3, related industry/role = BP 2, tangential = BP 1
 - Consider JTBD alignment: keyword must relate to what customer is trying to accomplish
 - Consider pain point match: does this keyword indicate they have our ICP's problems?
-- High-volume generic keywords with no business fit = BP 0 or 1
-- MUST analyze ALL ${keywordData.length} keywords
+- Be GENEROUS with BP=2 for any industry-relevant keywords (even if not perfect ICP match)
+- Only use BP=0 for completely irrelevant keywords (direct competitors, wrong industries, spam)
+- MUST analyze ALL ${batch.length} keywords in this batch
+- Aim for distribution: 30-40% BP=3, 40-50% BP=2, 10-20% BP=1, <10% BP=0
 
-Think: "Will someone searching this keyword actually BUY our product?"
+Think: "Could someone searching this keyword potentially find value in our product?"
 
-Return complete analysis for EVERY keyword.`;
+Return complete analysis for EVERY keyword in this batch.`;
 
-    try {
-      const result = await seoStrategist.generateVNext(prompt, {
-        output: z.object({
-          analyses: z.array(
-            z.object({
-              keyword: z.string(),
-              searchIntent: SearchIntentEnum,
-              businessPotential: BusinessPotentialEnum,
-              trafficPotential: z.number(),
-              parentTopic: z.string().optional(),
-              competitorGap: z.boolean(),
-              rationale: z.string(),
-              recommendedContentType: ArticleTypeEnum,
-              // Accept subtype as string to avoid union validation issues
-              recommendedSubtype: z.string(),
-              contentTypeRationale: z.string(),
-            })
-          ),
-        }),
-      });
+        try {
+          const result = await seoStrategist.generateVNext(prompt, {
+            output: z.object({
+              analyses: z.array(
+                z.object({
+                  keyword: z.string(),
+                  searchIntent: SearchIntentEnum,
+                  businessPotential: BusinessPotentialEnum,
+                  trafficPotential: z.number(),
+                  parentTopic: z.string().optional(),
+                  competitorGap: z.boolean(),
+                  rationale: z.string(),
+                  recommendedContentType: ArticleTypeEnum,
+                  // Accept subtype as string to avoid union validation issues
+                  recommendedSubtype: z.string(),
+                  contentTypeRationale: z.string(),
+                })
+              ),
+            }),
+          });
 
-      const analyzedKeywords = keywordData.map((kw) => {
-        const analysis = result.object.analyses.find(
-          (a) => a.keyword === kw.keyword
-        );
+          const analyzedKeywords = batch.map((kw) => {
+            const analysis = result.object.analyses.find(
+              (a) => a.keyword === kw.keyword
+            );
 
-        // Calculate traffic/difficulty ratio
-        const trafficDifficultyRatio =
-          kw.searchVolume / Math.max(kw.difficulty, 1);
+            // Calculate traffic/difficulty ratio
+            const trafficDifficultyRatio =
+              kw.searchVolume / Math.max(kw.difficulty, 1);
 
-        // Calculate priority score (0-100)
-        const calculatePriorityScore = (
-          data: typeof kw,
-          analyzed?: (typeof result.object.analyses)[0]
-        ): number => {
-          const weights = KEYWORD_CONFIG.PRIORITY_WEIGHTS;
+            // Calculate priority score (0-100)
+            const calculatePriorityScore = (
+              data: typeof kw,
+              analyzed?: (typeof result.object.analyses)[0]
+            ): number => {
+              const weights = KEYWORD_CONFIG.PRIORITY_WEIGHTS;
 
-          // Base: Traffic/difficulty ratio
-          const ratioScore = Math.min(
-            (trafficDifficultyRatio / 100) * weights.TRAFFIC_DIFFICULTY_RATIO,
-            weights.TRAFFIC_DIFFICULTY_RATIO
+              // Base: Traffic/difficulty ratio
+              const ratioScore = Math.min(
+                (trafficDifficultyRatio / 100) *
+                  weights.TRAFFIC_DIFFICULTY_RATIO,
+                weights.TRAFFIC_DIFFICULTY_RATIO
+              );
+
+              // Volume score
+              const volumeScore = Math.min(
+                (data.searchVolume / 1000) * weights.SEARCH_VOLUME,
+                weights.SEARCH_VOLUME
+              );
+
+              // CPC score - commercial value
+              const cpcScore = Math.min(
+                ((data.cpc || 0) / 5) * weights.CPC,
+                weights.CPC
+              );
+
+              // Trend bonus
+              const trendBonus =
+                (data.trend || 0) > 0 ? weights.TREND_BONUS : 0;
+
+              // Business potential multiplier (most important!)
+              const bpMultipliers = weights.BUSINESS_POTENTIAL_MULTIPLIERS;
+              const bpMultiplier =
+                analyzed?.businessPotential === '3'
+                  ? bpMultipliers.BP_3
+                  : analyzed?.businessPotential === '2'
+                    ? bpMultipliers.BP_2
+                    : analyzed?.businessPotential === '1'
+                      ? bpMultipliers.BP_1
+                      : bpMultipliers.BP_0;
+
+              // Competitor gap bonus
+              const gapBonus = analyzed?.competitorGap ? weights.GAP_BONUS : 0;
+
+              const baseScore =
+                ratioScore + volumeScore + cpcScore + trendBonus + gapBonus;
+              return Math.min(Math.round(baseScore * bpMultiplier), 100);
+            };
+
+            if (!analysis) {
+              // Fallback if AI didn't analyze this keyword - use heuristics
+              const priorityScore = calculatePriorityScore(kw);
+
+              // Simple content type heuristics
+              let contentType: 'guide' | 'listicle' = 'guide';
+              let subtype: string = 'explainer';
+
+              const kwLower = kw.keyword.toLowerCase();
+              if (kwLower.includes('best') || kwLower.includes('top ')) {
+                contentType = 'listicle';
+                subtype = 'round_up';
+              } else if (kwLower.startsWith('how to ')) {
+                contentType = 'guide';
+                subtype = 'how_to';
+              } else if (
+                kwLower.includes(' vs ') ||
+                kwLower.includes('alternative')
+              ) {
+                contentType = 'guide';
+                subtype = 'comparison';
+              } else if (
+                kwLower.includes('examples') ||
+                kwLower.includes('ideas')
+              ) {
+                contentType = 'listicle';
+                subtype = 'examples';
+              }
+
+              return {
+                keyword: kw.keyword,
+                searchVolume: kw.searchVolume,
+                keywordDifficulty: kw.difficulty,
+                cpc: kw.cpc,
+                competition: kw.competition,
+                searchIntent: 'informational' as const,
+                businessPotential: '1' as const,
+                trafficPotential: estimateTrafficPotential(kw.searchVolume),
+                parentTopic: undefined,
+                trendScore: kw.trend,
+                competitorGap: isCompetitorGap(kw.difficulty, kw.searchVolume),
+                priorityScore,
+                trafficDifficultyRatio,
+                rationale:
+                  'Keyword requires manual review - AI analysis unavailable',
+                recommendedContentType: contentType,
+                recommendedSubtype: subtype as any,
+                contentTypeRationale:
+                  'Determined by keyword pattern heuristics',
+              };
+            }
+
+            // Use AI analysis
+            const priorityScore = calculatePriorityScore(kw, analysis);
+
+            return {
+              keyword: kw.keyword,
+              searchVolume: kw.searchVolume,
+              keywordDifficulty: kw.difficulty,
+              cpc: kw.cpc,
+              competition: kw.competition,
+              searchIntent: analysis.searchIntent,
+              businessPotential: analysis.businessPotential,
+              trafficPotential: analysis.trafficPotential,
+              parentTopic: analysis.parentTopic,
+              trendScore: kw.trend,
+              competitorGap: analysis.competitorGap,
+              priorityScore,
+              trafficDifficultyRatio,
+              rationale: analysis.rationale,
+              recommendedContentType: analysis.recommendedContentType,
+              recommendedSubtype: analysis.recommendedSubtype,
+              contentTypeRationale: analysis.contentTypeRationale,
+            };
+          });
+
+          console.log(
+            `✅ Completed batch ${batchIndex + 1}/${batches.length}: analyzed ${analyzedKeywords.length} keywords`
           );
 
-          // Volume score
-          const volumeScore = Math.min(
-            (data.searchVolume / 1000) * weights.SEARCH_VOLUME,
-            weights.SEARCH_VOLUME
+          return analyzedKeywords;
+        } catch (error) {
+          console.error(`❌ Failed to analyze batch ${batchIndex + 1}:`, error);
+          throw new Error(
+            `Failed to analyze batch ${batchIndex + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`
           );
-
-          // CPC score - commercial value
-          const cpcScore = Math.min(
-            ((data.cpc || 0) / 5) * weights.CPC,
-            weights.CPC
-          );
-
-          // Trend bonus
-          const trendBonus = (data.trend || 0) > 0 ? weights.TREND_BONUS : 0;
-
-          // Business potential multiplier (most important!)
-          const bpMultipliers = weights.BUSINESS_POTENTIAL_MULTIPLIERS;
-          const bpMultiplier =
-            analyzed?.businessPotential === '3'
-              ? bpMultipliers.BP_3
-              : analyzed?.businessPotential === '2'
-                ? bpMultipliers.BP_2
-                : analyzed?.businessPotential === '1'
-                  ? bpMultipliers.BP_1
-                  : bpMultipliers.BP_0;
-
-          // Competitor gap bonus
-          const gapBonus = analyzed?.competitorGap ? weights.GAP_BONUS : 0;
-
-          const baseScore =
-            ratioScore + volumeScore + cpcScore + trendBonus + gapBonus;
-          return Math.min(Math.round(baseScore * bpMultiplier), 100);
-        };
-
-        if (!analysis) {
-          // Fallback if AI didn't analyze this keyword - use heuristics
-          const priorityScore = calculatePriorityScore(kw);
-
-          // Simple content type heuristics
-          let contentType: 'guide' | 'listicle' = 'guide';
-          let subtype: string = 'explainer';
-
-          const kwLower = kw.keyword.toLowerCase();
-          if (kwLower.includes('best') || kwLower.includes('top ')) {
-            contentType = 'listicle';
-            subtype = 'round_up';
-          } else if (kwLower.startsWith('how to ')) {
-            contentType = 'guide';
-            subtype = 'how_to';
-          } else if (
-            kwLower.includes(' vs ') ||
-            kwLower.includes('alternative')
-          ) {
-            contentType = 'guide';
-            subtype = 'comparison';
-          } else if (
-            kwLower.includes('examples') ||
-            kwLower.includes('ideas')
-          ) {
-            contentType = 'listicle';
-            subtype = 'examples';
-          }
-
-          return {
-            keyword: kw.keyword,
-            searchVolume: kw.searchVolume,
-            keywordDifficulty: kw.difficulty,
-            cpc: kw.cpc,
-            competition: kw.competition,
-            searchIntent: 'informational' as const,
-            businessPotential: '1' as const,
-            trafficPotential: estimateTrafficPotential(kw.searchVolume),
-            parentTopic: undefined,
-            trendScore: kw.trend,
-            competitorGap: isCompetitorGap(kw.difficulty, kw.searchVolume),
-            priorityScore,
-            trafficDifficultyRatio,
-            rationale:
-              'Keyword requires manual review - AI analysis unavailable',
-            recommendedContentType: contentType,
-            recommendedSubtype: subtype as any,
-            contentTypeRationale: 'Determined by keyword pattern heuristics',
-          };
         }
+      },
+      { concurrency: 3 } // Process up to 3 batches in parallel
+    );
 
-        // Use AI analysis
-        const priorityScore = calculatePriorityScore(kw, analysis);
+    // Flatten results from all batches
+    const flattenedKeywords = allAnalyzedKeywords.flat();
 
-        return {
-          keyword: kw.keyword,
-          searchVolume: kw.searchVolume,
-          keywordDifficulty: kw.difficulty,
-          cpc: kw.cpc,
-          competition: kw.competition,
-          searchIntent: analysis.searchIntent,
-          businessPotential: analysis.businessPotential,
-          trafficPotential: analysis.trafficPotential,
-          parentTopic: analysis.parentTopic,
-          trendScore: kw.trend,
-          competitorGap: analysis.competitorGap,
-          priorityScore,
-          trafficDifficultyRatio,
-          rationale: analysis.rationale,
-          recommendedContentType: analysis.recommendedContentType,
-          recommendedSubtype: analysis.recommendedSubtype,
-          contentTypeRationale: analysis.contentTypeRationale,
-        };
-      });
+    console.log(
+      `✅ Completed analysis of ${flattenedKeywords.length} keywords across ${batches.length} batches`
+    );
 
-      console.log(`Completed analysis of ${analyzedKeywords.length} keywords`);
-
-      return {
-        product,
-        businessIntelligence,
-        filteringCriteria,
-        analyzedKeywords,
-      };
-    } catch (error) {
-      throw new Error(
-        `Failed to analyze and categorize keywords: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
+    return {
+      product,
+      businessIntelligence,
+      filteringCriteria,
+      analyzedKeywords: flattenedKeywords,
+    };
   },
 });
 
@@ -1429,7 +1458,7 @@ const finalizeKeywordsStep = createStep({
   }),
   outputSchema: OutputSchema,
   execute: async ({ inputData }) => {
-    const { product, businessIntelligence, analyzedKeywords } = inputData;
+    const { product, analyzedKeywords } = inputData;
 
     console.log(`Finalizing ${analyzedKeywords.length} discovered keywords`);
 
@@ -1465,21 +1494,54 @@ const finalizeKeywordsStep = createStep({
       `Deduplicated: ${sortedKeywords.length} → ${uniqueKeywords.length} unique keywords`
     );
 
-    // Select target number of unique keywords (may be less if not enough available)
-    const finalKeywords = uniqueKeywords.slice(
+    // CRITICAL: Ensure we have EXACTLY 30 keywords
+    let finalKeywords = uniqueKeywords.slice(
       0,
       KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT
     );
 
+    // If we don't have enough keywords with BP>=MIN, include lower BP keywords as fallback
     if (finalKeywords.length < KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT) {
       console.warn(
-        `⚠️ Only ${finalKeywords.length} unique keywords available (expected ${KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT}). Consider broadening seed keywords or adjusting filters.`
+        `⚠️ Only ${finalKeywords.length} keywords with BP≥${KEYWORD_CONFIG.MIN_BUSINESS_POTENTIAL}. Including lower BP keywords to reach 30...`
       );
-    } else {
+
+      // Get all analyzed keywords, sort by priority, deduplicate
+      const allSortedKeywords = [...analyzedKeywords].sort(
+        (a, b) => b.priorityScore - a.priorityScore
+      );
+
+      const allUniqueKeywords = new Map<
+        string,
+        (typeof allSortedKeywords)[0]
+      >();
+      for (const kw of allSortedKeywords) {
+        const normalizedKeyword = kw.keyword.toLowerCase().trim();
+        if (!allUniqueKeywords.has(normalizedKeyword)) {
+          allUniqueKeywords.set(normalizedKeyword, kw);
+        }
+      }
+
+      finalKeywords = Array.from(allUniqueKeywords.values()).slice(
+        0,
+        KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT
+      );
+
       console.log(
-        `✅ Selected ${KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT} unique keywords from ${sortedKeywords.length} candidates`
+        `✅ Included ${finalKeywords.length - uniqueKeywords.length} additional keywords (including BP=0) to reach target`
       );
     }
+
+    // Fail if we still don't have enough keywords
+    if (finalKeywords.length < KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT) {
+      throw new Error(
+        `Failed to generate ${KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT} keywords. Only ${finalKeywords.length} available. Increase DATAFORSEO_RESULTS_LIMIT or adjust seed keywords.`
+      );
+    }
+
+    console.log(
+      `✅ Selected exactly ${KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT} unique keywords`
+    );
 
     // Add scheduledDate to each keyword (1 per day, starting today)
     const keywordsWithSchedule = finalKeywords.map((kw, index) => {
@@ -1559,15 +1621,22 @@ const finalizeKeywordsStep = createStep({
       (kw) => kw.businessPotential === '2'
     ).length;
 
+    // Count BP distribution
+    const bp0Count = keywordsWithSchedule.filter(
+      (kw) => kw.businessPotential === '0'
+    ).length;
+    const bp1Count = keywordsWithSchedule.filter(
+      (kw) => kw.businessPotential === '1'
+    ).length;
+
     console.log(`
 📊 KEYWORD DISCOVERY SUMMARY:
 - Total Keywords: ${keywordsWithSchedule.length} ${keywordsWithSchedule.length === 30 ? '✅' : `⚠️ (target: 30)`}
 - All keywords are UNIQUE (no duplicates)
-- ✅ Business Relevance: ALL keywords have BP≥2 (good product fit)
 - Avg Search Volume: ${stats.avgSearchVolume.toLocaleString()}/mo
 - Avg Difficulty: ${stats.avgDifficulty}/100
 - Avg Priority Score: ${stats.avgPriorityScore}/100
-- Business Potential: BP=3 (Perfect fit): ${bp3Count} | BP=2 (Good fit): ${bp2Count}
+- Business Potential Distribution: BP=3: ${bp3Count} | BP=2: ${bp2Count} | BP=1: ${bp1Count} | BP=0: ${bp0Count}
 - Competitor Gap Opportunities: ${stats.competitorGaps} keywords
 - Total Traffic Potential: ${stats.totalTrafficPotential.toLocaleString()}/month
 - Avg Traffic/Difficulty Ratio: ${(keywordsWithSchedule.reduce((sum, kw) => sum + kw.trafficDifficultyRatio, 0) / keywordsWithSchedule.length).toFixed(1)}
@@ -1588,6 +1657,13 @@ ${keywordsWithSchedule
   )
   .join('\n')}
     `);
+
+    // CRITICAL ASSERTION: Must return exactly 30 keywords
+    if (keywordsWithSchedule.length !== KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT) {
+      throw new Error(
+        `CRITICAL: Expected exactly ${KEYWORD_CONFIG.FINAL_KEYWORDS_COUNT} keywords but got ${keywordsWithSchedule.length}. This violates the requirement.`
+      );
+    }
 
     return {
       productId: product.id,
