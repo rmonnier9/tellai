@@ -50,6 +50,7 @@ export function WebflowIntegrationForm() {
       name: '',
       accessToken: '',
       collectionId: '',
+      siteUrl: '',
       publishingStatus: 'draft',
     },
   });
@@ -293,6 +294,31 @@ export function WebflowIntegrationForm() {
                       The ID of the CMS collection where blog posts will be
                       published. You can find this in your Webflow CMS
                       collection settings.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="siteUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Site URL (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="url"
+                        placeholder="https://yourdomain.com"
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Your published Webflow site URL (e.g.,
+                      https://yourdomain.com). This is used to generate direct
+                      links to published articles. If not provided, only the
+                      slug will be stored.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

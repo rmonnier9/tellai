@@ -143,6 +143,7 @@ export const WebflowCredentialSchema = z.object({
   name: z.string().min(1, 'Integration name is required'),
   accessToken: z.string().min(1, 'API token is required'),
   collectionId: z.string().min(1, 'Collection ID is required'),
+  siteUrl: z.string().url('Please enter a valid site URL').optional(),
   publishingStatus: z.enum(['live', 'draft']),
   fieldMapping: z
     .object({

@@ -101,6 +101,7 @@ export async function createCredential(input: CreateCredentialInput) {
         accessToken: webflowData.accessToken,
         config: {
           collectionId: webflowData.collectionId,
+          siteUrl: webflowData.siteUrl,
           publishingStatus: webflowData.publishingStatus,
           fieldMapping: webflowData.fieldMapping,
         },

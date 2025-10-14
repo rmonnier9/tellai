@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { Card } from '@workspace/ui/components/card';
 import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 const integrations = [
   {
@@ -21,7 +21,7 @@ const integrations = [
     icon: '📓',
     color: 'from-gray-500/10 to-gray-600/10',
     borderColor: 'hover:border-gray-500/50',
-    available: true,
+    available: false,
   },
   {
     id: 'webflow',
@@ -39,7 +39,7 @@ const integrations = [
     icon: '🛍️',
     color: 'from-green-500/10 to-green-600/10',
     borderColor: 'hover:border-green-500/50',
-    available: true,
+    available: false,
   },
   {
     id: 'wix',
@@ -48,7 +48,7 @@ const integrations = [
     icon: '⚡',
     color: 'from-orange-500/10 to-orange-600/10',
     borderColor: 'hover:border-orange-500/50',
-    available: true,
+    available: false,
   },
   {
     id: 'wordpress-com',
@@ -57,7 +57,7 @@ const integrations = [
     icon: '📝',
     color: 'from-blue-500/10 to-blue-600/10',
     borderColor: 'hover:border-blue-500/50',
-    available: true,
+    available: false,
   },
   {
     id: 'webhook',
@@ -66,7 +66,7 @@ const integrations = [
     icon: '🔗',
     color: 'from-purple-500/10 to-purple-600/10',
     borderColor: 'hover:border-purple-500/50',
-    available: true,
+    available: false,
   },
   {
     id: 'framer',
@@ -75,7 +75,7 @@ const integrations = [
     icon: '🎨',
     color: 'from-pink-500/10 to-pink-600/10',
     borderColor: 'hover:border-pink-500/50',
-    available: true,
+    available: false,
   },
 ];
 

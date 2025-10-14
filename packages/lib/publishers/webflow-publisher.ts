@@ -13,7 +13,11 @@ export class WebflowPublisher extends BasePublisher {
     credential: CredentialConfig
   ): Promise<PublishResult> {
     try {
-      const { collectionId, publishingStatus = 'draft' } = credential.config;
+      const {
+        collectionId,
+        siteUrl,
+        publishingStatus = 'draft',
+      } = credential.config;
       const accessToken = credential.accessToken;
 
       if (!accessToken) {
@@ -165,9 +169,22 @@ export class WebflowPublisher extends BasePublisher {
         }
       }
 
-      // The URL structure varies based on Webflow site configuration
-      // Return the slug which can be used to construct the URL
-      const itemUrl = createdItem.fieldData?.slug || slug;
+      // Construct the full URL if siteUrl is provided
+      // Otherwise just return the slug
+      const articleSlug = createdItem.fieldData?.slug || slug;
+      let itemUrl = articleSlug;
+
+      if (siteUrl) {
+        // Remove trailing slash from siteUrl
+        const baseUrl = siteUrl.replace(/\/$/, '');
+        // Construct full URL (common Webflow blog structure)
+        // You may need to adjust the path based on your Webflow collection settings
+        itemUrl = `${baseUrl}/blog/${articleSlug}`;
+
+        console.log('Constructed Webflow article URL:', itemUrl);
+      } else {
+        console.log('No siteUrl configured, returning slug only:', itemUrl);
+      }
 
       return {
         success: true,
