@@ -27,6 +27,15 @@ export default async function SubscribePage() {
         subscription: true,
       },
     });
+
+    // If already subscribed, redirect to home
+    const validStatuses = ['active', 'trialing'];
+    if (
+      activeProduct?.subscription?.status &&
+      validStatuses.includes(activeProduct.subscription.status)
+    ) {
+      redirect('/');
+    }
   }
 
   return (

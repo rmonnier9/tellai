@@ -2,8 +2,6 @@
 
 import { client } from '@workspace/auth/client';
 import { Check } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import useActiveProduct from '../hooks/use-active-product';
 import { useRewardful } from '../hooks/use-rewardful';
 
@@ -37,7 +35,6 @@ interface PricingTableProps {
 }
 
 export default function Example({ initialProduct }: PricingTableProps) {
-  const router = useRouter();
   const activeProductQuery = useActiveProduct({
     swrConfig: {
       refreshInterval: 5000,
@@ -52,11 +49,6 @@ export default function Example({ initialProduct }: PricingTableProps) {
   // Use initialProduct if activeProductQuery hasn't loaded yet
   const productData = activeProductQuery?.data || initialProduct;
   const productId = productData?.id;
-  const hasAlreadySubscribed =
-    productData?.subscription?.status === 'active' ||
-    productData?.subscription?.status === 'trialing';
-
-  console.log('hasAlreadySubscribed', hasAlreadySubscribed);
 
   const handleUpgrade = async () => {
     // Get the latest product ID at the time of click
@@ -79,12 +71,6 @@ export default function Example({ initialProduct }: PricingTableProps) {
       // seats: 5, // Optional: for team plans
     });
   };
-
-  useEffect(() => {
-    if (hasAlreadySubscribed) {
-      router.replace('/');
-    }
-  }, [hasAlreadySubscribed, router]);
 
   return (
     <div className="max-w-7xl">
