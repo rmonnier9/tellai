@@ -40,8 +40,13 @@ import { createCredential } from '@workspace/lib/server-actions/create-credentia
 export function WebflowIntegrationForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingSites, setIsLoadingSites] = useState(false);
+  const [isLoadingCollections, setIsLoadingCollections] = useState(false);
   const [isLoadingFields, setIsLoadingFields] = useState(false);
+  const [sites, setSites] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
   const [collectionFields, setCollectionFields] = useState<any[]>([]);
+  const [selectedSiteId, setSelectedSiteId] = useState<string>('');
   const [fieldMappingEnabled, setFieldMappingEnabled] = useState(false);
 
   const form = useForm<z.infer<typeof WebflowCredentialSchema>>({
@@ -55,90 +60,166 @@ export function WebflowIntegrationForm() {
     },
   });
 
-  const fetchCollectionFields = async () => {
+  const fetchSites = async () => {
     const accessToken = form.getValues('accessToken');
-    const collectionId = form.getValues('collectionId');
+
+    if (!accessToken) {
+      toast.error('Please enter your API Token first');
+      return;
+    }
+
+    setIsLoadingSites(true);
+    setSites([]);
+    setCollections([]);
+    setCollectionFields([]);
+    setSelectedSiteId('');
+
+    try {
+      const response = await fetch('/api/webflow/sites', {
+        headers: {
+          'x-webflow-token': accessToken,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            'Failed to fetch sites. Please check your API token.'
+        );
+      }
+
+      const data = await response.json();
+
+      if (!data.sites || data.sites.length === 0) {
+        throw new Error('No sites found for this API token.');
+      }
+
+      setSites(data.sites);
+      toast.success(
+        `Found ${data.sites.length} site${data.sites.length > 1 ? 's' : ''}!`
+      );
+    } catch (error) {
+      console.error('Error fetching sites:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to fetch sites',
+        { duration: 6000 }
+      );
+    } finally {
+      setIsLoadingSites(false);
+    }
+  };
+
+  const fetchCollections = async (siteId: string) => {
+    const accessToken = form.getValues('accessToken');
+
+    if (!accessToken || !siteId) {
+      return;
+    }
+
+    setIsLoadingCollections(true);
+    setCollections([]);
+    setCollectionFields([]);
+
+    try {
+      const response = await fetch(`/api/webflow/sites/${siteId}/collections`, {
+        headers: {
+          'x-webflow-token': accessToken,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch collections');
+      }
+
+      const data = await response.json();
+
+      if (!data.collections || data.collections.length === 0) {
+        throw new Error('No collections found for this site.');
+      }
+
+      setCollections(data.collections);
+      toast.success(
+        `Found ${data.collections.length} collection${data.collections.length > 1 ? 's' : ''}!`
+      );
+    } catch (error) {
+      console.error('Error fetching collections:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to fetch collections',
+        { duration: 6000 }
+      );
+    } finally {
+      setIsLoadingCollections(false);
+    }
+  };
+
+  const fetchCollectionFields = async (collectionId: string) => {
+    const accessToken = form.getValues('accessToken');
 
     if (!accessToken || !collectionId) {
-      toast.error('Please enter both API Token and Collection ID first');
       return;
     }
 
     setIsLoadingFields(true);
     try {
-      console.log('Fetching Webflow collection fields...', {
-        collectionId: collectionId.substring(0, 10) + '...',
-      });
-
-      // Call our API route instead of Webflow directly to avoid CORS issues
       const response = await fetch(`/api/webflow/collections/${collectionId}`, {
         headers: {
           'x-webflow-token': accessToken,
         },
       });
 
-      console.log('API Response:', {
-        status: response.status,
-        statusText: response.statusText,
-      });
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('API Error:', errorData);
-
-        let errorMessage = 'Failed to fetch collection fields. ';
-
-        if (response.status === 401) {
-          errorMessage +=
-            'Invalid API token. Please check that your token has the correct permissions (sites:read, cms:read).';
-        } else if (response.status === 404) {
-          errorMessage +=
-            'Collection not found. Please verify your Collection ID is correct.';
-        } else if (response.status === 403) {
-          errorMessage +=
-            'Access forbidden. Your API token may not have permission to access this collection.';
-        } else {
-          errorMessage += `Error ${response.status}: ${errorData.error || errorData.message || response.statusText}`;
-        }
-
-        throw new Error(errorMessage);
+        throw new Error(errorData.error || 'Failed to fetch collection fields');
       }
 
       const data = await response.json();
-      console.log('Collection data received:', {
-        hasFields: !!data.fields,
-        fieldCount: data.fields?.length || 0,
-        fields: data.fields?.map((f: any) => ({
-          slug: f.slug,
-          type: f.type,
-          displayName: f.displayName,
-        })),
-      });
 
       if (!data.fields || data.fields.length === 0) {
-        throw new Error(
-          'No fields found in this collection. Please make sure the collection has fields configured in Webflow.'
-        );
+        throw new Error('No fields found in this collection.');
       }
 
       setCollectionFields(data.fields);
       setFieldMappingEnabled(true);
       toast.success(
-        `Loaded ${data.fields.length} field${data.fields.length > 1 ? 's' : ''} successfully!`
+        `Loaded ${data.fields.length} field${data.fields.length > 1 ? 's' : ''}!`
       );
     } catch (error) {
       console.error('Error fetching fields:', error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Could not fetch collection fields. Please check your API token and Collection ID.',
-        {
-          duration: 6000,
-        }
+        error instanceof Error ? error.message : 'Failed to fetch fields',
+        { duration: 6000 }
       );
     } finally {
       setIsLoadingFields(false);
     }
+  };
+
+  const handleSiteChange = (siteId: string) => {
+    setSelectedSiteId(siteId);
+    form.setValue('collectionId', '');
+
+    // Find the selected site and set the URL
+    const selectedSite = sites.find((s) => s.id === siteId);
+    if (selectedSite) {
+      // Automatically set the site URL
+      const siteUrl =
+        selectedSite.customDomains?.[0]?.url ||
+        (selectedSite.shortName
+          ? `https://${selectedSite.shortName}.webflow.io`
+          : '');
+      if (siteUrl) {
+        form.setValue('siteUrl', siteUrl);
+      }
+    }
+
+    fetchCollections(siteId);
+  };
+
+  const handleCollectionChange = (collectionId: string) => {
+    form.setValue('collectionId', collectionId);
+    fetchCollectionFields(collectionId);
   };
 
   async function onSubmit(data: z.infer<typeof WebflowCredentialSchema>) {
@@ -259,71 +340,93 @@ export function WebflowIntegrationForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>API Token</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Enter your Webflow API token"
-                        {...field}
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter your Webflow API token"
+                          {...field}
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={fetchSites}
+                        disabled={
+                          isLoadingSites || !field.value || isSubmitting
+                        }
+                      >
+                        {isLoadingSites ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          'Load Sites'
+                        )}
+                      </Button>
+                    </div>
                     <FormDescription>
-                      Your Webflow API token with CMS permissions. You can
-                      generate this in your Webflow Site Settings → Apps &
-                      Integrations → API Access.
+                      Your Webflow API token with CMS permissions. Click "Load
+                      Sites" to fetch your sites.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="collectionId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Collection ID</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter your blog collection ID"
-                        {...field}
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      The ID of the CMS collection where blog posts will be
-                      published. You can find this in your Webflow CMS
-                      collection settings.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {sites.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Select Site</label>
+                  <Select
+                    value={selectedSiteId}
+                    onValueChange={handleSiteChange}
+                    disabled={isSubmitting || isLoadingCollections}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a site" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sites.map((site) => (
+                        <SelectItem key={site.id} value={site.id}>
+                          {site.displayName} ({site.shortName})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select the Webflow site where you want to publish articles
+                  </p>
+                </div>
+              )}
 
-              <FormField
-                control={form.control}
-                name="siteUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Site URL (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="url"
-                        placeholder="https://yourdomain.com"
-                        {...field}
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Your published Webflow site URL (e.g.,
-                      https://yourdomain.com). This is used to generate direct
-                      links to published articles. If not provided, only the
-                      slug will be stored.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {collections.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Select Collection
+                  </label>
+                  <Select
+                    value={form.watch('collectionId')}
+                    onValueChange={handleCollectionChange}
+                    disabled={isSubmitting || isLoadingFields}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a collection" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {collections.map((collection) => (
+                        <SelectItem key={collection.id} value={collection.id}>
+                          {collection.displayName} ({collection.slug})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select the CMS collection for your blog posts
+                  </p>
+                </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -356,29 +459,13 @@ export function WebflowIntegrationForm() {
               />
 
               <div className="rounded-lg border bg-muted/50 p-4">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-medium">Field Mapping (Optional)</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Map your Webflow collection fields to article data
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={fetchCollectionFields}
-                    disabled={isLoadingFields || isSubmitting}
-                  >
-                    {isLoadingFields ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load Fields'
-                    )}
-                  </Button>
+                <div className="mb-4">
+                  <h3 className="font-medium">Field Mapping</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {collectionFields.length > 0
+                      ? 'Map your Webflow collection fields to article data'
+                      : 'Select a collection to automatically load and map fields'}
+                  </p>
                 </div>
 
                 {fieldMappingEnabled && collectionFields.length > 0 ? (
@@ -490,28 +577,6 @@ export function WebflowIntegrationForm() {
             </form>
           </Form>
         </Card>
-
-        <Alert variant="default" className="border-blue-200 bg-blue-50">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-900">
-            How to find your Collection ID
-          </AlertTitle>
-          <AlertDescription className="text-blue-800">
-            <ol className="mt-2 list-inside list-decimal space-y-1 text-sm">
-              <li>Open your Webflow Designer</li>
-              <li>Go to the CMS tab</li>
-              <li>Click on your blog collection</li>
-              <li>Click on the settings icon (⚙️)</li>
-              <li>
-                The Collection ID is shown in the Collection Settings panel
-              </li>
-            </ol>
-            <p className="mt-2 text-sm">
-              Alternatively, you can use the Webflow API to list all your
-              collections and find the ID programmatically.
-            </p>
-          </AlertDescription>
-        </Alert>
       </div>
     </div>
   );
