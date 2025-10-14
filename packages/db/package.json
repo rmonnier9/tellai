@@ -7,6 +7,7 @@
   "types": "./index.ts",
   "scripts": {
     "build": "pnpm prisma:generate",
+    "postinstall": "prisma generate",
     "dirzzle:pull": "drizzle-kit pull --config ./drizzle/drizzle.config.ts",
     "dirzzle:generate": "drizzle-kit generate --config ./drizzle/drizzle.config.ts",
     "dirzzle:migrate": "drizzle-kit migrate --config ./drizzle/drizzle.config.ts",
@@ -30,11 +31,11 @@
     "@prisma/client": "6.16.2",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.2",
-    "postgres": "^3.4.7"
+    "postgres": "^3.4.7",
+    "prisma": "6.16.2"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.2",
-    "prisma": "6.16.2",
     "tsx": "^4.20.3"
   }
 }
