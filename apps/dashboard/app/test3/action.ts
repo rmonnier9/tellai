@@ -2,10 +2,6 @@
 
 import { mastra } from '@workspace/lib/mastra';
 import prisma from '@workspace/db/prisma/client';
-import {
-  VALID_GUIDE_SUBTYPES,
-  VALID_LISTICLE_SUBTYPES,
-} from '@workspace/lib/workflows/keyword-research-config';
 
 export async function generateKeywordIdeas(formData: FormData) {
   try {
@@ -103,37 +99,18 @@ export async function generateKeywordIdeas(formData: FormData) {
 
       const articles = await Promise.all(
         result.keywords.map(async (keyword: any) => {
-          // Validate and assign subtypes based on content type
-          const contentType = keyword.recommendedContentType;
-          const subtype = keyword.recommendedSubtype;
-
-          let guideSubtype = null;
-          let listicleSubtype = null;
-
-          if (
-            contentType === 'guide' &&
-            VALID_GUIDE_SUBTYPES.includes(subtype as any)
-          ) {
-            guideSubtype = subtype;
-          } else if (
-            contentType === 'listicle' &&
-            VALID_LISTICLE_SUBTYPES.includes(subtype as any)
-          ) {
-            listicleSubtype = subtype;
-          }
-
           return prisma.article.create({
             data: {
               product: {
                 connect: { id: productId },
               },
               keyword: keyword.keyword,
-              title: null, // Will be generated in content workflow
-              // Content type recommendations from AI analysis
-              type: contentType || null,
-              guideSubtype,
-              listicleSubtype,
-              // SEO metrics from DataForSEO Labs API
+              title: keyword.title, // Now comes from workflow
+              // Content type from workflow
+              type: keyword.type,
+              guideSubtype: keyword.guideSubtype || null,
+              listicleSubtype: keyword.listicleSubtype || null,
+              // SEO metrics from DataForSEO
               searchVolume: keyword.searchVolume,
               keywordDifficulty: keyword.keywordDifficulty,
               cpc: keyword.cpc || 0,

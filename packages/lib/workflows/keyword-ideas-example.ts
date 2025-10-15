@@ -59,28 +59,42 @@ export async function generateArticleIdeasForProduct(productId: string) {
     // Extract the actual result from the workflow response
     const result = workflowResult.result;
 
-    console.log(`Generated ${result.totalIdeas} article ideas`);
+    console.log(`Generated ${result.totalKeywords} keyword ideas`);
 
     // Create Article records in the database
     const articles = await Promise.all(
-      result.articleIdeas.map(async (idea: any) => {
-        return prisma.article.create({
-          data: {
-            productId: product.id,
-            keyword: idea.keyword,
-            title: idea.title,
-            type: idea.type,
-            guideSubtype: idea.guideSubtype || null,
-            listicleSubtype: idea.listicleSubtype || null,
-            searchVolume: idea.searchVolume,
-            keywordDifficulty: idea.keywordDifficulty,
-            cpc: idea.cpc,
-            competition: idea.competition,
-            scheduledDate: new Date(idea.scheduledDate),
-            status: 'pending',
-          },
-        });
-      })
+      result.keywords.map(
+        async (keyword: {
+          keyword: string;
+          title: string;
+          type: 'guide' | 'listicle';
+          guideSubtype?: 'how_to' | 'explainer' | 'comparison' | 'reference';
+          listicleSubtype?: 'round_up' | 'resources' | 'examples';
+          searchVolume: number;
+          keywordDifficulty: number;
+          cpc?: number;
+          competition?: number;
+          scheduledDate: string;
+          rationale: string;
+        }) => {
+          return prisma.article.create({
+            data: {
+              productId: product.id,
+              keyword: keyword.keyword,
+              title: keyword.title,
+              type: keyword.type,
+              guideSubtype: keyword.guideSubtype || null,
+              listicleSubtype: keyword.listicleSubtype || null,
+              searchVolume: keyword.searchVolume,
+              keywordDifficulty: keyword.keywordDifficulty,
+              cpc: keyword.cpc,
+              competition: keyword.competition,
+              scheduledDate: new Date(keyword.scheduledDate),
+              status: 'pending',
+            },
+          });
+        }
+      )
     );
 
     console.log(`Created ${articles.length} article records in database`);
@@ -89,9 +103,12 @@ export async function generateArticleIdeasForProduct(productId: string) {
       product,
       articles,
       summary: {
-        totalIdeas: result.totalIdeas,
-        guides: articles.filter((a: any) => a.type === 'guide').length,
-        listicles: articles.filter((a: any) => a.type === 'listicle').length,
+        totalKeywords: result.totalKeywords,
+        guides: articles.filter((a: { type: string }) => a.type === 'guide')
+          .length,
+        listicles: articles.filter(
+          (a: { type: string }) => a.type === 'listicle'
+        ).length,
       },
     };
   } catch (error) {
