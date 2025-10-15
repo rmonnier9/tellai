@@ -69,7 +69,7 @@ type Credential = {
   id: string;
   type: string;
   name: string | null;
-  config: Record<string, unknown>;
+  config: unknown;
   createdAt: Date;
 };
 
