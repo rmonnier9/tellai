@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   maildev:
@@ -41,10 +41,8 @@ services:
       /bin/sh -c "
       sleep 10;
       /usr/bin/mc config host add minio http://minio:9000 root password;
-      /usr/bin/mc mb minio/funfun-ai;
-      /usr/bin/mc anonymous set public minio/funfun-ai;
-      /usr/bin/mc mb minio/funfun-art;
-      /usr/bin/mc anonymous set public minio/funfun-art;
+      /usr/bin/mc mb minio/lovarank;
+      /usr/bin/mc anonymous set public minio/lovarank;
       exit 0;
       "
 

@@ -4,6 +4,8 @@ import { z } from 'zod';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { s3, getS3PublicUrl } from '../aws';
+import { cuid } from '../ids';
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -19,7 +21,11 @@ const businessAnalyzer = new Agent({
 // Final output schema
 const outputSchema = z.object({
   url: z.string(),
-  logo: z.string().describe('base64 image of the business logo or favicon'),
+  logo: z
+    .string()
+    .describe(
+      'S3 public URL of the business favicon/icon (falls back to og:image if no favicon)'
+    ),
   name: z.string().describe('business or product name'),
   language: z.string().describe('ISO language code'),
   country: z.string().describe('country code'),
@@ -157,7 +163,35 @@ const fetchPageStep = createStep({
   },
 });
 
-// Step 2: Extract logo as base64
+// Helper function to upload logo to S3
+async function uploadLogoToS3(
+  imageBuffer: Buffer,
+  contentType: string
+): Promise<string> {
+  // Generate a unique filename using cuid
+  const filename = cuid();
+  const extension = contentType.split('/')[1] || 'png';
+  const s3Key = `uploads/${filename}.${extension}`;
+
+  const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME;
+  if (!bucketName) {
+    throw new Error('S3 bucket name is not configured');
+  }
+
+  await s3
+    .putObject({
+      Bucket: bucketName,
+      Key: s3Key,
+      Body: imageBuffer,
+      ContentType: contentType,
+      CacheControl: 'public, max-age=31536000',
+    })
+    .promise();
+
+  return getS3PublicUrl({ key: s3Key });
+}
+
+// Step 2: Extract logo and upload to S3
 const extractLogoStep = createStep({
   id: 'extract-logo',
   inputSchema: z.object({
@@ -196,7 +230,8 @@ const extractLogoStep = createStep({
 
     try {
       // Try to get the best logo/favicon URL
-      let logoUrl = rawData.ogImage || rawData.favicon;
+      // Prioritize favicon/icon, fallback to og:image
+      let logoUrl = rawData.favicon || rawData.ogImage;
 
       // Make absolute URL if relative
       if (logoUrl && !logoUrl.startsWith('http')) {
@@ -210,7 +245,7 @@ const extractLogoStep = createStep({
         }
       }
 
-      // Fetch and convert to base64
+      // Fetch and upload to S3
       if (logoUrl) {
         try {
           const imageResponse = await axios.get(logoUrl, {
@@ -224,14 +259,14 @@ const extractLogoStep = createStep({
 
           const contentType =
             imageResponse.headers['content-type'] || 'image/png';
-          const base64 = Buffer.from(imageResponse.data, 'binary').toString(
-            'base64'
-          );
-          const logo = `data:${contentType};base64,${base64}`;
+          const imageBuffer = Buffer.from(imageResponse.data, 'binary');
 
-          return { url, rawData, logo, sitemapUrl };
+          // Upload to S3 and get public URL
+          const s3Url = await uploadLogoToS3(imageBuffer, contentType);
+
+          return { url, rawData, logo: s3Url, sitemapUrl };
         } catch (error) {
-          console.warn('Failed to fetch logo, using empty string:', error);
+          console.warn('Failed to fetch and upload logo:', error);
           return { url, rawData, logo: '', sitemapUrl };
         }
       }
