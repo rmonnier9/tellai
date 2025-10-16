@@ -11,8 +11,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
   // extensions = [pgvector(map: "vector", schema: "public")]
 }
 
@@ -20,11 +21,11 @@ model User {
   id               String       @id @default(cuid())
   name             String
   email            String
-  emailVerified    Boolean      @default(false)
+  emailVerified    Boolean      @default(false) @map("email_verified")
   image            String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @default(now()) @updatedAt
-  stripeCustomerId String?
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @default(now()) @updatedAt @map("updated_at")
+  stripeCustomerId String?      @map("stripe_customer_id")
   sessions         Session[]
   accounts         Account[]
   members          Member[]
@@ -37,16 +38,16 @@ model User {
 
 model Session {
   id                   String   @id @default(cuid())
-  expiresAt            DateTime
+  expiresAt            DateTime @map("expires_at")
   token                String
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  ipAddress            String?
-  userAgent            String?
-  userId               String
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  ipAddress            String?  @map("ip_address")
+  userAgent            String?  @map("user_agent")
+  userId               String   @map("user_id")
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  activeOrganizationId String?
-  activeProductId      String?
+  activeOrganizationId String?  @map("active_organization_id")
+  activeProductId      String?  @map("active_product_id")
 
   @@unique([token])
   @@map("session")
@@ -54,19 +55,19 @@ model Session {
 
 model Account {
   id                    String    @id @default(cuid())
-  accountId             String
-  providerId            String
-  userId                String
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
   scope                 String?
   password              String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   @@map("account")
 }
@@ -75,9 +76,9 @@ model Verification {
   id         String   @id @default(cuid())
   identifier String
   value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("verification")
 }
@@ -93,7 +94,7 @@ model Organization {
   invitations Invitation[]
   products    Product[]
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([slug])
   @@map("organization")
@@ -101,25 +102,25 @@ model Organization {
 
 model Member {
   id             String       @id @default(cuid())
-  organizationId String
+  organizationId String       @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String
+  userId         String       @map("user_id")
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   role           String
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime     @default(now()) @map("created_at")
 
   @@map("member")
 }
 
 model Invitation {
   id             String       @id @default(cuid())
-  organizationId String
+  organizationId String       @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   email          String
   role           String?
   status         String
-  expiresAt      DateTime
-  inviterId      String
+  expiresAt      DateTime     @map("expires_at")
+  inviterId      String       @map("inviter_id")
   user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
 
   @@map("invitation")
@@ -128,15 +129,15 @@ model Invitation {
 model Subscription {
   id                   String    @id @default(cuid())
   plan                 String
-  referenceId          String
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
+  referenceId          String    @map("reference_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @map("stripe_subscription_id")
   status               String?
-  periodStart          DateTime?
-  periodEnd            DateTime?
-  trialStart           DateTime?
-  trialEnd             DateTime?
-  cancelAtPeriodEnd    Boolean?  @default(false)
+  periodStart          DateTime? @map("period_start")
+  periodEnd            DateTime? @map("period_end")
+  trialStart           DateTime? @map("trial_start")
+  trialEnd             DateTime? @map("trial_end")
+  cancelAtPeriodEnd    Boolean?  @default(false) @map("cancel_at_period_end")
   seats                Int?
 
   product Product?
@@ -152,35 +153,35 @@ model Product {
   logo            String?
   language        String?
   country         String?
-  targetAudiences String[]
-  sitemapUrl      String?
-  blogUrl         String?
-  bestArticles    String[]
+  targetAudiences String[] @map("target_audiences")
+  sitemapUrl      String?  @map("sitemap_url")
+  blogUrl         String?  @map("blog_url")
+  bestArticles    String[] @map("best_articles")
 
   // Article preferences
-  autoPublish         Boolean @default(true)
-  articleStyle        String  @default("informative")
-  internalLinks       Int     @default(3)
-  globalInstructions  String?
-  imageStyle          String  @default("brand-text")
-  brandColor          String  @default("#000000")
-  includeYoutubeVideo Boolean @default(true)
-  includeCallToAction Boolean @default(true)
-  includeInfographics Boolean @default(true)
-  includeEmojis       Boolean @default(true)
+  autoPublish         Boolean @default(true) @map("auto_publish")
+  articleStyle        String  @default("informative") @map("article_style")
+  internalLinks       Int     @default(3) @map("internal_links")
+  globalInstructions  String? @map("global_instructions")
+  imageStyle          String  @default("brand-text") @map("image_style")
+  brandColor          String  @default("#000000") @map("brand_color")
+  includeYoutubeVideo Boolean @default(true) @map("include_youtube_video")
+  includeCallToAction Boolean @default(true) @map("include_call_to_action")
+  includeInfographics Boolean @default(true) @map("include_infographics")
+  includeEmojis       Boolean @default(true) @map("include_emojis")
 
-  subscriptionId String?       @unique
+  subscriptionId String?       @unique @map("subscription_id")
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
 
-  organizationId String
+  organizationId String       @map("organization_id")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   articles    Article[]
   credentials Credential[]
   jobs        Job[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("product")
 }
@@ -205,35 +206,35 @@ enum ListicleSubtype {
 
 model Article {
   id        String  @id @default(cuid())
-  productId String
+  productId String  @map("product_id")
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   // Article metadata
   keyword         String
   title           String?
   type            ArticleType
-  guideSubtype    GuideSubtype?
-  listicleSubtype ListicleSubtype?
+  guideSubtype    GuideSubtype?    @map("guide_subtype")
+  listicleSubtype ListicleSubtype? @map("listicle_subtype")
 
   // SEO metrics from DataForSEO
-  searchVolume      Int?
-  keywordDifficulty Float?
+  searchVolume      Int?   @map("search_volume")
+  keywordDifficulty Float? @map("keyword_difficulty")
   cpc               Float?
   competition       Float?
 
   // Scheduling
-  scheduledDate DateTime
+  scheduledDate DateTime      @map("scheduled_date")
   status        ArticleStatus @default(pending)
 
   // Generated content (will be populated later)
   content      String?
-  publishedUrl String?
+  publishedUrl String? @map("published_url")
 
   publications Publication[]
   jobs         Job[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([productId, scheduledDate])
   @@index([status])
