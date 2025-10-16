@@ -53,16 +53,10 @@ export const contentPlanner = async (job: Job) => {
       data: result.keywords.map((idea: any) => ({
         productId: productId,
         keyword: idea.keyword,
-        title: idea.keyword, // Use keyword as initial title
-        type: idea.recommendedContentType,
-        guideSubtype:
-          idea.recommendedContentType === 'guide'
-            ? idea.recommendedSubtype
-            : null,
-        listicleSubtype:
-          idea.recommendedContentType === 'listicle'
-            ? idea.recommendedSubtype
-            : null,
+        title: idea.title || idea.keyword, // Use title from workflow, fallback to keyword
+        type: idea.type,
+        guideSubtype: idea.type === 'guide' ? idea.guideSubtype : null,
+        listicleSubtype: idea.type === 'listicle' ? idea.listicleSubtype : null,
         searchVolume: idea.searchVolume,
         keywordDifficulty: idea.keywordDifficulty,
         cpc: idea.cpc,
