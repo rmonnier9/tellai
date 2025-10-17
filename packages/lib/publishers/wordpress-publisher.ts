@@ -1,7 +1,7 @@
 import { marked } from 'marked';
 import {
-  ArticleData,
   BasePublisher,
+  ArticleData,
   CredentialConfig,
   PublishResult,
 } from './base-publisher';
@@ -62,24 +62,14 @@ export class WordPressPublisher extends BasePublisher {
       });
 
       if (!response.ok) {
-        try {
-          const errorData = await this.safeParseJson(response);
-          return {
-            success: false,
-            error: errorData.message || `HTTP ${response.status}`,
-          };
-        } catch (parseError) {
-          return {
-            success: false,
-            error:
-              parseError instanceof Error
-                ? parseError.message
-                : `HTTP ${response.status}`,
-          };
-        }
+        const errorData = await response.json();
+        return {
+          success: false,
+          error: errorData.message || `HTTP ${response.status}`,
+        };
       }
 
-      const data = await this.safeParseJson(response);
+      const data = await response.json();
 
       return {
         success: true,
@@ -155,24 +145,14 @@ export class WordPressPublisher extends BasePublisher {
           };
         }
 
-        try {
-          const errorData = await this.safeParseJson(response);
-          return {
-            success: false,
-            error: errorData.error || `HTTP ${response.status}`,
-          };
-        } catch (parseError) {
-          return {
-            success: false,
-            error:
-              parseError instanceof Error
-                ? parseError.message
-                : `HTTP ${response.status}`,
-          };
-        }
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: errorData.error || `HTTP ${response.status}`,
+        };
       }
 
-      const data = await this.safeParseJson(response);
+      const data = await response.json();
 
       if (!data.success) {
         return {
@@ -203,37 +183,5 @@ export class WordPressPublisher extends BasePublisher {
       gfm: true, // GitHub Flavored Markdown
       breaks: true, // Convert line breaks to <br>
     }) as string;
-  }
-
-  private async safeParseJson(response: Response): Promise<any> {
-    const contentType = response.headers.get('content-type') || '';
-
-    // Read the response text once
-    const text = await response.text();
-
-    // Check if the response is HTML instead of JSON
-    if (
-      contentType.includes('text/html') ||
-      text.trim().startsWith('<!DOCTYPE') ||
-      text.trim().startsWith('<html')
-    ) {
-      // Try to extract useful error information from HTML
-      const titleMatch = text.match(/<title>(.*?)<\/title>/i);
-      const errorTitle = titleMatch
-        ? titleMatch[1]
-        : 'WordPress returned an HTML page';
-      throw new Error(
-        `WordPress error: ${errorTitle}. The site may be misconfigured or the REST API may be disabled.`
-      );
-    }
-
-    // Try to parse as JSON
-    try {
-      return JSON.parse(text);
-    } catch (error) {
-      throw new Error(
-        `Invalid JSON response from WordPress. Response: ${text.substring(0, 100)}...`
-      );
-    }
   }
 }
