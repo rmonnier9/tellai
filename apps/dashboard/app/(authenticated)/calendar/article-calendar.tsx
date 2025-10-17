@@ -1,8 +1,9 @@
 'use client';
 
 import { enqueueJob } from '@workspace/lib/enqueue-job';
-import { useState, useMemo, useEffect } from 'react';
-import Link from 'next/link';
+import { deleteArticle } from '@workspace/lib/server-actions/delete-article';
+import { updateArticleSchedule } from '@workspace/lib/server-actions/update-article-schedule';
+import { Button } from '@workspace/ui/components/button';
 import {
   Card,
   CardContent,
@@ -15,25 +16,26 @@ import useArticles from '@workspace/ui/hooks/use-articles';
 import useContentPlannerWatcher from '@workspace/ui/hooks/use-content-planner-watcher';
 import useJob from '@workspace/ui/hooks/use-job';
 import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar as CalendarIcon,
-  Sparkles,
-  Loader2,
-  Eye,
-} from 'lucide-react';
-import { Button } from '@workspace/ui/components/button';
-import {
+  closestCenter,
   DndContext,
   DragOverlay,
   useDraggable,
   useDroppable,
-  closestCenter,
-  type DragStartEvent,
   type DragEndEvent,
+  type DragStartEvent,
 } from '@workspace/ui/lib/dnd';
 import { toast } from '@workspace/ui/lib/toast';
-import { updateArticleSchedule } from '@workspace/lib/server-actions/update-article-schedule';
+import {
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Loader2,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 
 type Article = {
   id: string;
@@ -167,6 +169,30 @@ export function ArticleCalendar() {
         error instanceof Error
           ? error.message
           : 'Failed to start article generation'
+      );
+    }
+  }
+
+  async function handleDeleteArticle(articleId: string) {
+    if (!product?.id) return;
+
+    try {
+      const result = await deleteArticle({
+        articleId,
+        productId: product.id,
+      });
+
+      if (result.success) {
+        toast.success('Article deleted successfully');
+        // Revalidate SWR cache to get fresh data
+        await mutateArticles();
+      } else {
+        toast.error(result.error || 'Failed to delete article');
+      }
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to delete article'
       );
     }
   }
@@ -318,6 +344,7 @@ export function ArticleCalendar() {
               month={month}
               articlesByDate={articlesByDate}
               onGenerateArticle={handleGenerateArticle}
+              onDeleteArticle={handleDeleteArticle}
               articleJobIds={articleJobIds}
               onJobComplete={(articleId) => {
                 // Remove job ID from map when complete
@@ -347,6 +374,7 @@ function MonthCalendar({
   month,
   articlesByDate,
   onGenerateArticle,
+  onDeleteArticle,
   articleJobIds,
   onJobComplete,
 }: {
@@ -358,6 +386,7 @@ function MonthCalendar({
   };
   articlesByDate: ArticlesByDate;
   onGenerateArticle: (articleId: string) => void;
+  onDeleteArticle: (articleId: string) => void;
   articleJobIds: Map<string, string>;
   onJobComplete: (articleId: string) => void;
 }) {
@@ -407,6 +436,7 @@ function MonthCalendar({
                 isToday={isToday}
                 dayArticles={dayArticles}
                 onGenerateArticle={onGenerateArticle}
+                onDeleteArticle={onDeleteArticle}
                 articleJobIds={articleJobIds}
                 onJobComplete={onJobComplete}
               />
@@ -425,6 +455,7 @@ function DroppableDay({
   isToday,
   dayArticles,
   onGenerateArticle,
+  onDeleteArticle,
   articleJobIds,
   onJobComplete,
 }: {
@@ -434,6 +465,7 @@ function DroppableDay({
   isToday: boolean;
   dayArticles: Article[];
   onGenerateArticle: (articleId: string) => void;
+  onDeleteArticle: (articleId: string) => void;
   articleJobIds: Map<string, string>;
   onJobComplete: (articleId: string) => void;
 }) {
@@ -479,6 +511,7 @@ function DroppableDay({
             key={article.id}
             article={article}
             onGenerate={onGenerateArticle}
+            onDelete={onDeleteArticle}
             jobId={articleJobIds.get(article.id)}
             onJobComplete={onJobComplete}
           />
@@ -491,14 +524,17 @@ function DroppableDay({
 function ArticleCard({
   article,
   onGenerate,
+  onDelete,
   jobId,
   onJobComplete,
 }: {
   article: Article;
   onGenerate: (articleId: string) => void;
+  onDelete: (articleId: string) => void;
   jobId?: string;
   onJobComplete: (articleId: string) => void;
 }) {
+  const [isHovered, setIsHovered] = useState(false);
   // Watch job status if there's an active job
   const { data: job } = useJob({ id: jobId });
 
@@ -565,10 +601,26 @@ function ArticleCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`text-xs p-2 bg-card border rounded space-y-1 transition-shadow ${
+      className={`text-xs p-2 bg-card border rounded space-y-1 transition-shadow relative ${
         isDraggable ? 'hover:shadow-md' : ''
       } ${isDragging ? 'opacity-50' : ''}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Delete button - only show on hover for pending articles */}
+      {isHovered && article.status === 'pending' && !isGenerating && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(article.id);
+          }}
+          className="absolute top-1 right-1 p-1 rounded bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition-colors z-10"
+          title="Delete article"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      )}
+
       <div
         {...listeners}
         {...attributes}
