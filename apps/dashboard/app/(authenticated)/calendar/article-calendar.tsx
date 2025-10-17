@@ -644,11 +644,6 @@ function ArticleCard({
               {article.type}
             </span>
           )}
-          <span
-            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getStatusColor(article.status)}`}
-          >
-            {article.status}
-          </span>
         </div>
         <p className="font-medium line-clamp-2 leading-tight">
           {article.status === 'pending'
@@ -748,11 +743,6 @@ function ArticleCardDragOverlay({ article }: { article: Article }) {
           className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getTypeColor(article.type)}`}
         >
           {article.type}
-        </span>
-        <span
-          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getStatusColor(article.status)}`}
-        >
-          {article.status}
         </span>
       </div>
       <p className="font-medium line-clamp-2 leading-tight">
