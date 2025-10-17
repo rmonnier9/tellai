@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 import { Button } from '@workspace/ui/components/button';
+import { Card } from '@workspace/ui/components/card';
 import {
   Form,
   FormControl,
@@ -19,16 +20,14 @@ import {
   FormMessage,
 } from '@workspace/ui/components/form';
 import { Input } from '@workspace/ui/components/input';
-import { Card, CardContent } from '@workspace/ui/components/card';
 
 import { OnboardingProductSchema } from '@workspace/lib/dtos';
 import { analyzeBusinessUrl } from '@workspace/lib/server-actions/analyze-business-url';
 import { completeOnboardingAndRedirect } from '@workspace/lib/server-actions/complete-onboarding';
+import { ProductArticlePreferencesForm } from '@workspace/ui/components/product-article-preferences-form';
+import { ProductBlogContentForm } from '@workspace/ui/components/product-blog-content-form';
 import { ProductBusinessInfoForm } from '@workspace/ui/components/product-business-info-form';
 import { ProductTargetAudienceForm } from '@workspace/ui/components/product-target-audience-form';
-import { ProductBlogContentForm } from '@workspace/ui/components/product-blog-content-form';
-import { ProductArticlePreferencesForm } from '@workspace/ui/components/product-article-preferences-form';
-import BrandCard from './brand-card';
 
 const steps = [
   { id: 1, name: 'Website', status: 'current' },
@@ -384,6 +383,11 @@ export function OnboardingForm() {
                           type="url"
                           {...field}
                           disabled={isAnalyzing}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleUrlSubmit();
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormDescription>
