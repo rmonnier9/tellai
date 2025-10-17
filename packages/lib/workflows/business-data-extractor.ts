@@ -4,8 +4,7 @@ import { z } from 'zod';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { s3, getS3PublicUrl } from '../aws';
-import { cuid } from '../ids';
+import { moveRemoteAssetToS3 } from '../aws';
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -163,34 +162,6 @@ const fetchPageStep = createStep({
   },
 });
 
-// Helper function to upload logo to S3
-async function uploadLogoToS3(
-  imageBuffer: Buffer,
-  contentType: string
-): Promise<string> {
-  // Generate a unique filename using cuid
-  const filename = cuid();
-  const extension = contentType.split('/')[1] || 'png';
-  const s3Key = `uploads/${filename}.${extension}`;
-
-  const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME;
-  if (!bucketName) {
-    throw new Error('S3 bucket name is not configured');
-  }
-
-  await s3
-    .putObject({
-      Bucket: bucketName,
-      Key: s3Key,
-      Body: imageBuffer,
-      ContentType: contentType,
-      CacheControl: 'public, max-age=31536000',
-    })
-    .promise();
-
-  return getS3PublicUrl({ key: s3Key });
-}
-
 // Step 2: Extract logo and upload to S3
 const extractLogoStep = createStep({
   id: 'extract-logo',
@@ -248,22 +219,9 @@ const extractLogoStep = createStep({
       // Fetch and upload to S3
       if (logoUrl) {
         try {
-          const imageResponse = await axios.get(logoUrl, {
-            responseType: 'arraybuffer',
+          const s3Url = await moveRemoteAssetToS3(logoUrl, 'uploads', {
             timeout: 5000,
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            },
           });
-
-          const contentType =
-            imageResponse.headers['content-type'] || 'image/png';
-          const imageBuffer = Buffer.from(imageResponse.data, 'binary');
-
-          // Upload to S3 and get public URL
-          const s3Url = await uploadLogoToS3(imageBuffer, contentType);
-
           return { url, rawData, logo: s3Url, sitemapUrl };
         } catch (error) {
           console.warn('Failed to fetch and upload logo:', error);

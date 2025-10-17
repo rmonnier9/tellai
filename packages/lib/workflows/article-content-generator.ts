@@ -1555,10 +1555,11 @@ const generateImagesStep = createStep({
           finalPrompt
         );
 
-        // Generate the image
+        // Generate the image and upload to S3
         const imageUrl = await generateImage({
           prompt: finalPrompt,
           aspect_ratio: plan.type === 'hero' ? '16:9' : '1:1',
+          s3Path: `articles/${articleId}`,
         });
 
         generatedImages.push({
