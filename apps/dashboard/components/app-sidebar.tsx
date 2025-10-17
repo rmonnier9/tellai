@@ -1,27 +1,23 @@
 'use client';
 
-import * as React from 'react';
 import {
   AudioWaveform,
   BookOpen,
   Bot,
+  Calendar,
   Command,
-  Frame,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
+  History,
+  Puzzle,
   Settings2,
   SquareTerminal,
-  Calendar,
-  Puzzle,
 } from 'lucide-react';
+import * as React from 'react';
 
-import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
-import { TeamSwitcher } from '@workspace/ui/components/team-switcher';
 import { ProductSwitcher } from '@workspace/ui/components/product-switcher';
-import { ThemeModeToggle } from '@workspace/ui/components/theme-mode-toggle';
+import { Separator } from '@workspace/ui/components/separator';
 import {
   Sidebar,
   SidebarContent,
@@ -30,8 +26,8 @@ import {
   SidebarRail,
   useSidebar,
 } from '@workspace/ui/components/sidebar';
+import { ThemeModeToggle } from '@workspace/ui/components/theme-mode-toggle';
 import { cn } from '@workspace/ui/lib/utils';
-import { Separator } from '@workspace/ui/components/separator';
 
 // This is sample data.
 const data = {
@@ -149,6 +145,11 @@ const data = {
       name: 'Content Calendar',
       url: '/calendar',
       icon: Calendar,
+    },
+    {
+      name: 'Content History',
+      url: '/history',
+      icon: History,
     },
     {
       name: 'Product Settings',
