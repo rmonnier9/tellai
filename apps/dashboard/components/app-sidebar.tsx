@@ -12,6 +12,8 @@ import {
   Settings2,
   SquareTerminal,
 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 import * as React from 'react';
 
 import { NavProjects } from '@/components/nav-projects';
@@ -168,15 +170,18 @@ const Logo = () => {
   const { open } = useSidebar();
 
   return (
-    <div
+    <Link
+      href="/"
       className={cn('inline-flex items-center gap-2', {
         'mx-auto': !open,
         'pl-2': !!open,
       })}
     >
-      <img
+      <Image
         src="/images/lovarank-logo-icon-animated-2.png"
         alt="Lovarank Icon"
+        width={24}
+        height={24}
         className={cn('h-auto w-6', {
           '-rotate-15 w-6': !!open,
         })}
@@ -189,7 +194,7 @@ const Logo = () => {
           </div>
         </>
       )}
-    </div>
+    </Link>
   );
 };
 
