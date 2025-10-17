@@ -71,7 +71,14 @@ export function OnboardingForm() {
   });
 
   const handleUrlSubmit = async () => {
-    const url = form.getValues('url');
+    let url = form.getValues('url').trim();
+
+    // Add https:// if no protocol is present
+    if (url && !url.match(/^https?:\/\//i)) {
+      url = `https://${url}`;
+      form.setValue('url', url);
+    }
+
     const urlValidation = await form.trigger('url');
 
     if (!urlValidation) return;
