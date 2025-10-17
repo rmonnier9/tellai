@@ -229,339 +229,332 @@ export function OnboardingForm() {
 
   // Get current step details
   const currentStepInfo = steps.find((step) => step.id === currentStep);
-  const progressValue = ((currentStep - 1) / (steps.length - 1)) * 100;
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-8 py-8">
-      {/* Previous Step Progress - Commented Out */}
-      {/* <nav aria-label="Progress" className="px-4">
-        <ol role="list" className="flex items-center justify-between">
-          {steps.map((step, stepIdx) => (
-            <li key={step.name} className="relative flex flex-1 items-center">
-              {stepIdx !== 0 && (
-                <div className="absolute right-1/2 top-5 -z-10 w-full">
-                  <div className="h-0.5 w-full bg-border">
-                    <div
-                      className="h-full bg-primary transition-all duration-500 ease-out"
-                      style={{
-                        width: currentStep > step.id ? '100%' : '0%',
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-              <div className="flex w-full flex-col items-center gap-2">
-                <div className="relative flex items-center justify-center">
-                  <div
-                    className={`
-                      relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 
-                      transition-all duration-300 ease-out
-                      ${
-                        currentStep === step.id
-                          ? 'border-primary bg-primary shadow-lg shadow-primary/30 scale-110'
-                          : currentStep > step.id
-                            ? 'border-primary bg-primary'
-                            : 'border-border bg-background'
-                      }
-                    `}
-                  >
-                    {currentStep > step.id && (
-                      <Check className="h-5 w-5 text-primary-foreground animate-in zoom-in-50 duration-300" />
-                    )}
-                    {currentStep <= step.id && (
-                      <span
-                        className={`
-                          text-sm font-semibold transition-colors duration-300
-                          ${
-                            currentStep === step.id
-                              ? 'text-primary-foreground'
-                              : 'text-muted-foreground'
-                          }
-                        `}
-                      >
-                        {step.id}
-                      </span>
-                    )}
-                  </div>
-                  {currentStep === step.id && (
-                    <div className="absolute inset-0 -z-10 animate-pulse">
-                      <div className="h-full w-full rounded-full bg-primary/20" />
+    <div className="flex min-h-screen flex-col">
+      <div className="mx-auto w-full max-w-4xl flex-1 space-y-8 py-8 pb-32">
+        {/* Previous Step Progress - Commented Out */}
+        {/* <nav aria-label="Progress" className="px-4">
+          <ol role="list" className="flex items-center justify-between">
+            {steps.map((step, stepIdx) => (
+              <li key={step.name} className="relative flex flex-1 items-center">
+                {stepIdx !== 0 && (
+                  <div className="absolute right-1/2 top-5 -z-10 w-full">
+                    <div className="h-0.5 w-full bg-border">
+                      <div
+                        className="h-full bg-primary transition-all duration-500 ease-out"
+                        style={{
+                          width: currentStep > step.id ? '100%' : '0%',
+                        }}
+                      />
                     </div>
-                  )}
+                  </div>
+                )}
+                <div className="flex w-full flex-col items-center gap-2">
+                  <div className="relative flex items-center justify-center">
+                    <div
+                      className={`
+                        relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 
+                        transition-all duration-300 ease-out
+                        ${
+                          currentStep === step.id
+                            ? 'border-primary bg-primary shadow-lg shadow-primary/30 scale-110'
+                            : currentStep > step.id
+                              ? 'border-primary bg-primary'
+                              : 'border-border bg-background'
+                        }
+                      `}
+                    >
+                      {currentStep > step.id && (
+                        <Check className="h-5 w-5 text-primary-foreground animate-in zoom-in-50 duration-300" />
+                      )}
+                      {currentStep <= step.id && (
+                        <span
+                          className={`
+                            text-sm font-semibold transition-colors duration-300
+                            ${
+                              currentStep === step.id
+                                ? 'text-primary-foreground'
+                                : 'text-muted-foreground'
+                            }
+                          `}
+                        >
+                          {step.id}
+                        </span>
+                      )}
+                    </div>
+                    {currentStep === step.id && (
+                      <div className="absolute inset-0 -z-10 animate-pulse">
+                        <div className="h-full w-full rounded-full bg-primary/20" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={`
+                        text-xs font-medium transition-all duration-300 text-center
+                        ${
+                          currentStep === step.id
+                            ? 'text-foreground scale-105'
+                            : currentStep > step.id
+                              ? 'text-foreground'
+                              : 'text-muted-foreground'
+                        }
+                      `}
+                    >
+                      {step.name}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-center">
-                  <span
+              </li>
+            ))}
+          </ol>
+        </nav> */}
+
+        {/* New Circular Step Progress */}
+        <nav aria-label="Progress" className="px-4">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
+            <div>
+              <span className="text-5xl md:text-8xl font-bold font-display">
+                {currentStep}
+              </span>
+            </div>
+
+            {/* Step Information */}
+            <div className="flex-1 space-y-2 text-center sm:text-left">
+              <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                {currentStepInfo?.name}
+              </h3>
+              <p className="text-sm text-muted-foreground sm:text-base">
+                {currentStep === 1 &&
+                  "We'll analyze your website to pre-fill your business information"}
+                {currentStep === 2 &&
+                  'Based on your website, verify and complete your business details'}
+                {currentStep === 3 &&
+                  'Understanding your audience ensures we generate the most effective keywords'}
+                {currentStep === 4 &&
+                  'Share your content details to help us create relevant blog posts'}
+                {currentStep === 5 &&
+                  'Set your preferences to ensure all articles maintain your quality standards'}
+              </p>
+
+              {/* Step Indicators */}
+              <div className="flex items-center justify-center gap-2 pt-2 sm:justify-start">
+                {steps.map((step) => (
+                  <div
+                    key={step.id}
                     className={`
-                      text-xs font-medium transition-all duration-300 text-center
+                      h-1.5 rounded-full transition-all duration-500
                       ${
-                        currentStep === step.id
-                          ? 'text-foreground scale-105'
-                          : currentStep > step.id
-                            ? 'text-foreground'
-                            : 'text-muted-foreground'
+                        step.id === currentStep
+                          ? 'w-8 bg-primary'
+                          : step.id < currentStep
+                            ? 'w-6 bg-primary/60'
+                            : 'w-4 bg-muted'
                       }
                     `}
-                  >
-                    {step.name}
-                  </span>
-                </div>
+                    aria-label={`Step ${step.id}: ${step.name}${step.id === currentStep ? ' (current)' : step.id < currentStep ? ' (completed)' : ''}`}
+                  />
+                ))}
               </div>
-            </li>
-          ))}
-        </ol>
-      </nav> */}
-
-      {/* New Circular Step Progress */}
-      <nav aria-label="Progress" className="px-4">
-        <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
-          <div>
-            <span className="text-5xl md:text-8xl font-bold font-display">
-              {currentStep}
-            </span>
-          </div>
-
-          {/* Step Information */}
-          <div className="flex-1 space-y-2 text-center sm:text-left">
-            <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              {currentStepInfo?.name}
-            </h3>
-            <p className="text-sm text-muted-foreground sm:text-base">
-              {currentStep === 1 &&
-                "We'll analyze your website to pre-fill your business information"}
-              {currentStep === 2 &&
-                'Based on your website, verify and complete your business details'}
-              {currentStep === 3 &&
-                'Understanding your audience ensures we generate the most effective keywords'}
-              {currentStep === 4 &&
-                'Share your content details to help us create relevant blog posts'}
-              {currentStep === 5 &&
-                'Set your preferences to ensure all articles maintain your quality standards'}
-            </p>
-
-            {/* Step Indicators */}
-            <div className="flex items-center justify-center gap-2 pt-2 sm:justify-start">
-              {steps.map((step) => (
-                <div
-                  key={step.id}
-                  className={`
-                    h-1.5 rounded-full transition-all duration-500
-                    ${
-                      step.id === currentStep
-                        ? 'w-8 bg-primary'
-                        : step.id < currentStep
-                          ? 'w-6 bg-primary/60'
-                          : 'w-4 bg-muted'
-                    }
-                  `}
-                  aria-label={`Step ${step.id}: ${step.name}${step.id === currentStep ? ' (current)' : step.id < currentStep ? ' (completed)' : ''}`}
-                />
-              ))}
             </div>
           </div>
+        </nav>
+
+        {/* Form Content */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Step 1: Website URL */}
+            {currentStep === 1 && (
+              <Card className="p-8">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-semibold">
+                      Enter your website URL
+                    </h2>
+                    <p className="mt-1 text-sm text-neutral-500">
+                      We'll analyze your website to pre-fill your business
+                      information
+                    </p>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Website URL</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="https://example.com"
+                            type="url"
+                            {...field}
+                            disabled={isAnalyzing}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleUrlSubmit();
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Enter the URL of your business or product website
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </Card>
+            )}
+
+            {/* Step 2: Business Information */}
+            {currentStep === 2 && (
+              <Card className="p-8">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-semibold">
+                      About your business
+                    </h2>
+                    <p className="mt-1 text-sm text-neutral-500">
+                      Based on your website, we've populated the following
+                      information. Please verify and complete as needed
+                    </p>
+                  </div>
+
+                  <ProductBusinessInfoForm form={form} />
+                </div>
+              </Card>
+            )}
+
+            {/* Step 3: Target Audiences & Competitors */}
+            {currentStep === 3 && (
+              <Card className="p-8">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-semibold">
+                      Define your Target Audience
+                    </h2>
+                    <p className="mt-1 text-sm text-neutral-500">
+                      Understanding your audience ensures we generate the most
+                      effective keywords
+                    </p>
+                  </div>
+
+                  <ProductTargetAudienceForm form={form} />
+                </div>
+              </Card>
+            )}
+
+            {/* Step 4: Blog Content */}
+            {currentStep === 4 && (
+              <Card className="p-8">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-semibold">
+                      Help us understand your content
+                    </h2>
+                    <p className="mt-1 text-sm text-neutral-500">
+                      Share your content details to help us create more relevant
+                      and targeted blog posts for your audience
+                    </p>
+                  </div>
+
+                  <ProductBlogContentForm form={form} />
+                </div>
+              </Card>
+            )}
+
+            {/* Step 5: Article Preferences */}
+            {currentStep === 5 && (
+              <Card className="p-8">
+                <div className="space-y-8">
+                  <div>
+                    <h2 className="text-2xl font-semibold">
+                      Configure your article preferences
+                    </h2>
+                    <p className="mt-1 text-sm text-neutral-500">
+                      Set your preferences once to ensure all future articles
+                      maintain your quality standards and brand consistency
+                    </p>
+                  </div>
+
+                  <ProductArticlePreferencesForm form={form} />
+                </div>
+              </Card>
+            )}
+          </form>
+        </Form>
+      </div>
+
+      {/* Fixed Footer with Navigation Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto w-full max-w-4xl px-4 py-4">
+          <div className="flex justify-between">
+            {/* Back Button */}
+            {currentStep > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCurrentStep((currentStep - 1) as StepId)}
+                disabled={isAnalyzing || isSubmitting}
+              >
+                Back
+              </Button>
+            )}
+            {currentStep === 1 && <div />}
+
+            {/* Continue/Submit Button */}
+            {currentStep === 1 && (
+              <Button
+                type="button"
+                onClick={handleUrlSubmit}
+                disabled={isAnalyzing}
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  'Continue'
+                )}
+              </Button>
+            )}
+            {currentStep === 2 && (
+              <Button type="button" onClick={handleBusinessInfoNext}>
+                Continue
+              </Button>
+            )}
+            {currentStep === 3 && (
+              <Button type="button" onClick={handleAudienceNext}>
+                Continue
+              </Button>
+            )}
+            {currentStep === 4 && (
+              <Button type="button" onClick={handleBlogNext}>
+                Continue
+              </Button>
+            )}
+            {currentStep === 5 && (
+              <Button
+                type="button"
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Complete'
+                )}
+              </Button>
+            )}
+          </div>
         </div>
-      </nav>
-
-      {/* Form Content */}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Step 1: Website URL */}
-          {currentStep === 1 && (
-            <Card className="p-8">
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-semibold">
-                    Enter your website URL
-                  </h2>
-                  <p className="mt-1 text-sm text-neutral-500">
-                    We'll analyze your website to pre-fill your business
-                    information
-                  </p>
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website URL</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="https://example.com"
-                          type="url"
-                          {...field}
-                          disabled={isAnalyzing}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleUrlSubmit();
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Enter the URL of your business or product website
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    onClick={handleUrlSubmit}
-                    disabled={isAnalyzing}
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      'Continue'
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Step 2: Business Information */}
-          {currentStep === 2 && (
-            <Card className="p-8">
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-semibold">
-                    About your business
-                  </h2>
-                  <p className="mt-1 text-sm text-neutral-500">
-                    Based on your website, we've populated the following
-                    information. Please verify and complete as needed
-                  </p>
-                </div>
-
-                <ProductBusinessInfoForm form={form} />
-
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCurrentStep(1)}
-                  >
-                    Back
-                  </Button>
-                  <Button type="button" onClick={handleBusinessInfoNext}>
-                    Continue
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Step 3: Target Audiences & Competitors */}
-          {currentStep === 3 && (
-            <Card className="p-8">
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-semibold">
-                    Define your Target Audience
-                  </h2>
-                  <p className="mt-1 text-sm text-neutral-500">
-                    Understanding your audience ensures we generate the most
-                    effective keywords
-                  </p>
-                </div>
-
-                <ProductTargetAudienceForm form={form} />
-
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCurrentStep(2)}
-                  >
-                    Back
-                  </Button>
-                  <Button type="button" onClick={handleAudienceNext}>
-                    Continue
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Step 4: Blog Content */}
-          {currentStep === 4 && (
-            <Card className="p-8">
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-semibold">
-                    Help us understand your content
-                  </h2>
-                  <p className="mt-1 text-sm text-neutral-500">
-                    Share your content details to help us create more relevant
-                    and targeted blog posts for your audience
-                  </p>
-                </div>
-
-                <ProductBlogContentForm form={form} />
-
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCurrentStep(3)}
-                  >
-                    Back
-                  </Button>
-                  <Button type="button" onClick={handleBlogNext}>
-                    Continue
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Step 5: Article Preferences */}
-          {currentStep === 5 && (
-            <Card className="p-8">
-              <div className="space-y-8">
-                <div>
-                  <h2 className="text-2xl font-semibold">
-                    Configure your article preferences
-                  </h2>
-                  <p className="mt-1 text-sm text-neutral-500">
-                    Set your preferences once to ensure all future articles
-                    maintain your quality standards and brand consistency
-                  </p>
-                </div>
-
-                <ProductArticlePreferencesForm form={form} />
-
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCurrentStep(4)}
-                    disabled={isSubmitting}
-                  >
-                    Back
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Continue'
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-        </form>
-      </Form>
+      </div>
     </div>
   );
 }
