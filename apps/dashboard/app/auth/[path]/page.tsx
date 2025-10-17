@@ -1,6 +1,6 @@
 import { AuthView } from '@daveyplate/better-auth-ui';
 import { authViewPaths } from '@daveyplate/better-auth-ui/server';
-import { GalleryVerticalEnd } from 'lucide-react';
+import Image from 'next/image';
 export const dynamicParams = false;
 export function generateStaticParams() {
   return Object.values(authViewPaths).map((path) => ({ path }));
@@ -19,16 +19,15 @@ export default async function AuthPage({
 
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10 w-full">
       <div className="flex w-full max-w-sm flex-col gap-6 items-center justify-center">
-        <a
-          href="#"
-          className="flex items-center gap-2 self-center font-medium font-display"
-        >
-          <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-            <GalleryVerticalEnd className="size-4" />
-            {/* <HeartHandshake className="size-4" /> */}
-          </div>
+        <div className="flex items-center gap-2 self-center">
+          <Image
+            src="/images/lovarank-logo-icon-animated-2.png"
+            alt="Lovarank"
+            width={40}
+            height={40}
+          />
           Lovarank
-        </a>
+        </div>
         <AuthView path={path} />
       </div>
     </div>
