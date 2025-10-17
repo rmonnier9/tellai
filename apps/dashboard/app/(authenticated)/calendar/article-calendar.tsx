@@ -506,16 +506,24 @@ function DroppableDay({
         )} */}
       </div>
       <div className="space-y-1">
-        {dayArticles.map((article) => (
-          <ArticleCard
-            key={article.id}
-            article={article}
-            onGenerate={onGenerateArticle}
-            onDelete={onDeleteArticle}
-            jobId={articleJobIds.get(article.id)}
-            onJobComplete={onJobComplete}
-          />
-        ))}
+        {dayArticles.length === 0 ? (
+          <div className="flex items-center justify-center h-full min-h-[80px]">
+            <p className="text-xs text-muted-foreground italic">
+              No article scheduled
+            </p>
+          </div>
+        ) : (
+          dayArticles.map((article) => (
+            <ArticleCard
+              key={article.id}
+              article={article}
+              onGenerate={onGenerateArticle}
+              onDelete={onDeleteArticle}
+              jobId={articleJobIds.get(article.id)}
+              onJobComplete={onJobComplete}
+            />
+          ))
+        )}
       </div>
     </div>
   );
