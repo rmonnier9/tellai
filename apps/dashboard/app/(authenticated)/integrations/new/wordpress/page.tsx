@@ -15,6 +15,10 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { WordPressIntegrationForm } from '@workspace/ui/components/wordpress-integration-form';
 
+export const metadata = {
+  title: 'WordPress Integration',
+};
+
 export default function WordPressIntegrationPage() {
   return (
     <SidebarProvider>

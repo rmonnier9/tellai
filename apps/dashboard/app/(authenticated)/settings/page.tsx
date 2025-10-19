@@ -11,13 +11,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@workspace/ui/components/breadcrumb';
+import { ProductSettingsForm } from '@workspace/ui/components/product-settings-form';
 import { Separator } from '@workspace/ui/components/separator';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
-import { ProductSettingsForm } from '@workspace/ui/components/product-settings-form';
 import useActiveProduct from '@workspace/ui/hooks/use-active-product';
 
 export default function SettingsPage() {

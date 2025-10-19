@@ -1,14 +1,21 @@
+import { Toaster } from '@workspace/ui/components/sonner';
 import {
-  Inter,
+  Bricolage_Grotesque,
   // Geist,
   Geist_Mono,
-  Bricolage_Grotesque,
+  Inter,
 } from 'next/font/google';
-import { Toaster } from '@workspace/ui/components/sonner';
-import Script from "next/script";
+import Script from 'next/script';
 
-import '@workspace/ui/globals.css';
 import { Providers } from '@/components/providers';
+import '@workspace/ui/globals.css';
+
+export const metadata = {
+  title: {
+    template: '%s | Lovarank',
+    default: 'Lovarank',
+  },
+};
 
 const fontSans = Inter({
   subsets: ['latin'],

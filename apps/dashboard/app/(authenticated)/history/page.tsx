@@ -15,6 +15,10 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { ContentHistoryTable } from './content-history-table';
 
+export const metadata = {
+  title: 'Content History',
+};
+
 export default function HistoryPage() {
   return (
     <SidebarProvider>

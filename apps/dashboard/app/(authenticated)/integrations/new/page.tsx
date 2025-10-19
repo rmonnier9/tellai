@@ -7,13 +7,17 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@workspace/ui/components/breadcrumb';
+import { IntegrationSelector } from '@workspace/ui/components/integration-selector';
 import { Separator } from '@workspace/ui/components/separator';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
-import { IntegrationSelector } from '@workspace/ui/components/integration-selector';
+
+export const metadata = {
+  title: 'Add New Integration',
+};
 
 export default function NewIntegrationPage() {
   return (

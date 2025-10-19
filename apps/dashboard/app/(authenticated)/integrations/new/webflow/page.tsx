@@ -15,6 +15,10 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { WebflowIntegrationForm } from '@workspace/ui/components/webflow-integration-form';
 
+export const metadata = {
+  title: 'Webflow Integration',
+};
+
 export default function WebflowIntegrationPage() {
   return (
     <SidebarProvider>

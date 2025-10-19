@@ -1,6 +1,11 @@
 import { AuthView } from '@daveyplate/better-auth-ui';
 import { authViewPaths } from '@daveyplate/better-auth-ui/server';
 import Image from 'next/image';
+
+export const metadata = {
+  title: 'Auth',
+};
+
 export const dynamicParams = false;
 export function generateStaticParams() {
   return Object.values(authViewPaths).map((path) => ({ path }));

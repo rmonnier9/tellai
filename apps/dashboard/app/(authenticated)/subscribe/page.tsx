@@ -1,8 +1,12 @@
-import PricingTable from '@workspace/ui/components/pricing-table';
-import BrandCard from '@workspace/ui/components/brand-card';
-import getSession from '@workspace/lib/get-session';
 import prisma from '@workspace/db/prisma/client';
+import getSession from '@workspace/lib/get-session';
+import BrandCard from '@workspace/ui/components/brand-card';
+import PricingTable from '@workspace/ui/components/pricing-table';
 import { redirect } from 'next/navigation';
+
+export const metadata = {
+  title: 'Subscribe',
+};
 
 export default async function SubscribePage() {
   const session = await getSession();

@@ -8,12 +8,16 @@ import {
   BreadcrumbSeparator,
 } from '@workspace/ui/components/breadcrumb';
 import { Separator } from '@workspace/ui/components/separator';
+import { ShopifyIntegrationForm } from '@workspace/ui/components/shopify-integration-form';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
-import { ShopifyIntegrationForm } from '@workspace/ui/components/shopify-integration-form';
+
+export const metadata = {
+  title: 'Shopify Integration',
+};
 
 export default function ShopifyIntegrationPage() {
   return (

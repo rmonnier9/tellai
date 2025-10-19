@@ -7,13 +7,17 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@workspace/ui/components/breadcrumb';
+import { IntegrationsView } from '@workspace/ui/components/integrations-view';
 import { Separator } from '@workspace/ui/components/separator';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
-import { IntegrationsView } from '@workspace/ui/components/integrations-view';
+
+export const metadata = {
+  title: 'Integrations',
+};
 
 export default function IntegrationsPage() {
   return (

@@ -15,6 +15,10 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { WebhookIntegrationForm } from '@workspace/ui/components/webhook-integration-form';
 
+export const metadata = {
+  title: 'Webhook Integration',
+};
+
 export default function WebhookIntegrationPage() {
   return (
     <SidebarProvider>

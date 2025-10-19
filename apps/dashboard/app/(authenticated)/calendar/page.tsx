@@ -16,6 +16,10 @@ import {
 } from '@workspace/ui/components/sidebar';
 import { ArticleCalendar } from './article-calendar';
 
+export const metadata = {
+  title: 'Content Calendar',
+};
+
 export default function CalendarPage() {
   return (
     <SidebarProvider>

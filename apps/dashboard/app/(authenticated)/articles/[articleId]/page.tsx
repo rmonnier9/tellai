@@ -18,6 +18,10 @@ import {
 import { notFound } from 'next/navigation';
 import { ArticleDisplay } from './article-display';
 
+export const metadata = {
+  title: 'Article',
+};
+
 export default async function ArticlePage({
   params,
 }: {
