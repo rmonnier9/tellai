@@ -1,8 +1,10 @@
 'use client';
 
 import { enqueueJob } from '@workspace/lib/enqueue-job';
+import { addKeywordsManually } from '@workspace/lib/server-actions/add-keywords-manually';
 import { deleteArticle } from '@workspace/lib/server-actions/delete-article';
 import { updateArticleSchedule } from '@workspace/lib/server-actions/update-article-schedule';
+import { AddKeywordsModal } from '@workspace/ui/components/add-keywords-modal';
 import { Button } from '@workspace/ui/components/button';
 import {
   Card,
@@ -31,6 +33,7 @@ import {
   ChevronRight,
   Eye,
   Loader2,
+  Plus,
   Sparkles,
   Trash2,
 } from 'lucide-react';
@@ -83,6 +86,8 @@ export function ArticleCalendar() {
   const [articleJobIds, setArticleJobIds] = useState<Map<string, string>>(
     new Map()
   );
+  const [isAddKeywordsModalOpen, setIsAddKeywordsModalOpen] = useState(false);
+  const [isSubmittingKeywords, setIsSubmittingKeywords] = useState(false);
 
   // Convert article dates to Date objects (memoized)
   const articles = useMemo(() => {
@@ -197,6 +202,65 @@ export function ArticleCalendar() {
     }
   }
 
+  async function handleAddKeywords(keywords: string[]) {
+    if (!product?.id) return;
+
+    setIsSubmittingKeywords(true);
+    try {
+      const result = await addKeywordsManually({
+        productId: product.id,
+        keywords,
+      });
+
+      if (result.success) {
+        toast.success(
+          `Successfully added ${result.addedCount} keyword${result.addedCount! > 1 ? 's' : ''} to your calendar`
+        );
+        setIsAddKeywordsModalOpen(false);
+        // Revalidate SWR cache to get fresh data
+        await mutateArticles();
+      } else {
+        toast.error(result.error || 'Failed to add keywords');
+      }
+    } catch (error) {
+      console.error('Error adding keywords:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to add keywords'
+      );
+    } finally {
+      setIsSubmittingKeywords(false);
+    }
+  }
+
+  // Calculate available slots (dates without articles in the next 60 days)
+  const availableSlots = useMemo(() => {
+    if (!articles) return 60;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existingDatesSet = new Set(
+      articles.map((a) => {
+        const date = new Date(a.scheduledDate);
+        date.setHours(0, 0, 0, 0);
+        return date.getTime();
+      })
+    );
+
+    let count = 0;
+    for (let i = 0; i < 60; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(checkDate.getDate() + i);
+      checkDate.setHours(0, 0, 0, 0);
+
+      if (!existingDatesSet.has(checkDate.getTime())) {
+        count++;
+      }
+    }
+
+    return count;
+  }, [articles]);
+
   if (productLoading || articlesLoading) {
     return <LoadingSkeleton />;
   }
@@ -242,6 +306,20 @@ export function ArticleCalendar() {
       collisionDetection={closestCenter}
     >
       <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Post Calendar</h1>
+            <p className="text-muted-foreground mt-2">
+              View and manage your scheduled articles for the next 60 days
+            </p>
+          </div>
+          <Button onClick={() => setIsAddKeywordsModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Keywords
+          </Button>
+        </div>
+
         {/* Calendar Navigation */}
         <div className="flex items-center justify-between">
           <Button
@@ -366,6 +444,15 @@ export function ArticleCalendar() {
           <ArticleCardDragOverlay article={activeArticle} />
         ) : null}
       </DragOverlay>
+
+      {/* Add Keywords Modal */}
+      <AddKeywordsModal
+        open={isAddKeywordsModalOpen}
+        onOpenChange={setIsAddKeywordsModalOpen}
+        availableSlots={availableSlots}
+        onSubmit={handleAddKeywords}
+        isSubmitting={isSubmittingKeywords}
+      />
     </DndContext>
   );
 }

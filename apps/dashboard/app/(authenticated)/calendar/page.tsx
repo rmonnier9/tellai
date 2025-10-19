@@ -7,13 +7,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@workspace/ui/components/breadcrumb';
+import { ContentPlannerModal } from '@workspace/ui/components/content-planner-modal';
 import { Separator } from '@workspace/ui/components/separator';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@workspace/ui/components/sidebar';
-import { ContentPlannerModal } from '@workspace/ui/components/content-planner-modal';
 import { ArticleCalendar } from './article-calendar';
 
 export default function CalendarPage() {
@@ -42,12 +42,6 @@ export default function CalendarPage() {
           </div>
         </header>
         <div className="flex flex-1 flex-col p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight">Post Calendar</h1>
-            <p className="text-muted-foreground mt-2">
-              View and manage your scheduled articles for the next 60 days
-            </p>
-          </div>
           <ArticleCalendar />
         </div>
       </SidebarInset>
