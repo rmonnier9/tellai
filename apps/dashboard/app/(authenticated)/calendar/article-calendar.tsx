@@ -29,8 +29,6 @@ import {
 import { toast } from '@workspace/ui/lib/toast';
 import {
   Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Loader2,
   Plus,
@@ -321,7 +319,7 @@ export function ArticleCalendar() {
         </div>
 
         {/* Calendar Navigation */}
-        <div className="flex items-center justify-between">
+        {/* <div className="flex items-center justify-between">
           <Button
             variant="outline"
             size="sm"
@@ -362,7 +360,7 @@ export function ArticleCalendar() {
             Next
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
-        </div>
+        </div> */}
 
         {/* Stats Summary */}
         {/* <div className="grid gap-4 md:grid-cols-4">
