@@ -12,7 +12,7 @@ export default async function SubscribePage() {
   const session = await getSession();
 
   if (!session?.session) {
-    redirect('/auth/signin');
+    redirect('/auth/sign-in');
   }
 
   // Type assertion to access activeProductId

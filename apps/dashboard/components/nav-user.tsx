@@ -54,7 +54,7 @@ export function NavUser({
     await client.signOut({
       fetchOptions: {
         onSuccess: () => {
-          window.location.href = '/auth/signin';
+          window.location.href = '/auth/sign-in';
         },
       },
     });

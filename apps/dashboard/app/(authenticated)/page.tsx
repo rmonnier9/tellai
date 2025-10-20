@@ -1,12 +1,12 @@
-import { redirect } from 'next/navigation';
-import getSession from '@workspace/lib/get-session';
 import prisma from '@workspace/db/prisma/client';
+import getSession from '@workspace/lib/get-session';
+import { redirect } from 'next/navigation';
 
 export default async function Page() {
   const session = await getSession();
 
   if (!session?.session) {
-    redirect('/auth/signin');
+    redirect('/auth/sign-in');
     return;
   }
 
@@ -16,7 +16,7 @@ export default async function Page() {
   };
 
   if (!sessionWithOrgId.activeOrganizationId) {
-    redirect('/auth/signin');
+    redirect('/auth/sign-innnnn');
     return;
   }
 
