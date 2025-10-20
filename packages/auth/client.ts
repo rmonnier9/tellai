@@ -1,10 +1,11 @@
-import { createAuthClient } from 'better-auth/react';
+import { stripeClient } from '@better-auth/stripe/client';
 import {
+  adminClient,
+  customSessionClient,
   magicLinkClient,
   organizationClient,
-  customSessionClient,
 } from 'better-auth/client/plugins';
-import { stripeClient } from '@better-auth/stripe/client';
+import { createAuthClient } from 'better-auth/react';
 import type { auth } from './server';
 
 export const client = createAuthClient({
@@ -12,6 +13,7 @@ export const client = createAuthClient({
     customSessionClient<typeof auth>(),
     magicLinkClient(),
     organizationClient(),
+    adminClient(),
     stripeClient({
       subscription: true,
     }),

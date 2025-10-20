@@ -1,17 +1,16 @@
-import { betterAuth } from 'better-auth';
-import { nextCookies } from 'better-auth/next-js';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
-import prisma from '@workspace/db/prisma/client';
 import { createId as cuid } from '@paralleldrive/cuid2';
+import prisma from '@workspace/db/prisma/client';
+import { betterAuth } from 'better-auth';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { nextCookies } from 'better-auth/next-js';
 import { customSession } from 'better-auth/plugins';
 
-import Stripe from 'stripe';
 import { stripe } from '@better-auth/stripe';
+import Stripe from 'stripe';
 
-import { organization, magicLink } from 'better-auth/plugins';
 import { EmailTemplate } from '@daveyplate/better-auth-ui/server';
 import { send } from '@workspace/emails';
+import { admin, magicLink, organization } from 'better-auth/plugins';
 import enqueueJob from '../lib/enqueue-job';
 
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -83,6 +82,9 @@ export const auth = betterAuth({
           url,
         });
       },
+    }),
+    admin({
+      adminUserIds: process.env.ADMIN_IDS?.split(','),
     }),
     nextCookies(),
     customSession(async ({ user, session }) => {
@@ -223,11 +225,11 @@ export const auth = betterAuth({
           let referralId: string | undefined;
 
           if (request && request.headers) {
-            const cookieHeader = request.headers.get("cookie");
+            const cookieHeader = request.headers.get('cookie');
             if (cookieHeader) {
-              const cookies = cookieHeader.split(";").reduce(
+              const cookies = cookieHeader.split(';').reduce(
                 (acc, cookie) => {
-                  const [key, value] = cookie.trim().split("=");
+                  const [key, value] = cookie.trim().split('=');
                   if (key && value) {
                     acc[key] = value;
                   }
@@ -236,7 +238,7 @@ export const auth = betterAuth({
                 {} as Record<string, string>
               );
 
-              referralId = cookies["rewardful_referral"];
+              referralId = cookies['rewardful_referral'];
             }
           }
 

@@ -1,5 +1,5 @@
+import { ImpersonationLayout } from '@/components/impersonation-layout';
 import { auth } from '@workspace/auth/server';
-import { getSessionCookie } from 'better-auth/cookies';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -16,5 +16,5 @@ export default async function AuthenticatedLayout({
     redirect('/auth/sign-in');
   }
 
-  return <>{children}</>;
+  return <ImpersonationLayout>{children}</ImpersonationLayout>;
 }

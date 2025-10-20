@@ -1,12 +1,9 @@
 'use client';
 
 import {
-  AudioWaveform,
   BookOpen,
   Bot,
   Calendar,
-  Command,
-  GalleryVerticalEnd,
   History,
   Puzzle,
   Settings2,
@@ -18,6 +15,7 @@ import * as React from 'react';
 
 import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
+import { client } from '@workspace/auth/client';
 import { ProductSwitcher } from '@workspace/ui/components/product-switcher';
 import { Separator } from '@workspace/ui/components/separator';
 import {
@@ -33,28 +31,6 @@ import { cn } from '@workspace/ui/lib/utils';
 
 // This is sample data.
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
-  teams: [
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free',
-    },
-  ],
   navMain: [
     {
       title: 'Playground',
@@ -199,6 +175,17 @@ const Logo = () => {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const session = client.useSession();
+
+  const user = {
+    name:
+      session?.data?.user.name ||
+      session?.data?.user.email?.split('@')[0] ||
+      '',
+    email: session?.data?.user.email || '',
+    avatar: session?.data?.user.image || '',
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -211,7 +198,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

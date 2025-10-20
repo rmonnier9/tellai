@@ -26,6 +26,13 @@ model User {
   createdAt        DateTime     @default(now()) @map("created_at")
   updatedAt        DateTime     @default(now()) @updatedAt @map("updated_at")
   stripeCustomerId String?      @map("stripe_customer_id")
+  
+  // Admin plugin fields
+  role             String?      @default("user")
+  banned           Boolean?     @default(false)
+  banReason        String?      @map("ban_reason")
+  banExpires       DateTime?    @map("ban_expires")
+  
   sessions         Session[]
   accounts         Account[]
   members          Member[]
@@ -48,6 +55,9 @@ model Session {
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   activeOrganizationId String?  @map("active_organization_id")
   activeProductId      String?  @map("active_product_id")
+  
+  // Admin plugin field
+  impersonatedBy       String?  @map("impersonated_by")
 
   @@unique([token])
   @@map("session")
