@@ -222,7 +222,6 @@ model Article {
   // Article metadata
   keyword         String
   title           String?
-  metaDescription String? @map("meta_description")
   type            ArticleType
   guideSubtype    GuideSubtype?    @map("guide_subtype")
   listicleSubtype ListicleSubtype? @map("listicle_subtype")
@@ -238,8 +237,10 @@ model Article {
   status        ArticleStatus @default(pending)
 
   // Generated content (will be populated later)
-  content      String?
-  publishedUrl String? @map("published_url")
+  content           String?
+  metaDescription   String? @map("meta_description")
+  publishedUrl      String? @map("published_url")
+  featuredImageUrl  String? @map("featured_image_url")
 
   publications Publication[]
   jobs         Job[]

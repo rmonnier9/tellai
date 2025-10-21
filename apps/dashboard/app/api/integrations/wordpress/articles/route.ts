@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@workspace/db/prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,10 +64,12 @@ export async function GET(request: NextRequest) {
         slug,
         title: article.title || article.keyword,
         content: article.content || '',
-        meta_description: article.content
-          ? article.content.substring(0, 160).replace(/\n/g, ' ')
-          : '',
-        image_url: undefined, // Can be extended to support featured images
+        meta_description:
+          article.metaDescription ||
+          (article.content
+            ? article.content.substring(0, 160).replace(/\n/g, ' ')
+            : ''),
+        image_url: article.featuredImageUrl || undefined,
         category: undefined, // Can be extended to support category mapping
         tags: [article.keyword], // Use keyword as tag
         author: undefined, // Can be extended to support author mapping

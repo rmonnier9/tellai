@@ -72,6 +72,7 @@ export async function publishArticle({ articleId }: { articleId: string }) {
             metaDescription: article.metaDescription || undefined,
             content: article.content,
             keyword: article.keyword,
+            imageUrl: article.featuredImageUrl,
           },
           {
             type: credential.type,

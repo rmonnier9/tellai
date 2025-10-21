@@ -91,6 +91,10 @@ export const articleGeneration = async (job: Job) => {
     throw new Error('Workflow returned no result');
   }
 
+  // Extract hero image URL from generated images
+  const heroImage = result.images?.find((img: any) => img.type === 'hero');
+  const featuredImageUrl = heroImage?.url || null;
+
   // Update the article with the generated content
   const updatedArticle = await prisma.article.update({
     where: { id: articleId },
@@ -98,6 +102,7 @@ export const articleGeneration = async (job: Job) => {
       title: result.title,
       metaDescription: result.metaDescription,
       content: result.content,
+      featuredImageUrl: featuredImageUrl,
       status: 'generated',
     },
   });
@@ -128,6 +133,7 @@ export const articleGeneration = async (job: Job) => {
               metaDescription: result.metaDescription,
               content: result.content,
               keyword: article.keyword,
+              imageUrl: featuredImageUrl,
             },
             {
               type: credential.type,

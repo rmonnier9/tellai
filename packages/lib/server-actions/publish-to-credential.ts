@@ -78,6 +78,7 @@ export async function publishToCredential({
         title: article.title,
         content: article.content,
         keyword: article.keyword,
+        imageUrl: article.featuredImageUrl,
       },
       {
         type: credential.type,

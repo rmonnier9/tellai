@@ -9,6 +9,7 @@ export interface ArticleData {
   metaDescription?: string;
   content: string;
   keyword: string;
+  imageUrl?: string | null;
 }
 
 export interface CredentialConfig {
