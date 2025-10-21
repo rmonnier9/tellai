@@ -6,6 +6,7 @@ export interface PublishResult {
 
 export interface ArticleData {
   title: string;
+  metaDescription?: string;
   content: string;
   keyword: string;
 }

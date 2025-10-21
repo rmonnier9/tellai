@@ -1,6 +1,6 @@
+import prisma from '@workspace/db/prisma/client';
 import { Job } from '@workspace/db/prisma/generated/client';
 import { mastra } from '../mastra';
-import prisma from '@workspace/db/prisma/client';
 import { getPublisher } from '../publishers';
 
 export const articleGeneration = async (job: Job) => {
@@ -96,6 +96,7 @@ export const articleGeneration = async (job: Job) => {
     where: { id: articleId },
     data: {
       title: result.title,
+      metaDescription: result.metaDescription,
       content: result.content,
       status: 'generated',
     },
@@ -124,6 +125,7 @@ export const articleGeneration = async (job: Job) => {
           const publishResult = await publisher.publish(
             {
               title: result.title,
+              metaDescription: result.metaDescription,
               content: result.content,
               keyword: article.keyword,
             },

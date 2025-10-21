@@ -1,7 +1,7 @@
 import { marked } from 'marked';
 import {
-  BasePublisher,
   ArticleData,
+  BasePublisher,
   CredentialConfig,
   PublishResult,
 } from './base-publisher';
@@ -50,6 +50,13 @@ export class WordPressPublisher extends BasePublisher {
         status: publishingStatus || 'draft',
         tags: [article.keyword],
         author: authorId ? parseInt(authorId) : undefined,
+        // Yoast SEO meta fields (if Yoast is installed)
+        yoast_meta: article.metaDescription
+          ? {
+              yoast_wpseo_metadesc: article.metaDescription,
+              yoast_wpseo_focuskw: article.keyword,
+            }
+          : undefined,
       };
 
       const response = await fetch(endpoint, {
@@ -70,6 +77,31 @@ export class WordPressPublisher extends BasePublisher {
       }
 
       const data = await response.json();
+
+      // If Yoast meta wasn't accepted in the initial request and we have a meta description,
+      // try to update the post meta separately for SEO plugins
+      if (article.metaDescription && data.id) {
+        try {
+          // Try to update Yoast SEO meta fields
+          await fetch(`${siteUrl}/wp-json/wp/v2/posts/${data.id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Basic ${auth}`,
+            },
+            body: JSON.stringify({
+              meta: {
+                _yoast_wpseo_metadesc: article.metaDescription,
+                _yoast_wpseo_focuskw: article.keyword,
+              },
+            }),
+          });
+        } catch (error) {
+          // Silently fail if meta update doesn't work
+          // The post was still created successfully
+          console.warn('Could not set SEO meta fields:', error);
+        }
+      }
 
       return {
         success: true,
@@ -107,7 +139,9 @@ export class WordPressPublisher extends BasePublisher {
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, ''),
-        meta_description: article.content.substring(0, 160).replace(/\n/g, ' '),
+        meta_description:
+          article.metaDescription ||
+          article.content.substring(0, 160).replace(/\n/g, ' '),
         tags: [article.keyword],
         focus_keyword: article.keyword,
         created_at: new Date().toISOString(),

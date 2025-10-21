@@ -1,9 +1,9 @@
 'use server';
 
 import prisma from '@workspace/db/prisma/client';
+import { revalidatePath } from 'next/cache';
 import getSession from '../get-session';
 import { getPublisher } from '../publishers';
-import { revalidatePath } from 'next/cache';
 
 export async function publishArticle({ articleId }: { articleId: string }) {
   const session = await getSession();
@@ -69,6 +69,7 @@ export async function publishArticle({ articleId }: { articleId: string }) {
         const publishResult = await publisher.publish(
           {
             title: article.title,
+            metaDescription: article.metaDescription || undefined,
             content: article.content,
             keyword: article.keyword,
           },
