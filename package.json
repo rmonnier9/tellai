@@ -6,6 +6,7 @@
     "dotenvx": "dotenvx",
     "build": "turbo build",
     "dev": "turbo dev",
+    "dev:infra": "turbo dev --filter=workers...",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "build:ci": "pnpm --filter=db prisma:migrate:prod && pnpm run build",

@@ -25,15 +25,15 @@ export async function generateKeywordIdeas(formData: FormData) {
 
       productData = {
         id: product.id,
-        name: product.name,
-        description: product.description,
-        country: product.country || 'US',
-        language: product.language || 'en',
-        targetAudiences: product.targetAudiences || [],
-        url: product.url,
+        // name: product.name,
+        // description: product.description,
+        // country: product.country || 'US',
+        // language: product.language || 'en',
+        // targetAudiences: product.targetAudiences || [],
+        // url: product.url,
       };
 
-      console.log('Using existing product:', productData.name);
+      console.log('Using existing product:', productData.id);
     }
     // Option 2: Use manual input data
     else {
@@ -56,15 +56,7 @@ export async function generateKeywordIdeas(formData: FormData) {
 
       productData = {
         id: 'test-product',
-        name,
-        description,
-        country,
-        language,
-        targetAudiences,
-        url,
       };
-
-      console.log('Using manual product data:', productData.name);
     }
 
     // Execute the workflow
@@ -94,28 +86,20 @@ export async function generateKeywordIdeas(formData: FormData) {
     // If using a real product ID, save the keywords to the database
     if (productId && result) {
       console.log(
-        `Saving ${result.keywords.length} discovered keywords to database...`
+        `Saving ${result.keywords?.length} discovered keywords to database...`
       );
 
       const articles = await Promise.all(
-        result.keywords.map(async (keyword: any) => {
+        (result.keywords || []).map(async (keyword) => {
           return prisma.article.create({
             data: {
               product: {
                 connect: { id: productId },
               },
               keyword: keyword.keyword,
-              title: keyword.title, // Now comes from workflow
-              // Content type from workflow
-              type: keyword.type,
-              guideSubtype: keyword.guideSubtype || null,
-              listicleSubtype: keyword.listicleSubtype || null,
-              // SEO metrics from DataForSEO
               searchVolume: keyword.searchVolume,
               keywordDifficulty: keyword.keywordDifficulty,
-              cpc: keyword.cpc || 0,
-              competition: keyword.competition || 0,
-              scheduledDate: new Date(keyword.scheduledDate), // 1 per day for 30 days
+              scheduledDate: keyword.scheduledDate!, // 1 per day for 30 days
               status: 'pending',
             },
           });
@@ -134,8 +118,6 @@ export async function generateKeywordIdeas(formData: FormData) {
             keyword: a.keyword,
             searchVolume: a.searchVolume,
             keywordDifficulty: a.keywordDifficulty,
-            contentType: a.type,
-            subtype: a.guideSubtype || a.listicleSubtype,
             scheduledDate: a.scheduledDate,
           })),
         },

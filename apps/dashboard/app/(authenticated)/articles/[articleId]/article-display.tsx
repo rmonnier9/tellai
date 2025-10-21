@@ -29,24 +29,9 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import type { Article as ArticleType } from '@workspace/db/prisma/generated/client';
 
-type Article = {
-  id: string;
-  keyword: string;
-  title: string | null;
-  type: 'guide' | 'listicle';
-  guideSubtype: string | null;
-  listicleSubtype: string | null;
-  searchVolume: number | null;
-  keywordDifficulty: number | null;
-  cpc: number | null;
-  competition: number | null;
-  scheduledDate: Date;
-  status: string;
-  content: string | null;
-  publishedUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+type Article = ArticleType & {
   product: {
     id: string;
     name: string | null;
@@ -238,9 +223,11 @@ export function ArticleDisplay({
             <Badge variant="outline" className={getStatusColor(article.status)}>
               {article.status}
             </Badge>
-            <Badge variant="outline" className={getTypeColor(article.type)}>
-              {article.type}
-            </Badge>
+            {article.type && (
+              <Badge variant="outline" className={getTypeColor(article.type)}>
+                {article.type}
+              </Badge>
+            )}
             {article.guideSubtype && (
               <Badge variant="outline">{article.guideSubtype}</Badge>
             )}
@@ -339,7 +326,7 @@ export function ArticleDisplay({
                           Competition
                         </p>
                         <p className="text-xl font-bold">
-                          {Math.round(article.competition * 100)}%
+                          {Math.round(Number(article.competition) * 100)}
                         </p>
                       </div>
                     </div>

@@ -1,3 +1,4 @@
+import type { Product } from '@workspace/db/prisma/generated/client';
 import { JobType } from '@workspace/db/prisma/generated/enums';
 import { z } from 'zod';
 
@@ -173,3 +174,32 @@ export const EnqueueJobSchema = z.object({
 });
 
 export type EnqueueJobSchema = z.infer<typeof EnqueueJobSchema>;
+
+export const ProductSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  url: z.string(),
+  description: z.string().nullable(),
+  logo: z.string().nullable(),
+  language: z.string().nullable(),
+  country: z.string().nullable(),
+  targetAudiences: z.array(z.string()),
+  sitemapUrl: z.string().nullable(),
+  blogUrl: z.string().nullable(),
+  bestArticles: z.array(z.string()),
+  autoPublish: z.boolean(),
+  articleStyle: z.string(),
+  internalLinks: z.number(),
+  globalInstructions: z.string().nullable(),
+  imageStyle: z.string(),
+  brandColor: z.string(),
+  includeYoutubeVideo: z.boolean(),
+  includeCallToAction: z.boolean(),
+  includeInfographics: z.boolean(),
+  includeEmojis: z.boolean(),
+  subscriptionId: z.string().nullable(),
+  organizationId: z.string(),
+  competitors: z.array(z.string()),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+}) satisfies z.ZodType<Product>;

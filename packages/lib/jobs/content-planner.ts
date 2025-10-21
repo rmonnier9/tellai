@@ -23,12 +23,6 @@ export const contentPlanner = async (job: Job) => {
   const workflowResult = await run.start({
     inputData: {
       id: product.id,
-      name: product.name!,
-      description: product.description!,
-      country: product.country!,
-      language: product.language!,
-      targetAudiences: product.targetAudiences,
-      url: product.url,
     },
   });
 
@@ -48,20 +42,19 @@ export const contentPlanner = async (job: Job) => {
   const result = workflowResult.result;
 
   // If using a real product ID, save the results to the database
-  if (productId && result?.keywords?.length > 0) {
+  if (productId && !!result?.keywords?.length) {
     const articles = await prisma.article.createMany({
-      data: result.keywords.map((idea: any) => ({
+      data: result.keywords.map((idea) => ({
         productId: productId,
         keyword: idea.keyword,
-        title: idea.title || idea.keyword, // Use title from workflow, fallback to keyword
-        type: idea.type,
-        guideSubtype: idea.type === 'guide' ? idea.guideSubtype : null,
-        listicleSubtype: idea.type === 'listicle' ? idea.listicleSubtype : null,
+        // type: idea.type,
+        // guideSubtype: idea.type === 'guide' ? idea.guideSubtype : null,
+        // listicleSubtype: idea.type === 'listicle' ? idea.listicleSubtype : null,
         searchVolume: idea.searchVolume,
         keywordDifficulty: idea.keywordDifficulty,
-        cpc: idea.cpc,
-        competition: idea.competition,
-        scheduledDate: new Date(idea.scheduledDate),
+        // cpc: idea.cpc,
+        competition: idea.competitionLevel,
+        scheduledDate: idea.scheduledDate!,
         status: 'pending',
       })),
     });

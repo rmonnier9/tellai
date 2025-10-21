@@ -82,7 +82,7 @@ const inputSchema = z.object({
     searchVolume: z.number().nullable(),
     keywordDifficulty: z.number().nullable(),
     cpc: z.number().nullable(),
-    competition: z.number().nullable(),
+    competition: z.string().nullable(),
   }),
   productData: z.object({
     name: z.string().nullable(),

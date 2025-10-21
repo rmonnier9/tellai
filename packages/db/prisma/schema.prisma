@@ -18,26 +18,26 @@ datasource db {
 }
 
 model User {
-  id               String       @id @default(cuid())
+  id               String   @id @default(cuid())
   name             String
   email            String
-  emailVerified    Boolean      @default(false) @map("email_verified")
+  emailVerified    Boolean  @default(false) @map("email_verified")
   image            String?
-  createdAt        DateTime     @default(now()) @map("created_at")
-  updatedAt        DateTime     @default(now()) @updatedAt @map("updated_at")
-  stripeCustomerId String?      @map("stripe_customer_id")
-  
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+  stripeCustomerId String?  @map("stripe_customer_id")
+
   // Admin plugin fields
-  role             String?      @default("user")
-  banned           Boolean?     @default(false)
-  banReason        String?      @map("ban_reason")
-  banExpires       DateTime?    @map("ban_expires")
-  
-  sessions         Session[]
-  accounts         Account[]
-  members          Member[]
-  invitations      Invitation[]
-  jobs             Job[]
+  role       String?   @default("user")
+  banned     Boolean?  @default(false)
+  banReason  String?   @map("ban_reason")
+  banExpires DateTime? @map("ban_expires")
+
+  sessions    Session[]
+  accounts    Account[]
+  members     Member[]
+  invitations Invitation[]
+  jobs        Job[]
 
   @@unique([email])
   @@map("user")
@@ -55,9 +55,9 @@ model Session {
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   activeOrganizationId String?  @map("active_organization_id")
   activeProductId      String?  @map("active_product_id")
-  
+
   // Admin plugin field
-  impersonatedBy       String?  @map("impersonated_by")
+  impersonatedBy String? @map("impersonated_by")
 
   @@unique([token])
   @@map("session")
@@ -167,6 +167,7 @@ model Product {
   sitemapUrl      String?  @map("sitemap_url")
   blogUrl         String?  @map("blog_url")
   bestArticles    String[] @map("best_articles")
+  competitors     String[] @default([])
 
   // Article preferences
   autoPublish         Boolean @default(true) @map("auto_publish")
@@ -222,15 +223,15 @@ model Article {
   // Article metadata
   keyword         String
   title           String?
-  type            ArticleType
+  type            ArticleType?
   guideSubtype    GuideSubtype?    @map("guide_subtype")
   listicleSubtype ListicleSubtype? @map("listicle_subtype")
 
   // SEO metrics from DataForSEO
-  searchVolume      Int?   @map("search_volume")
-  keywordDifficulty Float? @map("keyword_difficulty")
+  searchVolume      Int?    @map("search_volume")
+  keywordDifficulty Float?  @map("keyword_difficulty")
   cpc               Float?
-  competition       Float?
+  competition       String?
 
   // Scheduling
   scheduledDate DateTime      @map("scheduled_date")

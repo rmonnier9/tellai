@@ -285,7 +285,7 @@ export function ArticleCalendar() {
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
-    acc[dateKey]!.push(article);
+    acc[dateKey]!.push(article as Article);
     return acc;
   }, {} as ArticlesByDate);
 
@@ -439,7 +439,7 @@ export function ArticleCalendar() {
 
       <DragOverlay>
         {activeArticle ? (
-          <ArticleCardDragOverlay article={activeArticle} />
+          <ArticleCardDragOverlay article={activeArticle as Article} />
         ) : null}
       </DragOverlay>
 

@@ -155,7 +155,7 @@ export function ContentHistoryTable() {
 
   return (
     <ArticleTable
-      articles={filteredArticles}
+      articles={filteredArticles as Article[]}
       getStatusBadge={getStatusBadge}
       getDifficultyBadge={getDifficultyBadge}
       formatDate={formatDate}
