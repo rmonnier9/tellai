@@ -49,7 +49,12 @@ export class WebflowPublisher extends BasePublisher {
 
       // Build field data using the mapping
       const fieldData = buildFieldData(
-        { title: article.title, content: htmlContent },
+        {
+          title: article.title,
+          content: htmlContent,
+          description: article.metaDescription,
+          imageUrl: article.imageUrl,
+        },
         slug,
         fieldMapping
       );
@@ -121,9 +126,11 @@ export class WebflowPublisher extends BasePublisher {
             `\n\nYour Webflow collection must have these fields:\n` +
             `1. A field for the title (we're sending as "name")\n` +
             `2. A field for the URL slug (we're sending as "slug")\n` +
-            `3. A Rich Text field for content (we're sending as "post-body")\n\n` +
+            `3. A Rich Text field for content (we're sending as "post-body")\n` +
+            `4. Optional: A field for description (we're sending as "post-summary")\n` +
+            `5. Optional: An Image field for featured image (we're sending as "main-image")\n\n` +
             `If your collection uses different field names, you may need to:\n` +
-            `- Rename your fields to match: "name", "slug", "post-body"\n` +
+            `- Rename your fields to match: "name", "slug", "post-body", "post-summary", "main-image"\n` +
             `- Or contact support to configure custom field mapping`;
         } else if (createResponse.status === 422) {
           errorMessage =
@@ -131,7 +138,9 @@ export class WebflowPublisher extends BasePublisher {
             `Please check that your Webflow collection fields have the correct types:\n` +
             `- "name" should be Text (Plain)\n` +
             `- "slug" should be Text (Plain) and set as the collection slug\n` +
-            `- "post-body" should be Rich Text`;
+            `- "post-body" should be Rich Text\n` +
+            `- "post-summary" should be Text (Plain) - optional\n` +
+            `- "main-image" should be Image - optional`;
         }
 
         return {

@@ -150,6 +150,8 @@ export const WebflowCredentialSchema = z.object({
       titleField: z.string().optional(),
       slugField: z.string().optional(),
       contentField: z.string().optional(),
+      descriptionField: z.string().optional(),
+      imageField: z.string().optional(),
     })
     .optional(),
 });

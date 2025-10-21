@@ -9,16 +9,19 @@ export interface WebflowFieldMapping {
   titleField?: string; // Default: "name"
   slugField?: string; // Default: "slug"
   contentField?: string; // Default: "post-body"
+  descriptionField?: string; // Optional - for meta description
   excerptField?: string; // Optional
   authorField?: string; // Optional
   dateField?: string; // Optional
-  imageField?: string; // Optional
+  imageField?: string; // Optional - for featured image
 }
 
 export const DEFAULT_FIELD_MAPPING: WebflowFieldMapping = {
   titleField: 'name',
   slugField: 'slug',
   contentField: 'post-body',
+  descriptionField: 'post-summary',
+  imageField: 'main-image',
 };
 
 /**
@@ -35,10 +38,23 @@ export const COMMON_WEBFLOW_FIELDS = {
     'rich-text',
     'main-content',
   ],
+  description: [
+    'post-summary',
+    'description',
+    'meta-description',
+    'summary',
+    'excerpt',
+  ],
   excerpt: ['excerpt', 'summary', 'description', 'post-summary'],
   author: ['author', 'author-name', 'writer'],
   date: ['date', 'publish-date', 'created-date', 'post-date'],
-  image: ['main-image', 'featured-image', 'thumbnail', 'post-image'],
+  image: [
+    'main-image',
+    'featured-image',
+    'thumbnail',
+    'post-image',
+    'featured-img',
+  ],
 };
 
 /**
@@ -52,10 +68,14 @@ export function getFieldMapping(config: any): WebflowFieldMapping {
       config?.fieldMapping?.slugField || DEFAULT_FIELD_MAPPING.slugField,
     contentField:
       config?.fieldMapping?.contentField || DEFAULT_FIELD_MAPPING.contentField,
+    descriptionField:
+      config?.fieldMapping?.descriptionField ||
+      DEFAULT_FIELD_MAPPING.descriptionField,
     excerptField: config?.fieldMapping?.excerptField,
     authorField: config?.fieldMapping?.authorField,
     dateField: config?.fieldMapping?.dateField,
-    imageField: config?.fieldMapping?.imageField,
+    imageField:
+      config?.fieldMapping?.imageField || DEFAULT_FIELD_MAPPING.imageField,
   };
 }
 
@@ -63,7 +83,12 @@ export function getFieldMapping(config: any): WebflowFieldMapping {
  * Build fieldData object for Webflow API request
  */
 export function buildFieldData(
-  article: { title: string; content: string },
+  article: {
+    title: string;
+    content: string;
+    description?: string;
+    imageUrl?: string | null;
+  },
   slug: string,
   mapping: WebflowFieldMapping
 ) {
@@ -87,6 +112,14 @@ export function buildFieldData(
   fieldData._archived = false;
 
   // Optional fields
+  if (mapping.descriptionField && article.description) {
+    fieldData[mapping.descriptionField] = article.description;
+  }
+
+  if (mapping.imageField && article.imageUrl) {
+    fieldData[mapping.imageField] = article.imageUrl;
+  }
+
   if (mapping.excerptField) {
     // Create excerpt from content (first 160 characters)
     const plainText = article.content.replace(/<[^>]*>/g, '').substring(0, 160);
