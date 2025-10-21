@@ -1,6 +1,6 @@
 === Lovarank ===
 Contributors: gpetrov  
-Tags: seo, content automation, article sync, ai blog, seo ai agent, seo, autoblogging, ai content generator, wordpress seo, ai seo
+Tags: content automation, ai blog, ai agent, ai content generator, ai seo
 Requires at least: 6.4  
 Tested up to: 6.8  
 Requires PHP: 8.0  
@@ -15,8 +15,6 @@ Lovarank streamlines content creation by auto-publishing SEO-ready articles to y
 The AI Agent that Grows Your Organic Traffic.
 
 Think of Lovarank as your content team that never sleeps. It writes and publishes SEO-focused blog posts that help your WordPress site grow. You don’t have to come up with ideas, write drafts, or plan schedules. Everything runs automatically in the background.
-
-The plugin may add external links or small credits on your site.
 
 It also connects securely to your WordPress posts through an API for content review and optimization inside the Lovarank app.
 
@@ -52,7 +50,7 @@ Data sent:
 - API Key (stored by user in plugin settings)
 
 Data is sent when:
-- An article has been geenrated by your Lovarank Agent
+- An article has been genrated by your Lovarank Agent
 
 External Service:
 - [Lovarank API](https://www.lovarank.com)

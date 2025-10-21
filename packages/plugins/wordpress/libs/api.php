@@ -40,23 +40,59 @@ function sanitize_content($content) {
     return $sanitized;
 }
 
+/**
+ * Permission callback for endpoints that require API key authentication
+ * Validates the secret/API key from request body or headers
+ */
+function lovarank_permission_callback_with_api_key($request) {
+    $secret = '';
+    
+    // Try to get from JSON body
+    $params = $request->get_json_params();
+    if (!empty($params['secret'])) {
+        $secret = sanitize_text_field($params['secret']);
+    }
+    
+    // Try to get from headers
+    if (empty($secret)) {
+        $auth_header = $request->get_header('X-Integration-Key');
+        if ($auth_header) {
+            $secret = sanitize_text_field($auth_header);
+        }
+    }
+    
+    // Try to get from query parameter
+    if (empty($secret)) {
+        $secret = sanitize_text_field($request->get_param('secret') ?? '');
+    }
+    
+    // Validate against stored API key
+    $storedSecret = get_option('lovarank_api_key');
+    
+    if (empty($secret) || empty($storedSecret) || $secret !== $storedSecret) {
+        return false;
+    }
+    
+    return true;
+}
+
 add_action('rest_api_init', function () {
     register_rest_route('lovarank/v1', '/submit', [
         'methods' => 'POST',
         'callback' => 'lovarank_receive_article',
-        'permission_callback' => '__return_true' // Auth handled inside the function
+        'permission_callback' => 'lovarank_permission_callback_with_api_key'
     ]);
     
     register_rest_route('lovarank/v1', '/test-integration', [
         'methods' => 'POST',
         'callback' => 'lovarank_test_integration',
-        'permission_callback' => '__return_true'
+        'permission_callback' => 'lovarank_permission_callback_with_api_key'
     ]);
     
     register_rest_route('lovarank/v1', '/posts', [
         'methods' => 'GET',
         'callback' => 'lovarank_get_posts',
-        'permission_callback' => '__return_true',
+        'permission_callback' => 'lovarank_permission_callback_with_api_key',
         'args' => [
             'page' => [
                 'default' => 1,
@@ -78,13 +114,6 @@ function lovarank_receive_article($request) {
     global $wpdb;
 
     $params = $request->get_json_params();
-
-    $secret = sanitize_text_field($params['secret'] ?? '');
-    $storedSecret = get_option('lovarank_api_key');
-
-    if (!$secret || $secret !== $storedSecret) {
-        return new WP_REST_Response(['error' => 'Invalid or missing secret'], 403);
-    }
 
     $title = sanitize_text_field($params['title'] ?? 'Untitled');
     $slug = sanitize_title($params['slug'] ?? $title);
@@ -239,36 +268,7 @@ function lovarank_receive_article($request) {
 }
 
 function lovarank_test_integration($request) {
-    // 1. Get integration key from request
-    $params = $request->get_json_params();
-    $secret = sanitize_text_field($params['secret'] ?? '');
-    
-    // 2. Get stored integration key (what user saved in settings)
-    $storedSecret = get_option('lovarank_api_key');
-    
-    // 3. Verify the key with specific error codes
-    if (!$secret) {
-        return new WP_REST_Response([
-            'success' => false, 
-            'error_code' => 'invalid_integration_key'
-        ], 403);
-    }
-    
-    if (!$storedSecret) {
-        return new WP_REST_Response([
-            'success' => false, 
-            'error_code' => 'integration_not_configured'
-        ], 403);
-    }
-    
-    if ($secret !== $storedSecret) {
-        return new WP_REST_Response([
-            'success' => false, 
-            'error_code' => 'invalid_integration_key'
-        ], 403);
-    }
-    
-    // 4. Create test post with dummy data
+    // 1. Create test post with dummy data
     $test_post_id = wp_insert_post([
         'post_title'    => 'Test Post - Lovarank Integration',
         'post_content'  => 'This is a test post to verify Lovarank integration is working correctly.',
@@ -278,7 +278,7 @@ function lovarank_test_integration($request) {
         'post_author'   => 1, // Admin user
     ]);
     
-    // 5. Check if creation was successful
+    // 2. Check if creation was successful
     if (is_wp_error($test_post_id)) {
         return new WP_REST_Response([
             'success' => false, 
@@ -286,10 +286,10 @@ function lovarank_test_integration($request) {
         ], 500);
     }
     
-    // 6. Delete the test post immediately (but don't fail if cleanup fails)
+    // 3. Delete the test post immediately (but don't fail if cleanup fails)
     wp_delete_post($test_post_id, true);
     
-    // 7. Return success
+    // 4. Return success
     return new WP_REST_Response([
         'success' => true, 
         'message' => 'Integration test successful'
@@ -297,28 +297,7 @@ function lovarank_test_integration($request) {
 }
 
 function lovarank_get_posts($request) {
-    // 1. Get integration key from request headers or params
-    $secret = '';
-    
-    // Try to get from headers first (WordPress way)
-    $auth_header = $request->get_header('X-Integration-Key');
-    if ($auth_header) {
-        $secret = $auth_header;
-    } else {
-        // Fallback to query parameter
-        $secret = $request->get_param('secret') ?? '';
-    }
-    
-    // 2. Verify integration key
-    $storedSecret = get_option('lovarank_api_key');
-    if (!$secret || !$storedSecret || $secret !== $storedSecret) {
-        return new WP_REST_Response([
-            'success' => false,
-            'error_code' => 'invalid_integration_key'
-        ], 403);
-    }
-    
-    // 3. Get parameters
+    // 1. Get parameters
     $page = $request->get_param('page');
     $per_page = min($request->get_param('per_page'), 500); // Max 500 per page
     $status = $request->get_param('status');
@@ -329,7 +308,7 @@ function lovarank_get_posts($request) {
         $status = 'publish'; // Default to publish if invalid
     }
     
-    // 4. Query posts
+    // 2. Query posts
     $args = [
         'post_type' => 'post',
         'post_status' => $status,
@@ -342,7 +321,7 @@ function lovarank_get_posts($request) {
     $query = new WP_Query($args);
     $posts = [];
     
-    // 5. Format post data
+    // 3. Format post data
     foreach ($query->posts as $post) {
         $categories = wp_get_post_categories($post->ID, ['fields' => 'names']);
         $tags = wp_get_post_tags($post->ID, ['fields' => 'names']);
@@ -364,7 +343,7 @@ function lovarank_get_posts($request) {
         ];
     }
     
-    // 6. Return response with pagination info
+    // 4. Return response with pagination info
     return new WP_REST_Response([
         'success' => true,
         'posts' => $posts,
