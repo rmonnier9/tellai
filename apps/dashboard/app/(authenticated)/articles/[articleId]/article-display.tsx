@@ -174,13 +174,19 @@ export function ArticleDisplay({
     }
   };
 
-  // Filter out credentials that have already been published to
+  // Map credentials to show publish status
   const publishedCredentialIds = new Set(
     article.publications.map((pub) => pub.credential.id)
   );
-  const availableCredentials = credentials.filter(
-    (cred) => !publishedCredentialIds.has(cred.id)
-  );
+
+  // Show all credentials, marking which have been published
+  const credentialsWithStatus = credentials.map((cred) => ({
+    ...cred,
+    isPublished: publishedCredentialIds.has(cred.id),
+    publication: article.publications.find(
+      (pub) => pub.credential.id === cred.id
+    ),
+  }));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -386,20 +392,19 @@ export function ArticleDisplay({
             </div>
           </div>
 
-          {/* Available Integrations */}
-          {availableCredentials.length > 0 && article.content && (
+          {/* Integrations */}
+          {credentialsWithStatus.length > 0 && article.content && (
             <Card className="bg-muted/50">
               <CardHeader>
-                <CardTitle className="text-base">
-                  Available Integrations
-                </CardTitle>
+                <CardTitle className="text-base">Integrations</CardTitle>
                 <CardDescription>
-                  Publish this article to your configured integrations
+                  Publish or republish this article to your configured
+                  integrations
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {availableCredentials.map((credential) => (
+                  {credentialsWithStatus.map((credential) => (
                     <div
                       key={credential.id}
                       className="flex items-center justify-between rounded-lg border bg-background p-3"
@@ -415,88 +420,59 @@ export function ArticleDisplay({
                                 credential.type.slice(1)}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Not yet published
+                            {credential.isPublished ? (
+                              <>
+                                Last published{' '}
+                                {credential.publication?.createdAt &&
+                                  new Date(
+                                    credential.publication.createdAt
+                                  ).toLocaleDateString()}
+                              </>
+                            ) : (
+                              'Not yet published'
+                            )}
                           </p>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handlePublishToIntegration(
-                            credential.id,
-                            credential.name || credential.type
-                          )
-                        }
-                        disabled={publishingCredentials.has(credential.id)}
-                      >
-                        {publishingCredentials.has(credential.id) ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Publishing...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            Publish
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Publications */}
-          {article.publications && article.publications.length > 0 && (
-            <Card className="bg-muted/50">
-              <CardHeader>
-                <CardTitle className="text-base">Published To</CardTitle>
-                <CardDescription>
-                  This article has been published to the following platforms
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {article.publications.map((publication) => (
-                    <div
-                      key={publication.id}
-                      className="flex items-center justify-between rounded-lg border bg-background p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                          {getIntegrationIcon(publication.credential.type)}
-                        </div>
-                        <div>
-                          <p className="font-medium">
-                            {publication.credential.name ||
-                              publication.credential.type
-                                .charAt(0)
-                                .toUpperCase() +
-                                publication.credential.type.slice(1)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Published{' '}
-                            {new Date(
-                              publication.createdAt
-                            ).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      {publication.url && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a
-                            href={publication.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            View
-                          </a>
+                      <div className="flex items-center gap-2">
+                        {credential.isPublished &&
+                          credential.publication?.url && (
+                            <Button variant="ghost" size="sm" asChild>
+                              <a
+                                href={credential.publication.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          )}
+                        <Button
+                          variant={
+                            credential.isPublished ? 'outline' : 'default'
+                          }
+                          size="sm"
+                          onClick={() =>
+                            handlePublishToIntegration(
+                              credential.id,
+                              credential.name || credential.type
+                            )
+                          }
+                          disabled={publishingCredentials.has(credential.id)}
+                        >
+                          {publishingCredentials.has(credential.id) ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Publishing...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4 mr-2" />
+                              {credential.isPublished ? 'Republish' : 'Publish'}
+                            </>
+                          )}
                         </Button>
-                      )}
+                      </div>
                     </div>
                   ))}
                 </div>

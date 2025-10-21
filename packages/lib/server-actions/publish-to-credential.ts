@@ -65,18 +65,6 @@ export async function publishToCredential({
       throw new Error('Integration does not belong to this product');
     }
 
-    // Check if already published to this credential
-    const existingPublication = await prisma.publication.findFirst({
-      where: {
-        articleId,
-        credentialId,
-      },
-    });
-
-    if (existingPublication) {
-      throw new Error('Article already published to this integration');
-    }
-
     // Get the publisher
     const publisher = getPublisher(credential.type);
 
