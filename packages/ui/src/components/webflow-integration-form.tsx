@@ -50,9 +50,20 @@ export function WebflowIntegrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSites, setIsLoadingSites] = useState(false);
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
-  const [sites, setSites] = useState<any[]>([]);
-  const [collections, setCollections] = useState<any[]>([]);
-  const [collectionFields, setCollectionFields] = useState<any[]>([]);
+  const [sites, setSites] = useState<
+    Array<{
+      id: string;
+      displayName: string;
+      shortName: string;
+      customDomains?: Array<{ url: string }>;
+    }>
+  >([]);
+  const [collections, setCollections] = useState<
+    Array<{ id: string; displayName: string; slug: string }>
+  >([]);
+  const [collectionFields, setCollectionFields] = useState<
+    Array<{ slug: string; displayName: string; type: string }>
+  >([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');
   const [fieldMappings, setFieldMappings] = useState<Record<string, string>>(
     {}
@@ -111,15 +122,6 @@ export function WebflowIntegrationForm() {
       toast.success(
         `Found ${data.sites.length} site${data.sites.length > 1 ? 's' : ''}!`
       );
-
-      // Auto-select if there's only one site
-      if (data.sites.length === 1) {
-        const singleSite = data.sites[0];
-        // Use setTimeout to ensure sites state is updated before selecting
-        setTimeout(() => {
-          handleSiteChange(singleSite.id);
-        }, 0);
-      }
     } catch (error) {
       console.error('Error fetching sites:', error);
       toast.error(
@@ -164,15 +166,6 @@ export function WebflowIntegrationForm() {
       toast.success(
         `Found ${data.collections.length} collection${data.collections.length > 1 ? 's' : ''}!`
       );
-
-      // Auto-select if there's only one collection
-      if (data.collections.length === 1) {
-        const singleCollection = data.collections[0];
-        // Use setTimeout to ensure collections state is updated before selecting
-        setTimeout(() => {
-          handleCollectionChange(singleCollection.id);
-        }, 0);
-      }
     } catch (error) {
       console.error('Error fetching collections:', error);
       toast.error(
@@ -362,55 +355,80 @@ export function WebflowIntegrationForm() {
                 )}
               />
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Webflow Site <span className="text-destructive">*</span>
-                </label>
-                <Select
-                  value={selectedSiteId}
-                  onValueChange={handleSiteChange}
-                  disabled={
-                    isSubmitting || isLoadingSites || sites.length === 0
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose Webflow Site" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sites.map((site) => (
-                      <SelectItem key={site.id} value={site.id}>
-                        {site.displayName} ({site.shortName})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <FormField
+                control={form.control}
+                name="siteUrl"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>
+                      Webflow Site <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        value={selectedSiteId}
+                        onValueChange={handleSiteChange}
+                        disabled={
+                          isSubmitting || isLoadingSites || sites.length === 0
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose Webflow Site" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sites.map((site) => (
+                            <SelectItem key={site.id} value={site.id}>
+                              {site.displayName} ({site.shortName})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Webflow Collection <span className="text-destructive">*</span>
-                </label>
-                <Select
-                  value={form.watch('collectionId')}
-                  onValueChange={handleCollectionChange}
-                  disabled={
-                    isSubmitting ||
-                    isLoadingCollections ||
-                    collections.length === 0
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose Webflow Collection" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {collections.map((collection) => (
-                      <SelectItem key={collection.id} value={collection.id}>
-                        {collection.displayName} ({collection.slug})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <FormField
+                control={form.control}
+                name="collectionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Webflow Collection{' '}
+                      <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleCollectionChange(value);
+                        }}
+                        disabled={
+                          isSubmitting ||
+                          isLoadingCollections ||
+                          collections.length === 0
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose Webflow Collection" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {collections.map((collection) => (
+                            <SelectItem
+                              key={collection.id}
+                              value={collection.id}
+                            >
+                              {collection.displayName} ({collection.slug})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="rounded-lg border bg-muted/50 p-4">
                 <div className="mb-4 flex items-start justify-between">
