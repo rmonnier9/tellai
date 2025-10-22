@@ -19,7 +19,6 @@ import { Card } from '@workspace/ui/components/card';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -52,7 +51,6 @@ export function WebflowIntegrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSites, setIsLoadingSites] = useState(false);
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
-  const [isLoadingFields, setIsLoadingFields] = useState(false);
   const [sites, setSites] = useState<any[]>([]);
   const [collections, setCollections] = useState<any[]>([]);
   const [collectionFields, setCollectionFields] = useState<any[]>([]);
@@ -73,11 +71,13 @@ export function WebflowIntegrationForm() {
     },
   });
 
-  const fetchSites = async () => {
-    const accessToken = form.getValues('accessToken');
-
+  const fetchSites = async (accessToken: string) => {
     if (!accessToken) {
-      toast.error('Please enter your API Token first');
+      setSites([]);
+      setCollections([]);
+      setCollectionFields([]);
+      setSelectedSiteId('');
+      setFieldMappings({});
       return;
     }
 
@@ -86,6 +86,7 @@ export function WebflowIntegrationForm() {
     setCollections([]);
     setCollectionFields([]);
     setSelectedSiteId('');
+    setFieldMappings({});
 
     try {
       const response = await fetch('/api/webflow/sites', {
@@ -174,7 +175,6 @@ export function WebflowIntegrationForm() {
       return;
     }
 
-    setIsLoadingFields(true);
     setFieldMappings({}); // Clear previous mappings
     try {
       const response = await fetch(`/api/webflow/collections/${collectionId}`, {
@@ -205,8 +205,6 @@ export function WebflowIntegrationForm() {
         error instanceof Error ? error.message : 'Failed to fetch fields',
         { duration: 6000 }
       );
-    } finally {
-      setIsLoadingFields(false);
     }
   };
 
@@ -324,7 +322,10 @@ export function WebflowIntegrationForm() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Integration Name</FormLabel>
+                    <FormLabel>
+                      Integration Name{' '}
+                      <span className="text-destructive">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="My Webflow Site"
@@ -332,9 +333,6 @@ export function WebflowIntegrationForm() {
                         disabled={isSubmitting}
                       />
                     </FormControl>
-                    <FormDescription>
-                      A friendly name to identify this integration
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -345,133 +343,86 @@ export function WebflowIntegrationForm() {
                 name="accessToken"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>API Token</FormLabel>
-                    <div className="flex gap-2">
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Enter your Webflow API token"
-                          {...field}
-                          disabled={isSubmitting}
-                        />
-                      </FormControl>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={fetchSites}
-                        disabled={
-                          isLoadingSites || !field.value || isSubmitting
-                        }
-                      >
-                        {isLoadingSites ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Loading...
-                          </>
-                        ) : (
-                          'Load Sites'
-                        )}
-                      </Button>
-                    </div>
-                    <FormDescription>
-                      Your Webflow API token with CMS permissions. Click "Load
-                      Sites" to fetch your sites.
-                    </FormDescription>
+                    <FormLabel>
+                      API Token <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Enter your Webflow API token"
+                        {...field}
+                        disabled={isSubmitting}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          fetchSites(e.target.value);
+                        }}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {sites.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Select Site</label>
-                  <Select
-                    value={selectedSiteId}
-                    onValueChange={handleSiteChange}
-                    disabled={isSubmitting || isLoadingCollections}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a site" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sites.map((site) => (
-                        <SelectItem key={site.id} value={site.id}>
-                          {site.displayName} ({site.shortName})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Select the Webflow site where you want to publish articles
-                  </p>
-                </div>
-              )}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Webflow Site <span className="text-destructive">*</span>
+                </label>
+                <Select
+                  value={selectedSiteId}
+                  onValueChange={handleSiteChange}
+                  disabled={
+                    isSubmitting || isLoadingSites || sites.length === 0
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose Webflow Site" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sites.map((site) => (
+                      <SelectItem key={site.id} value={site.id}>
+                        {site.displayName} ({site.shortName})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {collections.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Select Collection
-                  </label>
-                  <Select
-                    value={form.watch('collectionId')}
-                    onValueChange={handleCollectionChange}
-                    disabled={isSubmitting || isLoadingFields}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a collection" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {collections.map((collection) => (
-                        <SelectItem key={collection.id} value={collection.id}>
-                          {collection.displayName} ({collection.slug})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Select the CMS collection for your blog posts
-                  </p>
-                </div>
-              )}
-
-              <FormField
-                control={form.control}
-                name="publishingStatus"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Publishing Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      disabled={isSubmitting}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select publishing status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="live">Live</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Whether to publish articles as drafts or make them live
-                      immediately
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Webflow Collection <span className="text-destructive">*</span>
+                </label>
+                <Select
+                  value={form.watch('collectionId')}
+                  onValueChange={handleCollectionChange}
+                  disabled={
+                    isSubmitting ||
+                    isLoadingCollections ||
+                    collections.length === 0
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose Webflow Collection" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {collections.map((collection) => (
+                      <SelectItem key={collection.id} value={collection.id}>
+                        {collection.displayName} ({collection.slug})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div className="rounded-lg border bg-muted/50 p-4">
-                <div className="mb-4">
-                  <h3 className="font-medium">Field Mapping</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {collectionFields.length > 0
-                      ? 'Map your app fields to the corresponding Webflow fields. App fields can be used multiple times.'
-                      : 'Select a collection to automatically load and map fields'}
-                  </p>
+                <div className="mb-4 flex items-start justify-between">
+                  <div>
+                    <h3 className="font-medium">Fields</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {collectionFields.length > 0
+                        ? 'Map your app fields to the corresponding Webflow fields. App fields can be used multiple times.'
+                        : 'Complete the form to choose fields'}
+                    </p>
+                  </div>
                 </div>
 
                 {fieldMappingEnabled && collectionFields.length > 0 ? (
@@ -512,14 +463,42 @@ export function WebflowIntegrationForm() {
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Select a collection to load fields and map your app fields
-                    to Webflow fields. If not configured, default mappings will
-                    be used.
-                  </p>
-                )}
+                ) : null}
               </div>
+
+              <FormField
+                control={form.control}
+                name="publishingStatus"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Publishing Behavior{' '}
+                      <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isSubmitting}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Publish Immediately" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="live">
+                          Publish Immediately
+                        </SelectItem>
+                        <SelectItem value="staged">
+                          Stage for Publishing
+                        </SelectItem>
+                        <SelectItem value="draft">Save as Draft</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex gap-4">
                 <Button
