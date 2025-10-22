@@ -45,6 +45,7 @@ export async function completeOnboarding(data: OnboardingProductSchema) {
         country: validatedData.country,
         logo: validatedData.logo || null,
         targetAudiences: validatedData.targetAudiences,
+        competitors: validatedData.competitors || [],
         sitemapUrl: validatedData.sitemapUrl || null,
         blogUrl: validatedData.blogUrl || null,
         bestArticles: validatedData.bestArticles || [],

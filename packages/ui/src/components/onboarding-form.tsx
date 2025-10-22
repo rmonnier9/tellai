@@ -54,6 +54,7 @@ export function OnboardingForm() {
       country: '',
       logo: '',
       targetAudiences: [],
+      competitors: [],
       sitemapUrl: '',
       blogUrl: '',
       bestArticles: [],
@@ -96,11 +97,14 @@ export function OnboardingForm() {
         form.setValue('country', result.result.country || '');
         form.setValue('logo', result.result.logo || '');
         form.setValue('targetAudiences', result.result.targetAudiences || []);
-        // Set sitemapUrl if available (type assertion for now)
-        const resultWithSitemap = result.result as typeof result.result & {
+
+        // Set competitors and sitemapUrl if available (type assertion for now)
+        const resultWithExtras = result.result as typeof result.result & {
           sitemapUrl?: string;
+          competitors?: string[];
         };
-        form.setValue('sitemapUrl', resultWithSitemap.sitemapUrl || '');
+        form.setValue('sitemapUrl', resultWithExtras.sitemapUrl || '');
+        form.setValue('competitors', resultWithExtras.competitors || []);
 
         // Clear any validation errors for the fields we just populated
         form.clearErrors([
@@ -110,6 +114,7 @@ export function OnboardingForm() {
           'country',
           'logo',
           'targetAudiences',
+          'competitors',
           'sitemapUrl',
         ]);
 
@@ -189,7 +194,7 @@ export function OnboardingForm() {
 
   const handleAudienceNext = async () => {
     const fieldsToValidate: (keyof z.infer<typeof OnboardingProductSchema>)[] =
-      ['targetAudiences'];
+      ['targetAudiences', 'competitors'];
     const isValid = await form.trigger(fieldsToValidate);
 
     if (isValid) {

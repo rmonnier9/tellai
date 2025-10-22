@@ -34,6 +34,11 @@ const outputSchema = z.object({
   targetAudiences: z
     .array(z.string())
     .describe('list of specific target audience segments'),
+  competitors: z
+    .array(z.string().url())
+    .min(3)
+    .max(7)
+    .describe('list of competitor domain names (without www prefix)'),
   sitemapUrl: z.string().describe('URL of the website sitemap'),
 });
 
@@ -276,9 +281,13 @@ Please provide:
 2. The country code where the business operates (infer from domain, content, or context)
 3. A detailed description of what the business does (write this in the website's language: ${rawData.language})
 4. 3-5 specific target audience segments - write these in the website's language: ${rawData.language}
+5. 3-5 known competitors in the same industry/niche - provide FULL URLs with https:// protocol (e.g., "https://shopify.com", "https://wix.com", "https://squarespace.com")
 
-IMPORTANT: The description and target audiences MUST be written in the same language as the website (${rawData.language}), not in English.
-Target audiences should be SHORT but descriptive PHRASES (not full sentences), like labels or titles identifying specific professional groups or business types. Keep each under 10 words maximum.
+IMPORTANT: 
+- The description and target audiences MUST be written in the same language as the website (${rawData.language}), not in English.
+- Target audiences should be SHORT but descriptive PHRASES (not full sentences), like labels or titles identifying specific professional groups or business types. Keep each under 10 words maximum.
+- For competitors, provide FULL URLs with https:// protocol (e.g., "https://competitor.com" not "competitor.com" or "www.competitor.com")
+- Competitors should be well-known, established companies in the same industry
 
 Be specific and accurate based on the content provided.`;
 
@@ -301,7 +310,36 @@ Be specific and accurate based on the content provided.`;
             .describe(
               'A list of 3-5 specific and descriptive target audience segments (e.g., "Artisans et commerçants", "TPE/PME souhaitant piloter trésorerie")'
             ),
+          competitors: z
+            .array(z.string())
+            .describe(
+              'A list of 3-5 competitor URLs with https:// protocol (e.g., ["https://shopify.com", "https://wix.com", "https://squarespace.com"])'
+            ),
         }),
+      });
+
+      // Clean up competitor URLs to ensure they have protocol and no www prefix
+      const cleanCompetitors = result.object.competitors.map((comp) => {
+        let url = comp.trim();
+
+        // Add protocol if missing
+        if (!url.match(/^https?:\/\//i)) {
+          url = `https://${url}`;
+        }
+
+        try {
+          const urlObj = new URL(url);
+          // Remove www prefix from hostname
+          let hostname = urlObj.hostname;
+          if (hostname.startsWith('www.')) {
+            hostname = hostname.substring(4);
+          }
+          // Return clean URL with protocol and hostname only (no path)
+          return `${urlObj.protocol}//${hostname}`;
+        } catch {
+          // If URL parsing fails, return as-is
+          return url;
+        }
       });
 
       return {
@@ -311,6 +349,7 @@ Be specific and accurate based on the content provided.`;
         country: result.object.country,
         description: result.object.description,
         targetAudiences: result.object.targetAudiences,
+        competitors: cleanCompetitors,
         language: rawData.language.split('-')[0] || 'en',
         sitemapUrl,
       };

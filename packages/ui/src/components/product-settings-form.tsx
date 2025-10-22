@@ -27,6 +27,7 @@ interface ProductSettingsFormProps {
     country?: string | null;
     logo?: string | null;
     targetAudiences?: string[];
+    competitors?: string[];
     sitemapUrl?: string | null;
     blogUrl?: string | null;
     bestArticles?: string[];
@@ -55,6 +56,7 @@ export function ProductSettingsForm({ product }: ProductSettingsFormProps) {
       country: '',
       logo: '',
       targetAudiences: [],
+      competitors: [],
       sitemapUrl: '',
       blogUrl: '',
       bestArticles: [],
@@ -81,6 +83,7 @@ export function ProductSettingsForm({ product }: ProductSettingsFormProps) {
         country: product.country || '',
         logo: product.logo || '',
         targetAudiences: product.targetAudiences || [],
+        competitors: product.competitors || [],
         sitemapUrl: product.sitemapUrl || '',
         blogUrl: product.blogUrl || '',
         bestArticles: product.bestArticles || [],

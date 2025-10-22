@@ -20,6 +20,7 @@ export const OnboardingProductSchema = z.object({
   targetAudiences: z
     .array(z.string())
     .min(1, 'Add at least one target audience'),
+  competitors: z.array(z.string().url()).min(3).max(7).optional(),
   sitemapUrl: z
     .string()
     .url('Please enter a valid URL')
@@ -68,6 +69,7 @@ export const UpdateProductSchema = z.object({
   targetAudiences: z
     .array(z.string())
     .min(1, 'Add at least one target audience'),
+  competitors: z.array(z.string()).max(7, 'Maximum 7 competitors').optional(),
   sitemapUrl: z
     .string()
     .url('Please enter a valid URL')
