@@ -55,7 +55,6 @@ export function WebflowIntegrationForm() {
   const [collections, setCollections] = useState<any[]>([]);
   const [collectionFields, setCollectionFields] = useState<any[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');
-  const [fieldMappingEnabled, setFieldMappingEnabled] = useState(false);
   const [fieldMappings, setFieldMappings] = useState<Record<string, string>>(
     {}
   );
@@ -113,6 +112,15 @@ export function WebflowIntegrationForm() {
       toast.success(
         `Found ${data.sites.length} site${data.sites.length > 1 ? 's' : ''}!`
       );
+
+      // Auto-select if there's only one site
+      if (data.sites.length === 1) {
+        const singleSite = data.sites[0];
+        // Use setTimeout to ensure sites state is updated before selecting
+        setTimeout(() => {
+          handleSiteChange(singleSite.id);
+        }, 0);
+      }
     } catch (error) {
       console.error('Error fetching sites:', error);
       toast.error(
@@ -157,6 +165,15 @@ export function WebflowIntegrationForm() {
       toast.success(
         `Found ${data.collections.length} collection${data.collections.length > 1 ? 's' : ''}!`
       );
+
+      // Auto-select if there's only one collection
+      if (data.collections.length === 1) {
+        const singleCollection = data.collections[0];
+        // Use setTimeout to ensure collections state is updated before selecting
+        setTimeout(() => {
+          handleCollectionChange(singleCollection.id);
+        }, 0);
+      }
     } catch (error) {
       console.error('Error fetching collections:', error);
       toast.error(
@@ -195,7 +212,6 @@ export function WebflowIntegrationForm() {
       }
 
       setCollectionFields(data.fields);
-      setFieldMappingEnabled(true);
       toast.success(
         `Loaded ${data.fields.length} field${data.fields.length > 1 ? 's' : ''}!`
       );
@@ -239,11 +255,9 @@ export function WebflowIntegrationForm() {
 
     try {
       // Build field mapping if enabled - filter out empty values
-      const fieldMapping = fieldMappingEnabled
-        ? Object.fromEntries(
-            Object.entries(fieldMappings).filter(([, value]) => value !== '')
-          )
-        : undefined;
+      const fieldMapping = Object.fromEntries(
+        Object.entries(fieldMappings).filter(([, value]) => value !== '')
+      );
 
       const credentialData: z.infer<typeof WebflowCredentialSchema> = {
         ...data,
@@ -348,7 +362,7 @@ export function WebflowIntegrationForm() {
                     </FormLabel>
                     <FormControl>
                       <Input
-                        type="password"
+                        type="text"
                         placeholder="Enter your Webflow API token"
                         {...field}
                         disabled={isSubmitting}
@@ -425,7 +439,7 @@ export function WebflowIntegrationForm() {
                   </div>
                 </div>
 
-                {fieldMappingEnabled && collectionFields.length > 0 ? (
+                {collectionFields.length > 0 ? (
                   <div className="grid grid-cols-2 gap-4">
                     {collectionFields.map((field) => (
                       <div key={field.slug} className="space-y-2">
