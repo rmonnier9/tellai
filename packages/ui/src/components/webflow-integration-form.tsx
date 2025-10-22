@@ -1,8 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ExternalLink, Info, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { Info, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -291,7 +290,7 @@ export function WebflowIntegrationForm() {
 
         <Alert>
           <Info className="h-4 w-4" />
-          <AlertTitle>Before you begin</AlertTitle>
+          <AlertTitle>How to get your API token</AlertTitle>
           <AlertDescription>
             <ol className="mt-2 list-inside list-decimal space-y-1 text-sm">
               <li>
@@ -305,26 +304,12 @@ export function WebflowIntegrationForm() {
                     <strong>sites:read</strong> - Required for field mapping
                   </li>
                   <li>
-                    <strong>cms:read</strong> - Required for field mapping
-                  </li>
-                  <li>
-                    <strong>cms:write</strong> - Required to create articles
+                    <strong>cms:read/write</strong> - Required for field mapping
+                    and to create articles
                   </li>
                 </ul>
               </li>
-              <li>
-                Find your blog collection ID (you can get it from the Collection
-                settings in your Webflow CMS)
-              </li>
             </ol>
-            <Link
-              href="https://developers.webflow.com/data/reference/authorization"
-              target="_blank"
-              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-            >
-              Learn more in Webflow documentation
-              <ExternalLink className="h-3 w-3" />
-            </Link>
           </AlertDescription>
         </Alert>
 
@@ -388,7 +373,7 @@ export function WebflowIntegrationForm() {
                     isSubmitting || isLoadingSites || sites.length === 0
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Choose Webflow Site" />
                   </SelectTrigger>
                   <SelectContent>
@@ -414,7 +399,7 @@ export function WebflowIntegrationForm() {
                     collections.length === 0
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Choose Webflow Collection" />
                   </SelectTrigger>
                   <SelectContent>
@@ -455,7 +440,7 @@ export function WebflowIntegrationForm() {
                             }));
                           }}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue
                               placeholder={`Choose ${field.displayName}`}
                             />
