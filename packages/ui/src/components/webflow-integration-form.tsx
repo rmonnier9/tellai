@@ -37,6 +37,16 @@ import {
 import { WebflowCredentialSchema } from '@workspace/lib/dtos';
 import { createCredential } from '@workspace/lib/server-actions/create-credential';
 
+// App fields that can be mapped to Webflow fields
+const APP_FIELDS = [
+  { value: 'title', label: 'Title' },
+  { value: 'slug', label: 'Slug' },
+  { value: 'metaDescription', label: 'Meta Description' },
+  { value: 'publishDate', label: 'Publish Date' },
+  { value: 'mainContent', label: 'Main Content' },
+  { value: 'image', label: 'Image' },
+];
+
 export function WebflowIntegrationForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +58,9 @@ export function WebflowIntegrationForm() {
   const [collectionFields, setCollectionFields] = useState<any[]>([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');
   const [fieldMappingEnabled, setFieldMappingEnabled] = useState(false);
+  const [fieldMappings, setFieldMappings] = useState<Record<string, string>>(
+    {}
+  );
 
   const form = useForm<z.infer<typeof WebflowCredentialSchema>>({
     resolver: zodResolver(WebflowCredentialSchema),
@@ -56,7 +69,7 @@ export function WebflowIntegrationForm() {
       accessToken: '',
       collectionId: '',
       siteUrl: '',
-      publishingStatus: 'draft',
+      publishingStatus: 'live',
     },
   });
 
@@ -162,6 +175,7 @@ export function WebflowIntegrationForm() {
     }
 
     setIsLoadingFields(true);
+    setFieldMappings({}); // Clear previous mappings
     try {
       const response = await fetch(`/api/webflow/collections/${collectionId}`, {
         headers: {
@@ -226,25 +240,11 @@ export function WebflowIntegrationForm() {
     setIsSubmitting(true);
 
     try {
-      // Build field mapping if enabled
+      // Build field mapping if enabled - filter out empty values
       const fieldMapping = fieldMappingEnabled
-        ? {
-            titleField:
-              (document.getElementById('titleField') as HTMLSelectElement)
-                ?.value || 'name',
-            slugField:
-              (document.getElementById('slugField') as HTMLSelectElement)
-                ?.value || 'slug',
-            contentField:
-              (document.getElementById('contentField') as HTMLSelectElement)
-                ?.value || 'post-body',
-            descriptionField:
-              (document.getElementById('descriptionField') as HTMLSelectElement)
-                ?.value || 'post-summary',
-            imageField:
-              (document.getElementById('imageField') as HTMLSelectElement)
-                ?.value || 'main-image',
-          }
+        ? Object.fromEntries(
+            Object.entries(fieldMappings).filter(([, value]) => value !== '')
+          )
         : undefined;
 
       const credentialData: z.infer<typeof WebflowCredentialSchema> = {
@@ -469,139 +469,54 @@ export function WebflowIntegrationForm() {
                   <h3 className="font-medium">Field Mapping</h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     {collectionFields.length > 0
-                      ? `Detected ${collectionFields.length} field${collectionFields.length !== 1 ? 's' : ''} from your Webflow collection. Map them to article data below. All fields are shown with their types.`
+                      ? 'Map your app fields to the corresponding Webflow fields. App fields can be used multiple times.'
                       : 'Select a collection to automatically load and map fields'}
                   </p>
                 </div>
 
                 {fieldMappingEnabled && collectionFields.length > 0 ? (
-                  <div className="space-y-4">
-                    <div>
-                      <label
-                        htmlFor="titleField"
-                        className="text-sm font-medium"
-                      >
-                        Title Field
-                      </label>
-                      <select
-                        id="titleField"
-                        className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2"
-                        defaultValue="name"
-                      >
-                        <option value="">-- Select field --</option>
-                        {collectionFields.map((field) => (
-                          <option key={field.slug} value={field.slug}>
-                            {field.displayName} ({field.slug}) - {field.type}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Recommended: Plain Text field for the article title
-                      </p>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="slugField"
-                        className="text-sm font-medium"
-                      >
-                        Slug Field
-                      </label>
-                      <select
-                        id="slugField"
-                        className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2"
-                        defaultValue="slug"
-                      >
-                        <option value="">-- Select field --</option>
-                        {collectionFields.map((field) => (
-                          <option key={field.slug} value={field.slug}>
-                            {field.displayName} ({field.slug}) - {field.type}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Recommended: Plain Text field set as the collection slug
-                      </p>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="contentField"
-                        className="text-sm font-medium"
-                      >
-                        Content Field
-                      </label>
-                      <select
-                        id="contentField"
-                        className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2"
-                        defaultValue="post-body"
-                      >
-                        <option value="">-- Select field --</option>
-                        {collectionFields.map((field) => (
-                          <option key={field.slug} value={field.slug}>
-                            {field.displayName} ({field.slug}) - {field.type}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Recommended: Rich Text field for the article content
-                      </p>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="descriptionField"
-                        className="text-sm font-medium"
-                      >
-                        Description Field (Optional)
-                      </label>
-                      <select
-                        id="descriptionField"
-                        className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2"
-                        defaultValue="post-summary"
-                      >
-                        <option value="">-- Select field --</option>
-                        {collectionFields.map((field) => (
-                          <option key={field.slug} value={field.slug}>
-                            {field.displayName} ({field.slug}) - {field.type}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Recommended: Plain Text field for the article meta
-                        description / summary
-                      </p>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="imageField"
-                        className="text-sm font-medium"
-                      >
-                        Featured Image Field (Optional)
-                      </label>
-                      <select
-                        id="imageField"
-                        className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2"
-                        defaultValue="main-image"
-                      >
-                        <option value="">-- Select field --</option>
-                        {collectionFields.map((field) => (
-                          <option key={field.slug} value={field.slug}>
-                            {field.displayName} ({field.slug}) - {field.type}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Recommended: Image field for the article featured image
-                      </p>
-                    </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {collectionFields.map((field) => (
+                      <div key={field.slug} className="space-y-2">
+                        <label className="text-sm font-medium">
+                          {field.displayName}
+                        </label>
+                        <Select
+                          value={fieldMappings[field.slug]}
+                          onValueChange={(value) => {
+                            setFieldMappings((prev) => ({
+                              ...prev,
+                              [field.slug]: value,
+                            }));
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={`Choose ${field.displayName}`}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {APP_FIELDS.map((appField) => (
+                              <SelectItem
+                                key={appField.value}
+                                value={appField.value}
+                              >
+                                {appField.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          {field.type}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Click "Load Fields" to fetch and map your collection fields.
-                    If not configured, default field names will be used (name,
-                    slug, post-body, post-summary, main-image).
+                    Select a collection to load fields and map your app fields
+                    to Webflow fields. If not configured, default mappings will
+                    be used.
                   </p>
                 )}
               </div>
