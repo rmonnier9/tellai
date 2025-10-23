@@ -14,6 +14,7 @@ export function buildFieldData(
 ) {
   return Object.entries(mapping).reduce(
     (acc, [key, value]) => {
+      // Map app fields to article data
       if (value === 'title') {
         acc[key] = article.title;
       } else if (value === 'slug') {
@@ -27,8 +28,19 @@ export function buildFieldData(
       } else if (value === 'image') {
         acc[key] = article.imageUrl;
       }
+      // Handle boolean values (for Bool/switch fields)
+      else if (value === 'true') {
+        acc[key] = true;
+      } else if (value === 'false') {
+        acc[key] = false;
+      }
+      // Handle reference IDs (for ItemRef/ItemRefSet fields)
+      // If value doesn't match any known app field, treat it as a direct value
+      else if (value) {
+        acc[key] = value;
+      }
       return acc;
     },
-    {} as Record<string, string>
+    {} as Record<string, any>
   );
 }

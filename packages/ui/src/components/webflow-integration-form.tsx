@@ -60,12 +60,24 @@ export function WebflowIntegrationForm() {
     Array<{ id: string; displayName: string; slug: string }>
   >([]);
   const [collectionFields, setCollectionFields] = useState<
-    Array<{ slug: string; displayName: string; type: string }>
+    Array<{
+      slug: string;
+      displayName: string;
+      type: string;
+      isEditable: boolean;
+      isRequired: boolean;
+      validations?: {
+        collectionId?: string;
+      };
+    }>
   >([]);
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');
   const [fieldMappings, setFieldMappings] = useState<Record<string, string>>(
     {}
   );
+  const [referenceOptions, setReferenceOptions] = useState<
+    Record<string, Array<{ id: string; name: string }>>
+  >({});
 
   const form = useForm<z.infer<typeof WebflowCredentialSchema>>({
     resolver: zodResolver(WebflowCredentialSchema),
@@ -77,6 +89,7 @@ export function WebflowIntegrationForm() {
       publishingStatus: 'live',
     },
   });
+  console.log('collectionFields', collectionFields);
 
   const fetchSites = async (accessToken: string) => {
     if (!accessToken) {
@@ -175,6 +188,54 @@ export function WebflowIntegrationForm() {
     }
   };
 
+  const fetchReferenceItems = async (
+    collectionId: string,
+    fieldSlug: string
+  ) => {
+    const accessToken = form.getValues('accessToken');
+
+    if (!accessToken || !collectionId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/webflow/collections/${collectionId}/items`,
+        {
+          headers: {
+            'x-webflow-token': accessToken,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error('Failed to fetch reference items');
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.items && Array.isArray(data.items)) {
+        const options = data.items.map(
+          (item: {
+            id: string;
+            fieldData?: { name?: string; title?: string };
+          }) => ({
+            id: item.id,
+            name: item.fieldData?.name || item.fieldData?.title || item.id,
+          })
+        );
+
+        setReferenceOptions((prev) => ({
+          ...prev,
+          [fieldSlug]: options,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching reference items:', error);
+    }
+  };
+
   const fetchCollectionFields = async (collectionId: string) => {
     const accessToken = form.getValues('accessToken');
 
@@ -183,6 +244,8 @@ export function WebflowIntegrationForm() {
     }
 
     setFieldMappings({}); // Clear previous mappings
+    setReferenceOptions({}); // Clear previous reference options
+
     try {
       const response = await fetch(`/api/webflow/collections/${collectionId}`, {
         headers: {
@@ -202,6 +265,13 @@ export function WebflowIntegrationForm() {
       }
 
       setCollectionFields(data.fields);
+
+      for (const field of data.fields) {
+        if (field.type === 'Reference' && field.validations?.collectionId) {
+          await fetchReferenceItems(field.validations.collectionId, field.slug);
+        }
+      }
+
       toast.success(
         `Loaded ${data.fields.length} field${data.fields.length > 1 ? 's' : ''}!`
       );
@@ -442,41 +512,133 @@ export function WebflowIntegrationForm() {
 
                 {collectionFields.length > 0 ? (
                   <div className="grid grid-cols-2 gap-4">
-                    {collectionFields.map((field) => (
-                      <div key={field.slug} className="space-y-2">
-                        <label className="text-sm font-medium">
-                          {field.displayName}
-                        </label>
-                        <Select
-                          value={fieldMappings[field.slug]}
-                          onValueChange={(value) => {
-                            setFieldMappings((prev) => ({
-                              ...prev,
-                              [field.slug]: value,
-                            }));
-                          }}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue
-                              placeholder={`Choose ${field.displayName}`}
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {APP_FIELDS.map((appField) => (
-                              <SelectItem
-                                key={appField.value}
-                                value={appField.value}
+                    {collectionFields
+                      .filter((field) => field.isEditable)
+                      .map((field) => {
+                        if (field.type === 'Switch') {
+                          return (
+                            <div key={field.slug} className="space-y-2">
+                              <label className="text-sm font-medium">
+                                {field.displayName}
+                                {field.isRequired && (
+                                  <span className="text-destructive ml-1">
+                                    *
+                                  </span>
+                                )}
+                              </label>
+                              <Select
+                                value={fieldMappings[field.slug]}
+                                onValueChange={(value) => {
+                                  setFieldMappings((prev) => ({
+                                    ...prev,
+                                    [field.slug]: value,
+                                  }));
+                                }}
                               >
-                                {appField.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">
-                          {field.type}
-                        </p>
-                      </div>
-                    ))}
+                                <SelectTrigger className="w-full">
+                                  <SelectValue
+                                    placeholder={`Choose value for ${field.displayName}`}
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="true">True</SelectItem>
+                                  <SelectItem value="false">False</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-muted-foreground">
+                                {field.type}
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        const refOptions = referenceOptions[field.slug];
+                        if (
+                          field.type === 'Reference' &&
+                          refOptions &&
+                          refOptions.length > 0
+                        ) {
+                          return (
+                            <div key={field.slug} className="space-y-2">
+                              <label className="text-sm font-medium">
+                                {field.displayName}
+                                {field.isRequired && (
+                                  <span className="text-destructive ml-1">
+                                    *
+                                  </span>
+                                )}
+                              </label>
+                              <Select
+                                value={fieldMappings[field.slug]}
+                                onValueChange={(value) => {
+                                  setFieldMappings((prev) => ({
+                                    ...prev,
+                                    [field.slug]: value,
+                                  }));
+                                }}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue
+                                    placeholder={`Choose ${field.displayName}`}
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {refOptions.map((option) => (
+                                    <SelectItem
+                                      key={option.id}
+                                      value={option.id}
+                                    >
+                                      {option.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-muted-foreground">
+                                {field.type}
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div key={field.slug} className="space-y-2">
+                            <label className="text-sm font-medium">
+                              {field.displayName}
+                              {field.isRequired && (
+                                <span className="text-destructive ml-1">*</span>
+                              )}
+                            </label>
+                            <Select
+                              value={fieldMappings[field.slug]}
+                              onValueChange={(value) => {
+                                setFieldMappings((prev) => ({
+                                  ...prev,
+                                  [field.slug]: value,
+                                }));
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue
+                                  placeholder={`Choose ${field.displayName}`}
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {APP_FIELDS.map((appField) => (
+                                  <SelectItem
+                                    key={appField.value}
+                                    value={appField.value}
+                                  >
+                                    {appField.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                              {field.type}
+                            </p>
+                          </div>
+                        );
+                      })}
                   </div>
                 ) : null}
               </div>
