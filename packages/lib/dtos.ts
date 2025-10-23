@@ -1,4 +1,4 @@
-import type { Product } from '@workspace/db/prisma/generated/client';
+import type { Article, Product } from '@workspace/db/prisma/generated/client';
 import { JobType } from '@workspace/db/prisma/generated/enums';
 import { z } from 'zod';
 
@@ -204,3 +204,30 @@ export const ProductSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 }) satisfies z.ZodType<Product>;
+
+export const ArticleSchema = z.object({
+  id: z.string(),
+  productId: z.string(),
+  product: ProductSchema,
+  keyword: z.string(),
+  title: z.string().nullable(),
+  type: z.enum(['guide', 'listicle']),
+  guideSubtype: z
+    .enum(['how_to', 'explainer', 'comparison', 'reference'])
+    .nullable(),
+  listicleSubtype: z.enum(['round_up', 'resources', 'examples']).nullable(),
+  searchVolume: z.number().nullable(),
+  keywordDifficulty: z.number().nullable(),
+  cpc: z.number().nullable(),
+  competition: z.string().nullable(),
+  scheduledDate: z.date(),
+  status: z.enum(['pending', 'generated', 'published']),
+  content: z.string().nullable(),
+  metaDescription: z.string().nullable(),
+  publishedUrl: z.string().nullable(),
+  featuredImageUrl: z.string().nullable(),
+  publications: z.array(z.any()),
+  jobs: z.array(z.any()),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+}) satisfies z.ZodType<Article>;

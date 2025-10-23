@@ -1,5 +1,5 @@
 import prisma from '@workspace/db/prisma/client';
-import { Job } from '@workspace/db/prisma/generated/client';
+import type { Job, Publication } from '@workspace/db/prisma/generated/client';
 import { mastra } from '../mastra';
 import { getPublisher } from '../publishers';
 
@@ -18,49 +18,9 @@ export const articleGeneration = async (job: Job) => {
     },
   });
 
-  if (!article) {
-    throw new Error(`Article with ID ${articleId} not found`);
-  }
-
   // Prepare workflow input
   const workflowInput = {
     articleId,
-    articleData: {
-      keyword: article.keyword,
-      title: article.title,
-      type: article.type as 'guide' | 'listicle',
-      guideSubtype: article.guideSubtype as
-        | 'how_to'
-        | 'explainer'
-        | 'comparison'
-        | 'reference'
-        | null,
-      listicleSubtype: article.listicleSubtype as
-        | 'round_up'
-        | 'resources'
-        | 'examples'
-        | null,
-      searchVolume: article.searchVolume,
-      keywordDifficulty: article.keywordDifficulty,
-      cpc: article.cpc,
-      competition: article.competition,
-    },
-    productData: {
-      name: article.product.name,
-      description: article.product.description,
-      url: article.product.url,
-      language: article.product.language,
-      country: article.product.country,
-      targetAudiences: article.product.targetAudiences,
-      bestArticles: article.product.bestArticles,
-      articleStyle: article.product.articleStyle,
-      internalLinks: article.product.internalLinks,
-      globalInstructions: article.product.globalInstructions,
-      includeYoutubeVideo: article.product.includeYoutubeVideo,
-      includeCallToAction: article.product.includeCallToAction,
-      includeInfographics: article.product.includeInfographics,
-      includeEmojis: article.product.includeEmojis,
-    },
   };
 
   // Get the article content generator workflow
@@ -99,9 +59,9 @@ export const articleGeneration = async (job: Job) => {
   const updatedArticle = await prisma.article.update({
     where: { id: articleId },
     data: {
-      title: result.title,
-      metaDescription: result.metaDescription,
-      content: result.content,
+      title: result.articleContent?.title || '',
+      metaDescription: result.articleContent?.metaDescription,
+      content: result.articleContent?.content,
       featuredImageUrl: featuredImageUrl,
       status: 'generated',
     },
@@ -112,8 +72,8 @@ export const articleGeneration = async (job: Job) => {
   );
 
   // Auto-publish if enabled
-  const publications: any[] = [];
-  if (article.product.autoPublish) {
+  const publications: Publication[] = [];
+  if (article?.product?.autoPublish) {
     try {
       // Get all credentials for this product
       const credentials = await prisma.credential.findMany({
@@ -129,9 +89,9 @@ export const articleGeneration = async (job: Job) => {
         if (publisher) {
           const publishResult = await publisher.publish(
             {
-              title: result.title,
-              metaDescription: result.metaDescription,
-              content: result.content,
+              title: result.articleContent?.title || '',
+              metaDescription: result.articleContent?.metaDescription || '',
+              content: result.articleContent?.content || '',
               keyword: article.keyword,
               imageUrl: featuredImageUrl!,
               createdAt: article.createdAt.toISOString(),
@@ -181,8 +141,8 @@ export const articleGeneration = async (job: Job) => {
   return {
     success: true,
     article: updatedArticle,
-    metaDescription: result.metaDescription,
-    slug: result.slug,
+    metaDescription: result.articleContent?.metaDescription,
+    slug: result.articleContent?.slug,
     publications,
   };
 };
