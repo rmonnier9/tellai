@@ -11,7 +11,7 @@ async function main() {
 
   // Create users
   console.log('👤 Creating users...');
-  const adminUser = await prisma.user.create({
+  const robinAdminUser = await prisma.user.create({
     data: {
       id: '41z9i8XenmgwFORQ48JpTN04hy5UzQra',
       name: 'Robin Rank',
@@ -28,7 +28,24 @@ async function main() {
     },
   });
 
-  const regularUser = await prisma.user.create({
+  const georgesAdminUser = await prisma.user.create({
+    data: {
+      id: 'GeorgesUser123456789ABCDEF012345',
+      name: 'Georges Lovarank',
+      email: 'georges@lovarank.com',
+      emailVerified: true,
+      image: null,
+      createdAt: '2025-10-23T10:00:00.000Z',
+      updatedAt: '2025-10-23T10:00:00.000Z',
+      stripeCustomerId: null,
+      banExpires: null,
+      banReason: null,
+      banned: false,
+      role: 'user',
+    },
+  });
+
+  const robinRegularUser = await prisma.user.create({
     data: {
       id: 'Xz7ZjwJY2EiAamh9L4GvSvkgkcRzUMaF',
       name: '',
@@ -38,6 +55,23 @@ async function main() {
       createdAt: '2025-10-17T10:08:01.322Z',
       updatedAt: '2025-10-17T10:08:01.642Z',
       stripeCustomerId: 'cus_TFfv1wrgddDK6x',
+      banExpires: null,
+      banReason: null,
+      banned: false,
+      role: 'user',
+    },
+  });
+
+  const georgesRegularUser = await prisma.user.create({
+    data: {
+      id: 'GeorgesRegular456789ABCDEF0123456',
+      name: '',
+      email: 'georges+dev@lovarank.com',
+      emailVerified: true,
+      image: null,
+      createdAt: '2025-10-23T10:00:01.000Z',
+      updatedAt: '2025-10-23T10:00:01.000Z',
+      stripeCustomerId: null,
       banExpires: null,
       banReason: null,
       banned: false,
@@ -88,6 +122,26 @@ async function main() {
       userId: 'Xz7ZjwJY2EiAamh9L4GvSvkgkcRzUMaF',
       role: 'owner',
       createdAt: '2025-10-17T10:08:01.658Z',
+    },
+  });
+
+  await prisma.member.create({
+    data: {
+      id: 'cmgeorges00001member00000001',
+      organizationId: 'lr5jsk73iksrcz5yxj372yav',
+      userId: 'GeorgesUser123456789ABCDEF012345',
+      role: 'owner',
+      createdAt: '2025-10-23T10:00:00.000Z',
+    },
+  });
+
+  await prisma.member.create({
+    data: {
+      id: 'cmgeorgesreg002member00000002',
+      organizationId: 'nnbo3y76w3e3oikag6nvav1b',
+      userId: 'GeorgesRegular456789ABCDEF0123456',
+      role: 'owner',
+      createdAt: '2025-10-23T10:00:01.000Z',
     },
   });
 
@@ -320,169 +374,75 @@ async function main() {
     },
   });
 
-  //   // Create articles
-  //   console.log('📝 Creating articles...');
-  //   const article1 = await prisma.article.create({
-  //     data: {
-  //       id: 'art_001',
-  //       productId: mainProduct.id,
-  //       keyword: 'prisma database seeding',
-  //       title: 'How to Seed Your Prisma Database Effectively',
-  //       type: 'guide',
-  //       guideSubtype: 'how_to',
-  //       searchVolume: 1200,
-  //       keywordDifficulty: 45.5,
-  //       cpc: 2.3,
-  //       competition: 'medium',
-  //       scheduledDate: new Date('2024-02-01'),
-  //       status: 'generated',
-  //       content:
-  //         'This is a comprehensive guide on how to effectively seed your Prisma database...',
-  //       metaDescription:
-  //         'Learn how to seed your Prisma database with sample data for development and testing.',
-  //       publishedUrl: 'https://lovadesk.com/blog/prisma-database-seeding',
-  //       featuredImageUrl:
-  //         'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
-  //     },
-  //   });
-
-  //   // Create publications
-  //   console.log('📰 Creating publications...');
-  //   await prisma.publication.create({
-  //     data: {
-  //       id: 'pub_001',
-  //       url: 'https://lovadesk.com/blog/prisma-database-seeding',
-  //       articleId: article1.id,
-  //       credentialId: wordpressCredential.id,
-  //     },
-  //   });
-
-  //   await prisma.publication.create({
-  //     data: {
-  //       id: 'pub_002',
-  //       url: 'https://clientcompany.com/blog/best-ecommerce-platforms',
-  //       articleId: article3.id,
-  //       credentialId: shopifyCredential.id,
-  //     },
-  //   });
-
-  //   // Create jobs
-  //   console.log('⚙️ Creating jobs...');
-  //   await prisma.job.create({
-  //     data: {
-  //       id: 'job_001',
-  //       type: 'content_planner',
-  //       status: 'done',
-  //       externalId: 'job_content_planner_001',
-  //       userId: adminUser.id,
-  //       productId: mainProduct.id,
-  //     },
-  //   });
-
-  //   // Create sessions
-  //   console.log('🔐 Creating sessions...');
-  //   await prisma.session.create({
-  //     data: {
-  //       id: 'session_001',
-  //       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-  //       token: 'session_token_admin_001',
-  //       ipAddress: '192.168.1.100',
-  //       userAgent:
-  //         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-  //       userId: adminUser.id,
-  //       activeOrganizationId: mainOrg.id,
-  //       activeProductId: mainProduct.id,
-  //     },
-  //   });
-
-  //   await prisma.session.create({
-  //     data: {
-  //       id: 'session_002',
-  //       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-  //       token: 'session_token_user_001',
-  //       ipAddress: '192.168.1.101',
-  //       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-  //       userId: regularUser.id,
-  //       activeOrganizationId: mainOrg.id,
-  //       activeProductId: mainProduct.id,
-  //     },
-  //   });
-
-  //   // Create accounts (OAuth)
-  //   console.log('🔗 Creating accounts...');
-  //   await prisma.account.create({
-  //     data: {
-  //       id: 'account_001',
-  //       accountId: 'google_123456789',
-  //       providerId: 'google',
-  //       userId: adminUser.id,
-  //       accessToken: 'google_access_token_123',
-  //       refreshToken: 'google_refresh_token_123',
-  //       accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
-  //       refreshTokenExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-  //       scope: 'openid email profile',
-  //     },
-  //   });
-
-  //   await prisma.account.create({
-  //     data: {
-  //       id: 'account_002',
-  //       accountId: 'github_987654321',
-  //       providerId: 'github',
-  //       userId: regularUser.id,
-  //       accessToken: 'github_access_token_456',
-  //       refreshToken: 'github_refresh_token_456',
-  //       accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
-  //       refreshTokenExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-  //       scope: 'user:email',
-  //     },
-  //   });
-
-  //   // Create invitations
-  //   console.log('📧 Creating invitations...');
-  //   await prisma.invitation.create({
-  //     data: {
-  //       id: 'inv_001',
-  //       organizationId: mainOrg.id,
-  //       email: 'newuser@example.com',
-  //       role: 'member',
-  //       status: 'pending',
-  //       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-  //       inviterId: adminUser.id,
-  //     },
-  //   });
-
-  //   await prisma.invitation.create({
-  //     data: {
-  //       id: 'inv_002',
-  //       organizationId: clientOrg.id,
-  //       email: 'collaborator@example.com',
-  //       role: 'admin',
-  //       status: 'accepted',
-  //       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-  //       inviterId: anotherUser.id,
-  //     },
-  //   });
-
-  //   // Create verifications
-  //   console.log('✅ Creating verifications...');
-  //   await prisma.verification.create({
-  //     data: {
-  //       id: 'ver_001',
-  //       identifier: 'email',
-  //       value: 'admin@lovadesk.com',
-  //       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-  //     },
-  //   });
-
-  //   await prisma.verification.create({
-  //     data: {
-  //       id: 'ver_002',
-  //       identifier: 'email',
-  //       value: 'john@example.com',
-  //       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-  //     },
-  //   });
+  // Create articles
+  console.log('📝 Creating articles...');
+  const article1 = await prisma.article.create({
+    data: {
+      id: 'art_001',
+      productId: clientProduct.id,
+      keyword: 'prisma database seeding',
+      title: 'How to Seed Your Prisma Database Effectively',
+      type: 'guide',
+      guideSubtype: 'how_to',
+      searchVolume: 1200,
+      keywordDifficulty: 45.5,
+      cpc: 2.3,
+      competition: 'medium',
+      scheduledDate: new Date('2024-02-01'),
+      status: 'published',
+      content:
+        'This is a comprehensive guide on how to effectively seed your Prisma database...',
+      metaDescription:
+        'Learn how to seed your Prisma database with sample data for development and testing.',
+      publishedUrl: 'https://lovadesk.com/blog/prisma-database-seeding',
+      featuredImageUrl:
+        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
+    },
+  });
+  const article2 = await prisma.article.create({
+    data: {
+      id: 'art_002',
+      productId: clientProduct.id,
+      keyword: 'run a successful SEO campaign',
+      title: 'How to run a successful SEO campaign',
+      type: 'guide',
+      guideSubtype: 'how_to',
+      searchVolume: 1200,
+      keywordDifficulty: 45.5,
+      cpc: 2.3,
+      competition: 'medium',
+      scheduledDate: new Date('2024-02-02'),
+      status: 'published',
+      content:
+        'This is a comprehensive guide on how to run a successful SEO campaign...',
+      metaDescription: 'Learn how to run a successful SEO campaign...',
+      publishedUrl: 'https://lovadesk.com/blog/prisma-database-seeding',
+      featuredImageUrl:
+        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
+    },
+  });
+  const article3 = await prisma.article.create({
+    data: {
+      id: 'art_003',
+      productId: clientProduct.id,
+      keyword: 'generate SEO content with AI',
+      title: 'How to generate SEO content with AI',
+      type: 'guide',
+      guideSubtype: 'how_to',
+      searchVolume: 1200,
+      keywordDifficulty: 45.5,
+      cpc: 2.3,
+      competition: 'medium',
+      scheduledDate: new Date('2024-02-03'),
+      status: 'published',
+      content:
+        'This is a comprehensive guide on how to generate SEO content with AI...',
+      metaDescription: 'Learn how to generate SEO content with AI...',
+      publishedUrl: 'https://lovadesk.com/blog/prisma-database-seeding',
+      featuredImageUrl:
+        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
+    },
+  });
 }
 
 main()
