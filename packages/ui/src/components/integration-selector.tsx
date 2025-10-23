@@ -75,7 +75,7 @@ const integrations = [
     icon: '🎨',
     color: 'from-pink-500/10 to-pink-600/10',
     borderColor: 'hover:border-pink-500/50',
-    available: false,
+    available: true,
   },
 ];
 

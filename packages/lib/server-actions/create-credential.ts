@@ -2,6 +2,7 @@
 
 import prisma, { CredentialType } from '@workspace/db/prisma/client';
 import {
+  FramerCredentialSchema,
   ShopifyCredentialSchema,
   WebflowCredentialSchema,
   WebhookCredentialSchema,
@@ -25,6 +26,10 @@ type CreateCredentialInput =
   | {
       type: 'webflow';
       data: typeof WebflowCredentialSchema._type;
+    }
+  | {
+      type: 'framer';
+      data: typeof FramerCredentialSchema._type;
     };
 
 export async function createCredential(input: CreateCredentialInput) {
@@ -105,6 +110,15 @@ export async function createCredential(input: CreateCredentialInput) {
           publishingStatus: webflowData.publishingStatus,
           fieldMapping: webflowData.fieldMapping,
         },
+      };
+      break;
+
+    case 'framer':
+      const framerData = FramerCredentialSchema.parse(input.data);
+      credentialData = {
+        type: 'framer' as CredentialType,
+        name: framerData.name,
+        accessToken: framerData.apiKey,
       };
       break;
 

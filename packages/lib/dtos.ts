@@ -150,6 +150,13 @@ export const WebflowCredentialSchema = z.object({
 
 export type WebflowCredentialSchema = z.infer<typeof WebflowCredentialSchema>;
 
+export const FramerCredentialSchema = z.object({
+  name: z.string().min(1, 'Integration name is required'),
+  apiKey: z.string().min(1, 'API key is required'),
+});
+
+export type FramerCredentialSchema = z.infer<typeof FramerCredentialSchema>;
+
 export const QueueInputSchema = z.object({
   apiUrl: z.string(),
   body: z.any(),
