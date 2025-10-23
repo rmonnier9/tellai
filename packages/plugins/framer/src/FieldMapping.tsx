@@ -1,5 +1,5 @@
 import { framer, type ManagedCollection, type ManagedCollectionFieldInput, useIsAllowedTo } from "framer-plugin"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
     type DataSource,
     dataSourceOptions,
@@ -73,9 +73,10 @@ interface FieldMappingProps {
     collection: ManagedCollection
     dataSource: DataSource
     initialSlugFieldId: string | null
+    apiKey: string
 }
 
-export function FieldMapping({ collection, dataSource, initialSlugFieldId }: FieldMappingProps) {
+export function FieldMapping({ collection, dataSource, initialSlugFieldId, apiKey }: FieldMappingProps) {
     const [status, setStatus] = useState<"mapping-fields" | "loading-fields" | "syncing-collection">(
         initialSlugFieldId ? "loading-fields" : "mapping-fields"
     )
@@ -84,15 +85,6 @@ export function FieldMapping({ collection, dataSource, initialSlugFieldId }: Fie
 
     const [fields, setFields] = useState<ManagedCollectionFieldInput[]>(emptyFields)
     const [ignoredFieldIds, setIgnoredFieldIds] = useState(initialFieldIds)
-
-    const possibleSlugFields = useMemo(
-        () => dataSource.fields.filter(field => field.type === "string"),
-        [dataSource.fields]
-    )
-
-    const [selectedSlugField, setSelectedSlugField] = useState<ManagedCollectionFieldInput | null>(
-        possibleSlugFields.find(field => field.id === initialSlugFieldId) ?? possibleSlugFields[0] ?? null
-    )
 
     const dataSourceName = dataSourceOptions.find(option => option.id === dataSource.id)?.name ?? dataSource.id
 
@@ -158,14 +150,6 @@ export function FieldMapping({ collection, dataSource, initialSlugFieldId }: Fie
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
-        if (!selectedSlugField) {
-            // This can't happen because the form will not submit if no slug field is selected
-            // but TypeScript can't infer that.
-            console.error("There is no slug field selected. Sync will not be performed")
-            framer.notify("Please select a slug field before importing.", { variant: "warning" })
-            return
-        }
-
         try {
             setStatus("syncing-collection")
 
@@ -176,7 +160,7 @@ export function FieldMapping({ collection, dataSource, initialSlugFieldId }: Fie
             }
 
             await collection.setFields(fieldsToSync)
-            await syncCollection(collection, dataSource, fieldsToSync, selectedSlugField)
+            await syncCollection(collection, dataSource, fieldsToSync, "Slug", apiKey)
             framer.closePlugin("Synchronization successful", { variant: "success" })
         } catch (error) {
             console.error(error)
@@ -200,31 +184,6 @@ export function FieldMapping({ collection, dataSource, initialSlugFieldId }: Fie
         <main className="framer-hide-scrollbar mapping">
             <hr className="sticky-divider" />
             <form onSubmit={handleSubmit}>
-                <label className="slug-field" htmlFor="slugField">
-                    Slug Field
-                    <select
-                        required
-                        name="slugField"
-                        className="field-input"
-                        value={selectedSlugField ? selectedSlugField.id : ""}
-                        onChange={event => {
-                            const selectedFieldId = event.target.value
-                            const selectedField = possibleSlugFields.find(field => field.id === selectedFieldId)
-                            if (!selectedField) return
-                            setSelectedSlugField(selectedField)
-                        }}
-                        disabled={!isAllowedToManage}
-                    >
-                        {possibleSlugFields.map(possibleSlugField => {
-                            return (
-                                <option key={`slug-field-${possibleSlugField.id}`} value={possibleSlugField.id}>
-                                    {possibleSlugField.name}
-                                </option>
-                            )
-                        })}
-                    </select>
-                </label>
-
                 <div className="fields">
                     <span className="fields-column">Column</span>
                     <span>Field</span>
