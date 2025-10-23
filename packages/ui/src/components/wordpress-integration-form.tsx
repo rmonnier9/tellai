@@ -1,16 +1,22 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Copy, ExternalLink, Info, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Loader2, ExternalLink, Info, Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { z } from 'zod';
 
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@workspace/ui/components/alert';
 import { Button } from '@workspace/ui/components/button';
+import { Card } from '@workspace/ui/components/card';
 import {
   Form,
   FormControl,
@@ -21,12 +27,6 @@ import {
   FormMessage,
 } from '@workspace/ui/components/form';
 import { Input } from '@workspace/ui/components/input';
-import { Card } from '@workspace/ui/components/card';
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from '@workspace/ui/components/alert';
 
 import { createCredential } from '@workspace/lib/server-actions/create-credential';
 
@@ -59,8 +59,6 @@ export function WordPressIntegrationForm() {
     if (!siteUrl) return '#';
     try {
       const url = new URL(siteUrl);
-      const pluginZipUrl =
-        'https://github.com/yourusername/lovarank-wordpress-plugin/releases/latest/download/lovarank.zip';
       return `${url.origin}/wp-admin/plugin-install.php?tab=upload`;
     } catch {
       return '#';
@@ -73,16 +71,12 @@ export function WordPressIntegrationForm() {
     setIsSubmitting(true);
 
     try {
-      // Create credential with pre-generated API key
       await createCredential({
         type: 'wordpress',
         data: {
-          name: `WordPress - ${new URL(data.siteUrl).hostname}`,
+          name: `${new URL(data.siteUrl).hostname}`,
           siteUrl: data.siteUrl,
-          username: '', // Will be configured via plugin
-          applicationPassword: apiKey, // Store the API key
-          authorId: '',
-          publishingStatus: 'draft',
+          applicationPassword: apiKey,
         },
       });
 
