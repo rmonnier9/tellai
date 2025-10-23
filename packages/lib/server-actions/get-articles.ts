@@ -38,6 +38,18 @@ export async function getArticles({ productId }: { productId: string }) {
           },
         },
       },
+      jobs: {
+        where: {
+          type: 'article_generation',
+          status: {
+            in: ['pending', 'running'],
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 1,
+      },
     },
     orderBy: {
       scheduledDate: 'asc',

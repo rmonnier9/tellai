@@ -58,6 +58,11 @@ type Article = {
       name: string | null;
     };
   }>;
+  jobs?: Array<{
+    id: string;
+    type: string;
+    status: string;
+  }>;
 };
 
 type ArticlesByDate = {
@@ -95,6 +100,31 @@ export function ArticleCalendar() {
       scheduledDate: new Date(article.scheduledDate),
     }));
   }, [articlesData]);
+
+  // Initialize articleJobIds from active jobs in articles data
+  useEffect(() => {
+    if (!articles) return;
+
+    const activeJobs = new Map<string, string>();
+    articles.forEach((article) => {
+      // Get the first (most recent) active job if it exists
+      const activeJob = article.jobs?.[0];
+      if (activeJob) {
+        activeJobs.set(article.id, activeJob.id);
+      }
+    });
+
+    // Only update if there are changes to prevent infinite loops
+    setArticleJobIds((prev) => {
+      const hasChanges =
+        prev.size !== activeJobs.size ||
+        Array.from(activeJobs.entries()).some(
+          ([articleId, jobId]) => prev.get(articleId) !== jobId
+        );
+
+      return hasChanges ? activeJobs : prev;
+    });
+  }, [articles]);
 
   // Watch for content planner job completion and revalidate SWR cache
   useContentPlannerWatcher({
@@ -642,7 +672,7 @@ function ArticleCard({
       toast.error(job.error || 'Failed to generate article');
       onJobComplete(article.id);
     }
-  }, [job?.status, jobId, article.id, onJobComplete]);
+  }, [job, jobId, article.id, onJobComplete]);
 
   const isGenerating = job?.status === 'running' || job?.status === 'pending';
   const isDraggable = article.status === 'pending' && !isGenerating;
