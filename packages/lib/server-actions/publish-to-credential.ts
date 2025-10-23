@@ -77,8 +77,10 @@ export async function publishToCredential({
       {
         title: article.title,
         content: article.content,
+        metaDescription: article.metaDescription!,
         keyword: article.keyword,
-        imageUrl: article.featuredImageUrl,
+        imageUrl: article.featuredImageUrl!,
+        createdAt: article.createdAt.toISOString(),
       },
       {
         type: credential.type,

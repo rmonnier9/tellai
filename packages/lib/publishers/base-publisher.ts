@@ -6,10 +6,11 @@ export interface PublishResult {
 
 export interface ArticleData {
   title: string;
-  metaDescription?: string;
   content: string;
+  metaDescription: string;
   keyword: string;
-  imageUrl?: string | null;
+  imageUrl: string;
+  createdAt: string;
 }
 
 export interface CredentialConfig {

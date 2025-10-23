@@ -147,16 +147,8 @@ export const WebflowCredentialSchema = z.object({
   accessToken: z.string().min(1, 'API token is required'),
   collectionId: z.string().min(1, 'Collection ID is required'),
   siteUrl: z.string().url('Please enter a valid site URL').optional(),
-  publishingStatus: z.enum(['live', 'draft']),
-  fieldMapping: z
-    .object({
-      titleField: z.string().optional(),
-      slugField: z.string().optional(),
-      contentField: z.string().optional(),
-      descriptionField: z.string().optional(),
-      imageField: z.string().optional(),
-    })
-    .optional(),
+  publishingStatus: z.enum(['live', 'draft', 'staged']),
+  fieldMapping: z.record(z.string(), z.string()).optional(),
 });
 
 export type WebflowCredentialSchema = z.infer<typeof WebflowCredentialSchema>;

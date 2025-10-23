@@ -34,8 +34,6 @@ import {
 
 import { WebflowCredentialSchema } from '@workspace/lib/dtos';
 import { createCredential } from '@workspace/lib/server-actions/create-credential';
-
-// App fields that can be mapped to Webflow fields
 const APP_FIELDS = [
   { value: 'title', label: 'Title' },
   { value: 'slug', label: 'Slug' },

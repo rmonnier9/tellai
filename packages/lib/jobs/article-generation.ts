@@ -133,7 +133,8 @@ export const articleGeneration = async (job: Job) => {
               metaDescription: result.metaDescription,
               content: result.content,
               keyword: article.keyword,
-              imageUrl: featuredImageUrl,
+              imageUrl: featuredImageUrl!,
+              createdAt: article.createdAt.toISOString(),
             },
             {
               type: credential.type,

@@ -69,10 +69,11 @@ export async function publishArticle({ articleId }: { articleId: string }) {
         const publishResult = await publisher.publish(
           {
             title: article.title,
-            metaDescription: article.metaDescription || undefined,
+            metaDescription: article.metaDescription!,
             content: article.content,
             keyword: article.keyword,
-            imageUrl: article.featuredImageUrl,
+            imageUrl: article.featuredImageUrl!,
+            createdAt: article.createdAt.toISOString(),
           },
           {
             type: credential.type,
