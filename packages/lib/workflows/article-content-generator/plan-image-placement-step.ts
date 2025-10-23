@@ -46,7 +46,10 @@ Create a strategic plan for up to 4 images that will enhance this article:
 
 - **hero**: Main article image
 - **section**: Illustrative image for a specific section
-- **diagram**: Simple diagram to explain a concept (e.g., flowchart, process diagram, comparison chart)
+- **diagram**: BASIC infographic or diagram (2-4 steps MAX, minimal labels, less text is better)
+  - Simple flowcharts, process flows, or comparison charts
+  - Focus on visual representation over text
+  - Use icons, arrows/lines, and minimal words
 
 ## OUTPUT REQUIREMENTS
 
@@ -57,7 +60,8 @@ For each image, provide:
 3. **prompt**: A CONCISE, specific prompt for image generation (max 30 words)
    - Focus on the core visual concept only
    - For hero/section images: Main subject and style only (e.g., "Modern workspace with laptop, notebook, and coffee cup, minimalist aesthetic")
-   - For diagrams: Core concept only (e.g., "Flowchart showing user registration process with 4 steps")
+   - For diagrams: MUST specify 2-4 steps with minimal text (e.g., "Simple 3-step flowchart with icons and arrows/lines, minimal labels")
+   - Diagrams should emphasize visual flow over text descriptions
    - Avoid lengthy descriptions - be direct and specific
 4. **altText**: SEO-optimized alt text (concise but descriptive, max 100 characters)
 5. **styleModifier**: Additional style instructions (optional, max 10 words)
@@ -68,6 +72,7 @@ For each image, provide:
 - Include 2-3 additional images only where they add real value
 - **DISTRIBUTE EVENLY**: Analyze all headings and choose sections from different parts of the article (beginning, middle, end)
 - For technical/educational content, consider diagrams
+- **DIAGRAMS MUST BE SIMPLE**: 2-4 steps only, minimal text, focus on visual flow with icons/arrows/lines
 - Keep prompts CONCISE - shorter prompts (20-30 words) generate better quality images
 - Match placement to actual section headings in the article (copy the exact heading text)
 - Consider the article's tone and target audience
