@@ -89,7 +89,6 @@ export function WebflowIntegrationForm() {
       publishingStatus: 'live',
     },
   });
-  console.log('collectionFields', collectionFields);
 
   const fetchSites = async (accessToken: string) => {
     if (!accessToken) {

@@ -112,22 +112,9 @@ export class WebflowPublisher extends BasePublisher {
 
       const createdItem = await createResponse.json();
 
-      // Construct the full URL if siteUrl is provided
-      // Otherwise just return the slug
       const articleSlug = createdItem.fieldData?.slug || slug;
-      let itemUrl = articleSlug;
-
-      if (siteUrl) {
-        // Remove trailing slash from siteUrl
-        const baseUrl = siteUrl.replace(/\/$/, '');
-        // Construct full URL (common Webflow blog structure)
-        // You may need to adjust the path based on your Webflow collection settings
-        itemUrl = `${baseUrl}/blog/${articleSlug}`;
-
-        console.log('Constructed Webflow article URL:', itemUrl);
-      } else {
-        console.log('No siteUrl configured, returning slug only:', itemUrl);
-      }
+      const baseUrl = siteUrl.replace(/\/$/, '');
+      const itemUrl = `${baseUrl}/blog/${articleSlug}`;
 
       return {
         success: true,

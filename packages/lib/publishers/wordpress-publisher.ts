@@ -52,8 +52,6 @@ export class WordPressPublisher extends BasePublisher {
         created_at: new Date().toISOString(),
       };
 
-      console.log('Post data:', { ...postData, content: '' });
-
       // Try pretty permalinks first (works with most permalink structures)
       let endpoint = `${siteUrl}/wp-json/lovarank/v1/submit`;
       let response = await fetch(endpoint, {
