@@ -1,6 +1,7 @@
+import { markdownToHtml } from '.';
 import {
-  BasePublisher,
   ArticleData,
+  BasePublisher,
   CredentialConfig,
   PublishResult,
 } from './base-publisher';
@@ -37,7 +38,7 @@ export class ShopifyPublisher extends BasePublisher {
       }
 
       // Convert markdown to HTML (simple conversion - you may want to use a library)
-      const htmlContent = this.markdownToHtml(article.content);
+      const htmlContent = markdownToHtml(article.content);
 
       // Shopify Admin API endpoint
       const endpoint = `https://${sanitizedStoreName}.myshopify.com/admin/api/2024-01/graphql.json`;
@@ -134,20 +135,5 @@ export class ShopifyPublisher extends BasePublisher {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
-  }
-
-  private markdownToHtml(markdown: string): string {
-    // Basic markdown to HTML conversion
-    // In production, use a proper library like 'marked' or 'remark'
-    return markdown
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-      .replace(/\*(.*)\*/gim, '<em>$1</em>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/^(.+)$/gim, '<p>$1</p>')
-      .replace(/<p><h/g, '<h')
-      .replace(/<\/h([1-6])><\/p>/g, '</h$1>');
   }
 }

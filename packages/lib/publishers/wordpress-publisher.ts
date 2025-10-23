@@ -1,4 +1,4 @@
-import { marked } from 'marked';
+import { markdownToHtml } from '.';
 import {
   ArticleData,
   BasePublisher,
@@ -30,7 +30,7 @@ export class WordPressPublisher extends BasePublisher {
       }
 
       // Convert markdown to HTML
-      const htmlContent = this.markdownToHtml(article.content);
+      const htmlContent = markdownToHtml(article.content);
 
       // Generate slug from title
       const slug = article.title
@@ -115,92 +115,5 @@ export class WordPressPublisher extends BasePublisher {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
-  }
-
-  /**
-   * Upload image to WordPress Media Library using Lovarank plugin endpoint
-   */
-  private async uploadImageViaWordPressAPI(
-    imageUrl: string,
-    title: string,
-    siteUrl: string,
-    apiKey: string
-  ): Promise<number> {
-    // Fetch the image from S3/external URL
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error(`Failed to fetch image from ${imageUrl}`);
-    }
-
-    const imageBuffer = await imageResponse.arrayBuffer();
-    const contentType =
-      imageResponse.headers.get('content-type') || 'image/jpeg';
-
-    // Extract filename from URL or generate from title
-    const urlParts = imageUrl.split('/');
-    const urlFilename = urlParts[urlParts.length - 1];
-    let filename: string;
-
-    // If filename doesn't have an extension, add one based on content type
-    if (!urlFilename || !urlFilename.includes('.')) {
-      const ext = contentType.split('/')[1] || 'jpg';
-      filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.${ext}`;
-    } else {
-      filename = urlFilename;
-    }
-
-    // Upload to WordPress Media Library using Lovarank plugin endpoint
-    const formData = new FormData();
-    const blob = new Blob([imageBuffer], { type: contentType });
-    formData.append('file', blob, filename);
-    formData.append('title', title);
-
-    // Try pretty permalinks first
-    let uploadEndpoint = `${siteUrl}/wp-json/lovarank/v1/upload-image`;
-    let uploadResponse = await fetch(uploadEndpoint, {
-      method: 'POST',
-      headers: {
-        'X-API-Key': apiKey,
-      },
-      body: formData,
-    });
-
-    // If 404, try query parameter method (for Plain permalinks)
-    if (uploadResponse.status === 404) {
-      uploadEndpoint = `${siteUrl}/?rest_route=/lovarank/v1/upload-image`;
-      uploadResponse = await fetch(uploadEndpoint, {
-        method: 'POST',
-        headers: {
-          'X-API-Key': apiKey,
-        },
-        body: formData,
-      });
-    }
-
-    if (!uploadResponse.ok) {
-      const errorText = await uploadResponse.text();
-      throw new Error(
-        `Failed to upload image to WordPress: ${uploadResponse.status} - ${errorText}`
-      );
-    }
-
-    const responseData = await uploadResponse.json();
-
-    if (!responseData.success || !responseData.id) {
-      throw new Error(
-        `WordPress image upload failed: ${responseData.error || 'Unknown error'}`
-      );
-    }
-
-    return responseData.id;
-  }
-
-  private markdownToHtml(markdown: string): string {
-    // Convert markdown to HTML using marked library
-    return marked.parse(markdown, {
-      async: false,
-      gfm: true, // GitHub Flavored Markdown
-      breaks: true, // Convert line breaks to <br>
-    }) as string;
   }
 }

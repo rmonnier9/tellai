@@ -1,4 +1,4 @@
-import { marked } from 'marked';
+import { markdownToHtml } from '.';
 import {
   ArticleData,
   BasePublisher,
@@ -32,7 +32,7 @@ export class WebflowPublisher extends BasePublisher {
       }
 
       // Convert markdown to HTML
-      const htmlContent = this.markdownToHtml(article.content);
+      const htmlContent = markdownToHtml(article.content);
 
       // Generate slug from title
       const slug = article.title
@@ -139,14 +139,5 @@ export class WebflowPublisher extends BasePublisher {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
-  }
-
-  private markdownToHtml(markdown: string): string {
-    // Convert markdown to HTML using marked library
-    return marked.parse(markdown, {
-      async: false,
-      gfm: true, // GitHub Flavored Markdown
-      breaks: true, // Convert line breaks to <br>
-    }) as string;
   }
 }
