@@ -57,6 +57,6 @@ export const findKeywordsGapsAgent = new Agent({
 
 export const keywordsPickerAgent = new Agent({
   name: 'Keywords Picker Agent',
-  instructions: `As an SEO expert, you will be provided with a lists of keywords. Your goal is to pick 30 keywords that will help our customer build topical authority in their niche.`,
+  instructions: `As an SEO expert, you will be provided with a lists of keywords. Your goal is to pick keywords that will help our customer build topical authority in their niche. Keywords must be tailored for informational blog content (how-to, guides, explanations, comparisons, best, top, etc...)`,
   model: openrouter('anthropic/claude-sonnet-4.5:online'),
 });

@@ -10,6 +10,17 @@ export const pickBestKeywordsStep = createStep({
   execute: async ({ inputData }) => {
     const { product, competitorsKeywordsGaps, growedSeedKeywords } = inputData;
 
+    const uniqueKeywords = [
+      ...(competitorsKeywordsGaps || []),
+      ...(growedSeedKeywords || []),
+    ].filter(
+      (keyword, index, self) =>
+        index ===
+        self.findIndex(
+          (t) => t.keyword.toLowerCase() === keyword.keyword.toLowerCase()
+        )
+    );
+
     const seedKeywordsResponse = await keywordsPickerAgent.generateVNext(
       `Customer URL: ${product?.url}
   Customer Business Name: ${product?.name}
@@ -17,30 +28,23 @@ export const pickBestKeywordsStep = createStep({
   Customer Target Audiences: ${product?.targetAudiences.join(', ')}
 
   ${
-    competitorsKeywordsGaps?.length
-      ? `Competitors Keywords Gaps: ${competitorsKeywordsGaps
-          ?.slice(0, 250)
-          ?.map((keyword) => keyword.keyword)
-          .join(', ')}`
-      : ``
-  }
-  ${
-    growedSeedKeywords?.length
-      ? `Google Ads Keywords: ${growedSeedKeywords
-          ?.slice(0, 250)
+    uniqueKeywords?.length
+      ? `Keywords: ${uniqueKeywords
+          ?.slice(0, 500)
           ?.map((keyword) => keyword.keyword)
           .join(', ')}`
       : ``
   }
 
-  Pick exactly 30 unique keywords.
+
+  Pick exactly 30 unique keywords, no more, no less.
 
   Output in json format
   `,
       {
         structuredOutput: {
           schema: z.object({
-            keywords: z.array(z.string()).min(30).max(30),
+            keywords: z.array(z.string()).min(30),
           }),
         },
       }
@@ -48,19 +52,9 @@ export const pickBestKeywordsStep = createStep({
 
     const pickedKeywordsStrings = seedKeywordsResponse?.object?.keywords;
 
-    const growedSeedKeywordsPicked =
-      growedSeedKeywords?.filter((keyword) =>
-        pickedKeywordsStrings.includes(keyword.keyword)
-      ) || [];
-    const competitorsKeywordsGapsKeywordsPicked =
-      competitorsKeywordsGaps?.filter((keyword) =>
-        pickedKeywordsStrings.includes(keyword.keyword)
-      ) || [];
-
-    const finalKeywords = [
-      ...growedSeedKeywordsPicked,
-      ...competitorsKeywordsGapsKeywordsPicked,
-    ];
+    const finalKeywords = uniqueKeywords.filter((keyword) =>
+      pickedKeywordsStrings.includes(keyword.keyword)
+    );
 
     console.log(`✅ Picked ${finalKeywords.length} keywords:`);
 

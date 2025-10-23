@@ -11,7 +11,9 @@ export const generateSeedKeywordsWithAIStep = createStep({
     const { product, keywordsBlacklist } = inputData;
 
     const seedKeywordsResponse = await seedKeywordsAgent.generateVNext(
-      `Generate seed keywords for relevant to the business (max 20 keywords, 80 characters max per keyword): 
+      `Generate seed keywords for relevant to the business (30 keywords).
+      
+Goal is to generate 30 main keywords (not long tail keywords) in order to build topical authority in their niche: 
   URL: ${product?.url}
   Business: ${product?.name}
   Description: ${product?.description}
@@ -25,13 +27,15 @@ export const generateSeedKeywordsWithAIStep = createStep({
       {
         structuredOutput: {
           schema: z.object({
-            keywords: z.array(z.string().max(80)).max(20),
+            keywords: z.array(z.string()).length(30),
           }),
         },
       }
     );
 
-    const seedKeywords = seedKeywordsResponse?.object?.keywords?.slice(0, 20);
+    const seedKeywords = seedKeywordsResponse?.object?.keywords?.map((each) =>
+      each.toLowerCase().trim()
+    );
 
     console.log(`✅ Generated ${seedKeywords.length} seed keywords:`);
     console.log(JSON.stringify(seedKeywords, null, 2));
