@@ -1,10 +1,10 @@
-import { createWorkflow, createStep } from '@mastra/core/workflows';
 import { Agent } from '@mastra/core/agent';
-import { z } from 'zod';
-import { openai } from '@ai-sdk/openai';
+import { createStep, createWorkflow } from '@mastra/core/workflows';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import prisma from '@workspace/db/prisma/client';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { z } from 'zod';
 import { generateImage } from '../generate-image';
 
 const openrouter = createOpenRouter({
@@ -265,9 +265,9 @@ const fetchSerpResultsStep = createStep({
   },
 });
 
-// Step 2: Fetch and Parse Top Competitors' Content
-const fetchCompetitorContentStep = createStep({
-  id: 'fetch-competitor-content',
+// Step 2: Fetch existing articles from the same product for internal linking
+const fetchExistingArticlesStep = createStep({
+  id: 'fetch-existing-articles',
   inputSchema: inputSchema.extend({
     serpResults: z.array(
       z.object({
@@ -287,6 +287,130 @@ const fetchCompetitorContentStep = createStep({
         title: z.string(),
         description: z.string().optional(),
         html: z.string().optional(),
+      })
+    ),
+    existingArticles: z.array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        keyword: z.string(),
+        url: z.string(),
+      })
+    ),
+  }),
+  execute: async ({ inputData }) => {
+    const { articleId, productData } = inputData;
+
+    try {
+      // Fetch existing published articles from the same product
+      // Exclude the current article being generated
+      const articles = await prisma.article.findMany({
+        where: {
+          product: {
+            url: productData.url,
+          },
+          status: {
+            in: ['published', 'generated'],
+          },
+          id: {
+            not: articleId,
+          },
+          content: {
+            not: null,
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+          keyword: true,
+          publications: {
+            select: {
+              url: true,
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 20, // Limit to 20 most recent articles
+      });
+
+      // Transform articles into a format suitable for internal linking
+      // Only include articles that have been published with a URL
+      const existingArticles = articles
+        .map((article) => {
+          const publishedUrl = article.publications[0]?.url;
+          if (!publishedUrl) return null;
+
+          return {
+            id: article.id,
+            title: article.title || '',
+            keyword: article.keyword,
+            url: publishedUrl,
+          };
+        })
+        .filter(
+          (article): article is NonNullable<typeof article> => article !== null
+        );
+
+      console.log(
+        `Found ${existingArticles.length} existing articles for internal linking`
+      );
+
+      return {
+        ...inputData,
+        existingArticles,
+      };
+    } catch (error) {
+      console.error('Error fetching existing articles:', error);
+      // Continue workflow without existing articles rather than failing
+      return {
+        ...inputData,
+        existingArticles: [],
+      };
+    }
+  },
+});
+
+// Step 3: Fetch and Parse Top Competitors' Content
+const fetchCompetitorContentStep = createStep({
+  id: 'fetch-competitor-content',
+  inputSchema: inputSchema.extend({
+    serpResults: z.array(
+      z.object({
+        position: z.number(),
+        url: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+        html: z.string().optional(),
+      })
+    ),
+    existingArticles: z.array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        keyword: z.string(),
+        url: z.string(),
+      })
+    ),
+  }),
+  outputSchema: inputSchema.extend({
+    serpResults: z.array(
+      z.object({
+        position: z.number(),
+        url: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+        html: z.string().optional(),
+      })
+    ),
+    existingArticles: z.array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        keyword: z.string(),
+        url: z.string(),
       })
     ),
     competitorContent: z.array(
@@ -412,7 +536,7 @@ const fetchCompetitorContentStep = createStep({
   },
 });
 
-// Step 3: Generate Competitive Analysis Brief
+// Step 4: Generate Competitive Analysis Brief
 const generateCompetitiveBriefStep = createStep({
   id: 'generate-competitive-brief',
   inputSchema: inputSchema.extend({
@@ -423,6 +547,14 @@ const generateCompetitiveBriefStep = createStep({
         title: z.string(),
         description: z.string().optional(),
         html: z.string().optional(),
+      })
+    ),
+    existingArticles: z.array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        keyword: z.string(),
+        url: z.string(),
       })
     ),
     competitorContent: z.array(
@@ -438,6 +570,7 @@ const generateCompetitiveBriefStep = createStep({
   }),
   outputSchema: inputSchema.extend({
     serpResults: z.any(),
+    existingArticles: z.any(),
     competitorContent: z.any(),
     competitiveBrief: competitiveBriefSchema,
   }),
@@ -678,11 +811,12 @@ Be thorough and specific. This brief will determine the success of the content.`
   },
 });
 
-// Step 4: Generate article content with AI (now using competitive brief)
+// Step 5: Generate article content with AI (now using competitive brief)
 const generateContentStep = createStep({
   id: 'generate-content',
   inputSchema: inputSchema.extend({
     serpResults: z.any(),
+    existingArticles: z.any(),
     competitorContent: z.any(),
     competitiveBrief: competitiveBriefSchema,
   }),
@@ -691,7 +825,13 @@ const generateContentStep = createStep({
     productData: z.any(),
   }),
   execute: async ({ inputData }) => {
-    const { articleId, articleData, productData, competitiveBrief } = inputData;
+    const {
+      articleId,
+      articleData,
+      productData,
+      competitiveBrief,
+      existingArticles,
+    } = inputData;
 
     // Generate dynamic structure guidelines based on competitive analysis
     let structureGuidelines = '';
@@ -1202,14 +1342,42 @@ ${
 **Writing Style**: ${productData.articleStyle}
 ${productData.globalInstructions ? `**Custom Instructions**: ${productData.globalInstructions}` : ''}
 ${productData.includeEmojis ? '**Emojis**: Use sparingly and naturally where they enhance readability' : '**Emojis**: Do not use emojis'}
-${productData.includeYoutubeVideo ? '**Video Placeholder**: Include a section suggesting where a relevant video would enhance the content (use format: `[VIDEO: Suggested topic/title for video]`)' : ''}
-${productData.includeCallToAction ? `**Call-to-Action**: Include a natural CTA related to ${productData.name || 'the product'} near the end` : ''}
-${productData.includeInfographics ? '**Infographic Placeholders**: Suggest 1-2 places where infographics would be valuable (use format: `[INFOGRAPHIC: Suggested data/concept to visualize]`)' : ''}
-${productData.internalLinks > 0 ? `**Internal Links**: Include ${productData.internalLinks} placeholder internal links in natural context (use format: [link text](INTERNAL_LINK_PLACEHOLDER))` : ''}
+${productData.includeYoutubeVideo ? '**Video Placeholder**: Include a section suggesting where a relevant video would enhance the content (use format: [VIDEO: Suggested topic/title for video])' : ''}
+${productData.includeCallToAction ? `**Call-to-Action**: Include a natural CTA related to ${productData.name || 'the product'} to the url ${productData.url} near the end` : ''}
+${productData.includeInfographics ? '**Infographic Placeholders**: Suggest 1-2 places where infographics would be valuable (use format: [INFOGRAPHIC: Suggested data/concept to visualize])' : ''}
+${
+  productData.internalLinks > 0 &&
+  existingArticles &&
+  existingArticles.length > 0
+    ? `
+**Internal Links**: Include ${productData.internalLinks} internal links to relevant existing articles from your site. Select articles from the list below that are contextually relevant to the section where you add the link.
 
+## AVAILABLE ARTICLES FOR INTERNAL LINKING
+
+${existingArticles
+  .map(
+    (article: any, idx: number) =>
+      `${idx + 1}. **${article.title}** (Keyword: ${article.keyword})
+   - URL: ${article.url}`
+  )
+  .join('\n')}
+
+**Instructions for Internal Links**:
+- Choose articles that are genuinely relevant to the topic being discussed
+- Use natural anchor text that describes what the reader will find (avoid generic "click here")
+- Distribute links throughout the article (not all in one section)
+- Use markdown format: [anchor text](URL)
+- Use the exact URL provided in the list above
+- Only link to articles that add value for the reader - quality over quantity
+- Each link should feel natural and helpful, not forced`
+    : productData.internalLinks > 0
+      ? `**Internal Links**: You wanted to include ${productData.internalLinks} internal links, but no existing published articles are available yet. Skip internal linking for this article.`
+      : ''
+}
 ${
   productData.bestArticles && productData.bestArticles.length > 0
-    ? `## REFERENCE ARTICLES
+    ? `
+## REFERENCE ARTICLES
 
 Study these high-performing articles for tone and style inspiration (do NOT copy, but learn from their approach):
 ${productData.bestArticles.map((url, idx) => `${idx + 1}. ${url}`).join('\n')}`
@@ -1738,11 +1906,12 @@ const insertImagesIntoContentStep = createStep({
 export const articleContentGeneratorWorkflow = createWorkflow({
   id: 'article-content-generator',
   description:
-    'Generates SEO-optimized article content with competitive SERP analysis and AI-generated images',
+    'Generates SEO-optimized article content with competitive SERP analysis, internal linking, and AI-generated images',
   inputSchema,
   outputSchema,
 })
   .then(fetchSerpResultsStep)
+  .then(fetchExistingArticlesStep)
   .then(fetchCompetitorContentStep)
   .then(generateCompetitiveBriefStep)
   .then(generateContentStep)
