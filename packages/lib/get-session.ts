@@ -1,7 +1,7 @@
 import { auth } from '@workspace/auth/server';
 import { headers } from 'next/headers';
 
-export const getSesion = async () => {
+export const getSession = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -9,4 +9,4 @@ export const getSesion = async () => {
   return session;
 };
 
-export default getSesion;
+export default getSession;

@@ -2,7 +2,7 @@
 
 import prisma from '@workspace/db/prisma/client';
 import { XMLParser } from 'fast-xml-parser';
-import getSesion from '../get-session';
+import getSession from '../get-session';
 
 interface DetectedLink {
   url: string;
@@ -106,7 +106,7 @@ export async function detectLinksFromSitemap(
   sitemapUrl: string
 ) {
   try {
-    const session = await getSesion();
+    const session = await getSession();
     if (!session) {
       return {
         success: false,

@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@workspace/db/prisma/client';
-import getSesion from '../get-session';
+import getSession from '../get-session';
 
 export async function saveLinkingConfiguration(
   productId: string,
@@ -9,7 +9,7 @@ export async function saveLinkingConfiguration(
   sitemapUrl?: string
 ) {
   try {
-    const session = await getSesion();
+    const session = await getSession();
     if (!session) {
       return {
         success: false,
@@ -79,7 +79,7 @@ export async function saveLinkingConfiguration(
 
 export async function getLinkingConfiguration(productId: string) {
   try {
-    const session = await getSesion();
+    const session = await getSession();
     if (!session) {
       return {
         success: false,

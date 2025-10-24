@@ -3,6 +3,8 @@
 import type { Article as ArticleType } from '@workspace/db/prisma/generated/client';
 import { publishArticle } from '@workspace/lib/server-actions/publish-article';
 import { publishToCredential } from '@workspace/lib/server-actions/publish-to-credential';
+import { updateArticleContent } from '@workspace/lib/server-actions/update-article-content';
+import { uploadArticleImage } from '@workspace/lib/server-actions/upload-article-image';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -14,6 +16,7 @@ import {
 } from '@workspace/ui/components/card';
 import { MarkdownContent } from '@workspace/ui/components/markdown-content';
 import { Separator } from '@workspace/ui/components/separator';
+import { SimpleEditor } from '@workspace/ui/components/tiptap-templates/simple/simple-editor';
 import { toast } from '@workspace/ui/lib/toast';
 import {
   BarChart3,
@@ -21,12 +24,15 @@ import {
   Check,
   Copy,
   DollarSign,
+  Edit2,
   ExternalLink,
   Eye,
   FileText,
   Loader2,
+  Save,
   Send,
   TrendingUp,
+  X,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -71,6 +77,9 @@ export function ArticleDisplay({
   const [publishingCredentials, setPublishingCredentials] = useState<
     Set<string>
   >(new Set());
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(article.content || '');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleCopy = async () => {
     if (article.content) {
@@ -141,6 +150,36 @@ export function ArticleDisplay({
     }
   };
 
+  const handleEdit = () => {
+    setEditedContent(article.content || '');
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedContent(article.content || '');
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateArticleContent({
+        articleId: article.id,
+        content: editedContent,
+      });
+
+      toast.success('Article updated successfully!');
+      setIsEditing(false);
+      router.refresh();
+    } catch (error) {
+      toast.error('Failed to save article', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Get icon for integration type
   const getIntegrationLogo = (type: string) => {
     const logos: Record<string, string> = {
@@ -200,7 +239,7 @@ export function ArticleDisplay({
           <CardHeader>
             <CardTitle>No Content Available</CardTitle>
             <CardDescription>
-              This article hasn't been generated yet. Please generate the
+              This article hasn&apos;t been generated yet. Please generate the
               content first from the calendar page.
             </CardDescription>
           </CardHeader>
@@ -334,37 +373,73 @@ export function ArticleDisplay({
 
           {/* Actions */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Button onClick={handleCopy} variant="outline">
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy Content
-                </>
-              )}
-            </Button>
-            {article.status !== 'published' && article.content && (
-              <Button
-                onClick={handlePublish}
-                disabled={isPublishing}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {isPublishing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Publishing...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Publish
-                  </>
+            {isEditing ? (
+              <>
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleCancelEdit}
+                  variant="outline"
+                  disabled={isSaving}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={handleEdit} variant="outline">
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit Article
+                </Button>
+                <Button onClick={handleCopy} variant="outline">
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Content
+                    </>
+                  )}
+                </Button>
+                {article.status !== 'published' && article.content && (
+                  <Button
+                    onClick={handlePublish}
+                    disabled={isPublishing}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isPublishing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Publish
+                      </>
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </>
             )}
             <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
@@ -475,7 +550,19 @@ export function ArticleDisplay({
         {/* Article Content */}
         <Card className="border-none shadow-none">
           <CardContent className="p-0">
-            <MarkdownContent content={article.content} className="prose-lg" />
+            {isEditing ? (
+              <div className="min-h-[500px]">
+                <SimpleEditor
+                  content={editedContent}
+                  onChange={setEditedContent}
+                  editable={true}
+                  articleId={article.id}
+                  uploadAction={uploadArticleImage}
+                />
+              </div>
+            ) : (
+              <MarkdownContent content={article.content} className="prose-lg" />
+            )}
           </CardContent>
         </Card>
 
