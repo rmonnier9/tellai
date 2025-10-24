@@ -232,13 +232,22 @@ ${structureGuidelines}
 
 ## OUTPUT FORMAT
 
-Return the article in clean Markdown format with:
+Return the article with:
 
-1. **Title**: Compelling, SEO-optimized H1 (include keyword)
-2. **Content**: Full article following the structure guidelines
-3. **Formatting**: Use proper markdown (## for H2, ### for H3, **bold**, *italic*, lists, blockquotes)
-4. **Meta Description**: Compelling 150-160 character description for SEO
-5. **URL Slug**: Clean, keyword-rich slug (lowercase, hyphens)
+1. **Title**: Compelling, SEO-optimized H1 (include keyword) - returned as a SEPARATE field
+2. **Content**: Full article content in clean Markdown format
+   - Start directly with the first H2 heading or introduction paragraph
+   - Use proper markdown (## for H2, ### for H3, **bold**, *italic*, lists, blockquotes)
+   - You may include relevant images WITHIN the article body where appropriate (but NOT at the very beginning)
+3. **Meta Description**: Compelling 150-160 character description for SEO
+4. **URL Slug**: Clean, keyword-rich slug (lowercase, hyphens)
+
+**CRITICAL**: The content field should contain ONLY the article body. Do NOT include:
+- ❌ The article title (H1 with single #) - this is a separate field
+- ❌ Any featured/hero image at the start of the content - this is handled separately
+- ❌ Any markdown image (![...]) as the very first line
+- ✅ START the content with either an H2 heading (##) or a text paragraph
+- ✅ The very first character should be either '#' (for H2/H3) or regular text, NEVER '!'
 
 ## QUALITY CHECKLIST
 

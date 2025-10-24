@@ -59,7 +59,7 @@ export function WordPressIntegrationForm() {
     if (!siteUrl) return '#';
     try {
       const url = new URL(siteUrl);
-      return `${url.origin}/wp-admin/plugin-install.php?tab=upload`;
+      return `${url.origin}/wp-admin/plugin-install.php?tab=search&type=term&s=${encodeURI('Lovarank automatically creates and publishes SEO-optimized articles')}`;
     } catch {
       return '#';
     }
@@ -116,7 +116,7 @@ export function WordPressIntegrationForm() {
           </AlertTitle>
           <AlertDescription>
             <a
-              href="https://github.com/yourusername/lovarank-wordpress-plugin/releases/latest"
+              href="https://wordpress.org/plugins/lovarank/"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
