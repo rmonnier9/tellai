@@ -189,7 +189,7 @@ export const ProductSchema = z.object({
   blogUrl: z.string().nullable(),
   bestArticles: z.array(z.string()),
   linkSource: z.string(),
-  detectedLinks: z.any().nullable(),
+  detectedLinks: z.object({}).nullable(),
   autoPublish: z.boolean(),
   articleStyle: z.string(),
   internalLinks: z.number(),
