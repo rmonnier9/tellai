@@ -1,22 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
+import { z } from 'zod';
 
-import { Button } from '@workspace/ui/components/button';
-import { Form } from '@workspace/ui/components/form';
-import { Card } from '@workspace/ui/components/card';
 import { UpdateProductSchema } from '@workspace/lib/dtos';
 import { updateProduct } from '@workspace/lib/server-actions/update-product';
+import { Button } from '@workspace/ui/components/button';
+import { Card } from '@workspace/ui/components/card';
+import { Form } from '@workspace/ui/components/form';
+import { ProductArticlePreferencesForm } from '@workspace/ui/components/product-article-preferences-form';
+import { ProductBlogContentForm } from '@workspace/ui/components/product-blog-content-form';
 import { ProductBusinessInfoForm } from '@workspace/ui/components/product-business-info-form';
 import { ProductTargetAudienceForm } from '@workspace/ui/components/product-target-audience-form';
-import { ProductBlogContentForm } from '@workspace/ui/components/product-blog-content-form';
-import { ProductArticlePreferencesForm } from '@workspace/ui/components/product-article-preferences-form';
 
 interface ProductSettingsFormProps {
   product: {
@@ -201,21 +201,36 @@ export function ProductSettingsForm({ product }: ProductSettingsFormProps) {
             </div>
           </Card>
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting} size="lg">
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Settings'
-              )}
-            </Button>
-          </div>
+          {/* Spacer for sticky button */}
+          <div className="h-20" />
         </form>
       </Form>
+
+      {/* Sticky Submit Button */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        style={{
+          left: 'var(--sidebar-width, 0px)',
+        }}
+      >
+        <div className="mx-auto flex w-full max-w-4xl justify-end px-4 py-4">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            size="lg"
+            onClick={form.handleSubmit(onSubmit)}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Settings'
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

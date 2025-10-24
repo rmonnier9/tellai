@@ -289,22 +289,6 @@ export default function LinkingConfigurationPage() {
                     )}
                   </Button>
                 )}
-
-                {/* Save Configuration Button */}
-                <Button
-                  onClick={handleSaveConfiguration}
-                  disabled={isSaving}
-                  className="w-full"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Configuration'
-                  )}
-                </Button>
               </CardContent>
             </Card>
 
@@ -368,6 +352,34 @@ export default function LinkingConfigurationPage() {
                 )}
               </CardContent>
             </Card>
+          </div>
+
+          {/* Spacer for sticky button */}
+          <div className="h-20" />
+        </div>
+
+        {/* Sticky Save Configuration Button */}
+        <div
+          className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          style={{
+            left: 'var(--sidebar-width, 0px)',
+          }}
+        >
+          <div className="flex justify-end px-6 py-4">
+            <Button
+              onClick={handleSaveConfiguration}
+              disabled={isSaving}
+              size="lg"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Configuration'
+              )}
+            </Button>
           </div>
         </div>
       </SidebarInset>
