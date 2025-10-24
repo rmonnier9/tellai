@@ -209,6 +209,7 @@ export const ProductSchema = z.object({
 
 export const ArticleSchema = z.object({
   id: z.string(),
+  slug: z.string().nullable(),
   productId: z.string(),
   product: ProductSchema,
   keyword: z.string(),
