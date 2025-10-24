@@ -220,10 +220,12 @@ export function ProductArticlePreferencesForm({
                         }
                       )}
                     >
-                      <div className="aspect-video rounded bg-neutral-100 mb-2 flex items-center justify-center">
-                        <span className="text-xs text-neutral-400">
-                          {style.label}
-                        </span>
+                      <div className="aspect-[4/5] rounded bg-neutral-100 mb-2 overflow-hidden">
+                        <img
+                          src={`/images/example-${style.value}.jpeg`}
+                          alt={`Example ${style.label} style`}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div className="flex items-center justify-between gap-1">
                         <span
