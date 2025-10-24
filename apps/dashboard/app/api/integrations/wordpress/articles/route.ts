@@ -1,4 +1,5 @@
 import prisma from '@workspace/db/prisma/client';
+import { markdownToHtml } from '@workspace/lib/publishers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -52,29 +53,17 @@ export async function GET(request: NextRequest) {
 
     // Transform articles to the format expected by WordPress plugin
     const transformedArticles = articles.map((article) => {
-      // Generate slug from title if not available
-      const slug = article.title
-        ? article.title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '')
-        : article.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-
       return {
-        slug,
-        title: article.title || article.keyword,
-        content: article.content || '',
-        meta_description:
-          article.metaDescription ||
-          (article.content
-            ? article.content.substring(0, 160).replace(/\n/g, ' ')
-            : ''),
-        image_url: article.featuredImageUrl || undefined,
-        category: undefined, // Can be extended to support category mapping
-        tags: [article.keyword], // Use keyword as tag
-        author: undefined, // Can be extended to support author mapping
-        created_at: article.createdAt.toISOString(),
+        title: article.title,
+        content: markdownToHtml(article.content!),
+        meta_description: article.metaDescription,
         focus_keyword: article.keyword,
+        slug: article.slug!,
+        image_url: article.featuredImageUrl,
+        // tags: [],
+        // author: article.author,
+        // category: article.category,
+        created_at: article.createdAt.toISOString(),
       };
     });
 

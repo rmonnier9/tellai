@@ -8,8 +8,8 @@ export function buildFieldData(
     description: string;
     imageUrl: string;
     createdAt: string;
+    slug: string;
   },
-  slug: string,
   mapping: Record<string, string | undefined>
 ) {
   return Object.entries(mapping).reduce(
@@ -18,7 +18,7 @@ export function buildFieldData(
       if (value === 'title') {
         acc[key] = article.title;
       } else if (value === 'slug') {
-        acc[key] = slug;
+        acc[key] = article.slug;
       } else if (value === 'metaDescription') {
         acc[key] = article.description || '';
       } else if (value === 'publishDate') {

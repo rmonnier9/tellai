@@ -34,12 +34,6 @@ export class WebflowPublisher extends BasePublisher {
       // Convert markdown to HTML
       const htmlContent = markdownToHtml(article.content);
 
-      // Generate slug from title
-      const slug = article.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-
       const fieldData = buildFieldData(
         {
           title: article.title,
@@ -47,8 +41,8 @@ export class WebflowPublisher extends BasePublisher {
           description: article.metaDescription,
           imageUrl: article.imageUrl,
           createdAt: article.createdAt,
+          slug: article.slug,
         },
-        slug,
         credential.config.fieldMapping
       );
 
@@ -112,7 +106,7 @@ export class WebflowPublisher extends BasePublisher {
 
       const createdItem = await createResponse.json();
 
-      const articleSlug = createdItem.fieldData?.slug || slug;
+      const articleSlug = createdItem.fieldData?.slug;
       const baseUrl = siteUrl.replace(/\/$/, '');
       const itemUrl = `${baseUrl}/blog/${articleSlug}`;
 

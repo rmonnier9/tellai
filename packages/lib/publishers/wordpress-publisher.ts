@@ -32,24 +32,18 @@ export class WordPressPublisher extends BasePublisher {
       // Convert markdown to HTML
       const htmlContent = markdownToHtml(article.content);
 
-      // Generate slug from title
-      const slug = article.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-
       const postData = {
         secret: apiKey,
         title: article.title,
         content: htmlContent,
         meta_description: article.metaDescription,
         focus_keyword: article.keyword,
-        slug,
+        slug: article.slug,
         image_url: article.imageUrl,
         // tags: [],
         // author: article.author,
         // category: article.category,
-        created_at: new Date().toISOString(),
+        created_at: article.createdAt,
       };
 
       // Try pretty permalinks first (works with most permalink structures)
