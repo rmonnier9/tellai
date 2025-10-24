@@ -1,5 +1,5 @@
 === Lovarank ===
-Contributors: gpetrov  
+Contributors: georgeslovarank  
 Tags: content automation, ai blog, ai agent, ai content generator, ai seo
 Requires at least: 6.4  
 Tested up to: 6.8  
