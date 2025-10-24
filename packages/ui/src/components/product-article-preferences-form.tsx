@@ -1,6 +1,5 @@
 'use client';
 
-import { Info } from 'lucide-react';
 import {
   FormControl,
   FormDescription,
@@ -9,6 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@workspace/ui/components/form';
+import { Input } from '@workspace/ui/components/input';
 import {
   Select,
   SelectContent,
@@ -17,9 +17,14 @@ import {
   SelectValue,
 } from '@workspace/ui/components/select';
 import { Switch } from '@workspace/ui/components/switch';
-import { Input } from '@workspace/ui/components/input';
-import { UseFormReturn } from 'react-hook-form';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@workspace/ui/components/tooltip';
 import { cn } from '@workspace/ui/lib/utils';
+import { Info } from 'lucide-react';
+import { UseFormReturn } from 'react-hook-form';
 
 interface ProductArticlePreferencesFormProps {
   form: UseFormReturn<any>;
@@ -65,7 +70,18 @@ export function ProductArticlePreferencesForm({
               <FormItem className="flex-1">
                 <div className="flex items-center gap-2">
                   <FormLabel>Article Style</FormLabel>
-                  <Info className="h-4 w-4 text-muted-foreground" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        Define the writing style and tone for your content. This
+                        can be automatically derived from your example articles
+                        for more consistent branding.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
@@ -94,7 +110,19 @@ export function ProductArticlePreferencesForm({
               <FormItem className="flex-1">
                 <div className="flex items-center gap-2">
                   <FormLabel>Internal Links</FormLabel>
-                  <Info className="h-4 w-4 text-muted-foreground" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        Select how many internal links to include from your
+                        blog's sitemap. Links will be automatically selected
+                        based on content relevance to improve SEO and user
+                        engagement.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <Select
                   onValueChange={(value) => field.onChange(parseInt(value))}
@@ -131,7 +159,14 @@ export function ProductArticlePreferencesForm({
             <FormItem>
               <div className="flex items-center gap-2">
                 <FormLabel>Global Article Instructions</FormLabel>
-                <Info className="h-4 w-4 text-muted-foreground" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Define any global instructions for your articles.</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <FormControl>
                 <textarea
@@ -198,7 +233,25 @@ export function ProductArticlePreferencesForm({
                         >
                           {style.label}
                         </span>
-                        <Info className="h-3 w-3 text-muted-foreground" />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {style.value === 'brand-text' &&
+                                'Photo-realistic scenes with text matching your article content and background using your brand color.'}
+                              {style.value === 'watercolor' &&
+                                'Photo-realistic scenes with artistic watercolor effects, creating a soft and elegant look.'}
+                              {style.value === 'cinematic' &&
+                                'High-quality, dramatic photos with cinematic lighting and composition.'}
+                              {style.value === 'illustration' &&
+                                'Modern digital illustrations with clean lines and vibrant colors.'}
+                              {style.value === 'sketch' &&
+                                'Hand-drawn pencil sketch style with natural textures and shading.'}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
                     </button>
                   ))}
