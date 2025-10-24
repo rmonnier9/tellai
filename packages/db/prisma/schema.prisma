@@ -169,6 +169,10 @@ model Product {
   bestArticles    String[] @map("best_articles")
   competitors     String[] @default([])
 
+  // Linking configuration
+  linkSource    String @default("sitemap") @map("link_source") // "database" or "sitemap"
+  detectedLinks Json?  @map("detected_links") // Cached links from sitemap
+
   // Article preferences
   autoPublish         Boolean @default(true) @map("auto_publish")
   articleStyle        String  @default("informative") @map("article_style")

@@ -53,7 +53,7 @@ export const SerpResultSchema = z.object({
 
 // Existing Article Schema
 export const ExistingArticleSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(), // Optional because sitemap links don't have an id
   title: z.string(),
   keyword: z.string(),
   url: z.string(),

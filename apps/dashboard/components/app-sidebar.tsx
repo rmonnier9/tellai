@@ -5,6 +5,7 @@ import {
   Bot,
   Calendar,
   History,
+  Link2,
   Puzzle,
   Settings2,
   SquareTerminal,
@@ -138,6 +139,11 @@ const data = {
       name: 'Integrations',
       url: '/integrations',
       icon: Puzzle,
+    },
+    {
+      name: 'Linking Configuration',
+      url: '/linking-configuration',
+      icon: Link2,
     },
   ],
 };
