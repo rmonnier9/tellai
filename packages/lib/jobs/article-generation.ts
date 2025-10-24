@@ -60,6 +60,7 @@ export const articleGeneration = async (job: Job) => {
     where: { id: articleId },
     data: {
       title: result.articleContent?.title || '',
+      slug: result.articleContent?.slug,
       metaDescription: result.articleContent?.metaDescription,
       content: result.articleContent?.content,
       featuredImageUrl: featuredImageUrl,
