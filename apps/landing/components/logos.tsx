@@ -1,6 +1,7 @@
-import Webflow from "@/public/images/webflow.svg";
-import Wordpress from "@/public/images/wordpress.svg";
-import Image from "next/image";
+import Framer from '@/public/images/framer.svg';
+import Webflow from '@/public/images/webflow.svg';
+import Wordpress from '@/public/images/wordpress.svg';
+import Image from 'next/image';
 
 export default function Logos() {
   return (
@@ -20,6 +21,9 @@ export default function Logos() {
           </div>
           <div className="relative px-6 before:absolute before:left-0 before:top-1/2 before:h-3 before:w-px before:-translate-y-1/2 before:bg-gray-300 first:before:hidden max-lg:before:hidden lg:px-12">
             <Image src={Webflow} width={100} alt="Webflow" />
+          </div>
+          <div className="relative px-6 before:absolute before:left-0 before:top-1/2 before:h-3 before:w-px before:-translate-y-1/2 before:bg-gray-300 first:before:hidden max-lg:before:hidden lg:px-12">
+            <Image src={Framer} width={100} alt="Framer" />
           </div>
           {/* <div className="relative px-6 before:absolute before:left-0 before:top-1/2 before:h-3 before:w-px before:-translate-y-1/2 before:bg-gray-300 first:before:hidden first:before:w-0 max-lg:before:hidden lg:px-12">
             <Image src={Ghost} width={130} alt="Ghost" />

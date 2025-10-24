@@ -5,7 +5,7 @@ import {
   LanguagesIcon,
   RefreshCcwIcon,
   SquarePenIcon,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function FeaturesHome() {
   return (
@@ -135,7 +135,7 @@ export default function FeaturesHome() {
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
                 <RefreshCcwIcon className="text-pink-500" />
-                <span>Sync with Wordpress, Webflow</span>
+                <span>Sync with your favorite platform</span>
               </h3>
               <p className="text-[15px] text-gray-700">
                 Articles are automatically published to your blog - no

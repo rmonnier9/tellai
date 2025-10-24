@@ -1,36 +1,37 @@
-import Accordion from "@/components/accordion";
+import Accordion from '@/components/accordion';
 
 export default function Faqs() {
   const faqs = [
     {
-      question: "How does Lovarank find keywords for my blog?",
+      question: 'How does Lovarank find keywords for my blog?',
       answer:
-        "Lovarank analyzes your niche and history to suggest low-competition keywords for both Google and ChatGPT search.",
+        'Lovarank analyzes your niche and history to suggest low-competition keywords for both Google and ChatGPT search.',
       active: true,
     },
     {
-      question: "Will Google penalize AI content?",
+      question: 'Will Google penalize AI content?',
       answer:
-        "No. Every article is optimized to follow Google’s EEAT guidelines.",
+        'No. Every article is optimized to follow Google’s EEAT guidelines.',
     },
     {
-      question: "Do I need SEO knowledge to use Lovarank?",
+      question: 'Do I need SEO knowledge to use Lovarank?',
       answer:
-        "Not at all. Everything is automated, from keywords to publishing.",
+        'Not at all. Everything is automated, from keywords to publishing.',
     },
     {
-      question: "Will the articles publish directly to my blog?",
-      answer: "Yes. WordPress, Webflow integrations allow one-click sync.",
+      question: 'Will the articles publish directly to my blog?',
+      answer:
+        'Yes. WordPress, Webflow, Framer integrations allow one-click sync.',
     },
     {
-      question: "How long does it take to see results?",
+      question: 'How long does it take to see results?',
       answer:
-        "Some users see traffic growth within weeks, but SEO + AI ranking compound over months.",
+        'Some users see traffic growth within weeks, but SEO + AI ranking compound over months.',
     },
     {
-      question: "Why optimize for ChatGPT & Perplexity?",
+      question: 'Why optimize for ChatGPT & Perplexity?',
       answer:
-        "Because AI search is the new Google: more and more users rely on it daily. Getting visibility there means future-proofing your growth.",
+        'Because AI search is the new Google: more and more users rely on it daily. Getting visibility there means future-proofing your growth.',
     },
   ];
 
