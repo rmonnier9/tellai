@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack",
     "build": "touch ../../.env && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint && tsc --noEmit",
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
     "stripe:dev": "stripe listen --forward-to localhost:3000/api/auth/stripe/webhook"
