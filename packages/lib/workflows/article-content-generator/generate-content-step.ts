@@ -280,11 +280,13 @@ Now write an exceptional, SEO-optimized article that will rank well and provide 
         }),
       });
 
+      const watermark = `*Article created using [Lovarank](https://www.lovarank.com/ "Lovarank - The AI agent that grows your organic traffic")*`;
+
       return {
         ...inputData,
         articleContent: {
           title: result.object.title,
-          content: result.object.content,
+          content: `${result.object.content}\n\n${watermark}`,
           metaDescription: result.object.metaDescription,
           slug: result.object.slug,
         },
