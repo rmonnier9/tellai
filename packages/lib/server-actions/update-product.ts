@@ -1,9 +1,10 @@
 'use server';
 
 import { auth } from '@workspace/auth/server';
-import { headers } from 'next/headers';
 import prisma from '@workspace/db/prisma/client';
+import { headers } from 'next/headers';
 import { UpdateProductSchema } from '../dtos';
+import { detectLinksFromSitemap } from './detect-links';
 
 export async function updateProduct(
   productId: string,
@@ -46,6 +47,10 @@ export async function updateProduct(
     // Validate the data
     const validatedData = UpdateProductSchema.parse(data);
 
+    // Check if sitemap URL has changed
+    const sitemapUrlChanged =
+      validatedData.sitemapUrl !== existingProduct.sitemapUrl;
+
     // Update the product in the database
     const product = await prisma.product.update({
       where: {
@@ -62,6 +67,8 @@ export async function updateProduct(
         sitemapUrl: validatedData.sitemapUrl || null,
         blogUrl: validatedData.blogUrl || null,
         bestArticles: validatedData.bestArticles || [],
+        // Update link source if sitemap URL is provided
+        linkSource: validatedData.sitemapUrl ? 'sitemap' : 'database',
         // Article preferences
         autoPublish: validatedData.autoPublish,
         articleStyle: validatedData.articleStyle,
@@ -75,6 +82,29 @@ export async function updateProduct(
         includeEmojis: validatedData.includeEmojis,
       },
     });
+
+    // If sitemap URL changed and is not empty, detect links in the background
+    if (sitemapUrlChanged && validatedData.sitemapUrl) {
+      // Run link detection asynchronously - don't block product update if it fails
+      detectLinksFromSitemap(productId, validatedData.sitemapUrl)
+        .then((result) => {
+          if (result.success) {
+            console.log(
+              `✅ Successfully detected ${result.totalUrls} links from updated sitemap`
+            );
+          } else {
+            console.warn(
+              `⚠️ Failed to detect links from updated sitemap: ${result.error}`
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(
+            '⚠️ Error detecting links from updated sitemap:',
+            error
+          );
+        });
+    }
 
     return { success: true, product };
   } catch (error) {

@@ -1,10 +1,11 @@
 'use server';
 
 import { auth } from '@workspace/auth/server';
-import { headers } from 'next/headers';
 import prisma from '@workspace/db/prisma/client';
-import { OnboardingProductSchema } from '../dtos';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { OnboardingProductSchema } from '../dtos';
+import { detectLinksFromSitemap } from './detect-links';
 
 export async function completeOnboarding(data: OnboardingProductSchema) {
   try {
@@ -49,6 +50,8 @@ export async function completeOnboarding(data: OnboardingProductSchema) {
         sitemapUrl: validatedData.sitemapUrl || null,
         blogUrl: validatedData.blogUrl || null,
         bestArticles: validatedData.bestArticles || [],
+        // Linking configuration
+        linkSource: validatedData.sitemapUrl ? 'sitemap' : 'database',
         // Article preferences
         autoPublish: validatedData.autoPublish,
         articleStyle: validatedData.articleStyle,
@@ -67,6 +70,29 @@ export async function completeOnboarding(data: OnboardingProductSchema) {
         },
       },
     });
+
+    // If sitemap URL is provided, detect links in the background
+    if (validatedData.sitemapUrl) {
+      // Run link detection asynchronously - don't block onboarding if it fails
+      detectLinksFromSitemap(product.id, validatedData.sitemapUrl)
+        .then((result) => {
+          if (result.success) {
+            console.log(
+              `✅ Successfully detected ${result.totalUrls} links from sitemap during onboarding`
+            );
+          } else {
+            console.warn(
+              `⚠️ Failed to detect links from sitemap during onboarding: ${result.error}`
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(
+            '⚠️ Error detecting links from sitemap during onboarding:',
+            error
+          );
+        });
+    }
 
     // Update the session in the database with the new activeProductId
     await prisma.session.update({
