@@ -1,5 +1,6 @@
 'use client';
 
+import type { Article as ArticleType } from '@workspace/db/prisma/generated/client';
 import { publishArticle } from '@workspace/lib/server-actions/publish-article';
 import { publishToCredential } from '@workspace/lib/server-actions/publish-to-credential';
 import { Badge } from '@workspace/ui/components/badge';
@@ -29,7 +30,6 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import type { Article as ArticleType } from '@workspace/db/prisma/generated/client';
 
 type Article = ArticleType & {
   product: {
@@ -142,21 +142,17 @@ export function ArticleDisplay({
   };
 
   // Get icon for integration type
-  const getIntegrationIcon = (type: string) => {
-    switch (type) {
-      case 'shopify':
-        return '🛍️';
-      case 'wordpress':
-        return '📝';
-      case 'webflow':
-        return '🌊';
-      case 'webhook':
-        return '🔗';
-      case 'notion':
-        return '📓';
-      default:
-        return '🔌';
-    }
+  const getIntegrationLogo = (type: string) => {
+    const logos: Record<string, string> = {
+      shopify: '/images/shopify.svg',
+      wordpress: '/images/wordpress.svg',
+      webflow: '/images/webflow.svg',
+      webhook: '/images/webhook.svg',
+      notion: '/images/notion.svg',
+      framer: '/images/framer.svg',
+      wix: '/images/wix.svg',
+    };
+    return logos[type] || '/images/webhook.svg';
   };
 
   // Map credentials to show publish status
@@ -397,8 +393,14 @@ export function ArticleDisplay({
                       className="flex items-center justify-between rounded-lg border bg-background p-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                          {getIntegrationIcon(credential.type)}
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-2 shadow-sm">
+                          <img
+                            src={getIntegrationLogo(credential.type)}
+                            alt={`${credential.type} logo`}
+                            width={24}
+                            height={24}
+                            className="object-contain"
+                          />
                         </div>
                         <div>
                           <p className="font-medium">

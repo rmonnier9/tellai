@@ -15,6 +15,7 @@ import {
 import { Button } from '@workspace/ui/components/button';
 import { Card } from '@workspace/ui/components/card';
 import { CirclePlus, ExternalLink, Loader2, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -35,11 +36,15 @@ type Credential = {
   createdAt: Date;
 };
 
-const integrationIcons: Record<string, string> = {
-  shopify: '🛍️',
-  wordpress: '📝',
-  webflow: '🌊',
-  webhook: '🔗',
+const integrationLogos: Record<string, string> = {
+  shopify: '/images/shopify.svg',
+  wordpress: '/images/wordpress.svg',
+  'wordpress.com': '/images/wordpress-com.svg',
+  webflow: '/images/webflow.svg',
+  webhook: '/images/webhook.svg',
+  notion: '/images/notion.svg',
+  framer: '/images/framer.svg',
+  wix: '/images/wix.svg',
 };
 
 const integrationLabels: Record<string, string> = {
@@ -172,8 +177,17 @@ export function IntegrationsView() {
               <Card key={credential.id} className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-lg text-2xl">
-                      {integrationIcons[credential.type] || '🔌'}
+                    <div className="bg-white flex h-12 w-12 items-center justify-center rounded-lg p-2 shadow-sm">
+                      <Image
+                        src={
+                          integrationLogos[credential.type] ||
+                          '/images/webhook.svg'
+                        }
+                        alt={`${credential.type} logo`}
+                        width={32}
+                        height={32}
+                        className="object-contain"
+                      />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold">
