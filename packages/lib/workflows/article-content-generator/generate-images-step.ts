@@ -1,6 +1,7 @@
 import { createStep } from '@mastra/core/workflows';
-import { WorkflowDTO } from './schemas';
+import { IMAGE_STYLES } from '../../constants/image-styles';
 import { generateImage } from './../../generate-image';
+import { WorkflowDTO } from './schemas';
 
 // Step 7: Generate images using Replicate
 const generateImagesStep = createStep({
@@ -21,27 +22,15 @@ const generateImagesStep = createStep({
         // Build the final prompt - keep it concise
         let finalPrompt = plan.prompt;
 
-        // For non-diagram images, apply minimal style based on preference
+        // For non-diagram images, apply detailed style based on preference
         if (plan.type !== 'diagram') {
-          // Add minimal style suffix based on imageStyle preference
-          switch (imageStyle) {
-            case 'brand-text':
-              finalPrompt = `${finalPrompt}, professional minimal design`;
-              break;
-            case 'photographic':
-              finalPrompt = `${finalPrompt}, photorealistic`;
-              break;
-            case 'illustration':
-              finalPrompt = `${finalPrompt}, modern illustration`;
-              break;
-            case 'abstract':
-              finalPrompt = `${finalPrompt}, abstract geometric`;
-              break;
-            case 'minimalist':
-              finalPrompt = `${finalPrompt}, minimalist`;
-              break;
-            default:
-              finalPrompt = `${finalPrompt}, professional`;
+          // Add detailed style description based on imageStyle preference
+          const styleConfig =
+            IMAGE_STYLES[imageStyle as keyof typeof IMAGE_STYLES];
+          if (styleConfig) {
+            finalPrompt = `${finalPrompt}, ${styleConfig.generationPrompt}`;
+          } else {
+            finalPrompt = `${finalPrompt}, professional minimal design`;
           }
         } else {
           // For diagrams, keep it simple

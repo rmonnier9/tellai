@@ -1,5 +1,6 @@
 'use client';
 
+import { IMAGE_STYLE_OPTIONS } from '@workspace/lib/constants/image-styles';
 import {
   FormControl,
   FormDescription,
@@ -194,13 +195,7 @@ export function ProductArticlePreferencesForm({
               <FormLabel>Image Style</FormLabel>
               <FormControl>
                 <div className="grid grid-cols-5 gap-3">
-                  {[
-                    { value: 'brand-text', label: 'Brand & Text' },
-                    { value: 'watercolor', label: 'Watercolor' },
-                    { value: 'cinematic', label: 'Cinematic' },
-                    { value: 'illustration', label: 'Illustration' },
-                    { value: 'sketch', label: 'Sketch' },
-                  ].map((style) => (
+                  {IMAGE_STYLE_OPTIONS.map((style) => (
                     <button
                       key={style.value}
                       type="button"
@@ -240,18 +235,7 @@ export function ProductArticlePreferencesForm({
                             <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>
-                              {style.value === 'brand-text' &&
-                                'Photo-realistic scenes with text matching your article content and background using your brand color.'}
-                              {style.value === 'watercolor' &&
-                                'Photo-realistic scenes with artistic watercolor effects, creating a soft and elegant look.'}
-                              {style.value === 'cinematic' &&
-                                'High-quality, dramatic photos with cinematic lighting and composition.'}
-                              {style.value === 'illustration' &&
-                                'Modern digital illustrations with clean lines and vibrant colors.'}
-                              {style.value === 'sketch' &&
-                                'Hand-drawn pencil sketch style with natural textures and shading.'}
-                            </p>
+                            <p>{style.description}</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
