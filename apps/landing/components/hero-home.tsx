@@ -65,7 +65,7 @@ export default function HeroHome() {
             </div>
           </div>
           <p className="mb-2 text-center text-sm text-gray-600">
-            Join 50+ marketers on the waitlist
+            Join 50+ happy users
           </p>
           <div
             className="mb-6 border-y [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1]"
