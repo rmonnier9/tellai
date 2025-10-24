@@ -1,6 +1,5 @@
 import Stripes from '@/public/images/stripes-dark.svg';
 import Image from 'next/image';
-import WaitlistForm from './waitlist-form';
 
 export default function Cta() {
   return (
@@ -29,18 +28,19 @@ export default function Cta() {
               Don’t let your SEO sleep, start automating today.
             </h2>
             <div className="mx-auto max-w-xs sm:flex sm:max-w-none sm:justify-center">
-              <WaitlistForm />
-              {/* <a
+              <a
                 className="btn group mb-4 w-full bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
-                href="#0"
+                href="https://app.lovarank.com/auth/sign-in"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <span className="relative inline-flex items-center">
-                  Start Free Trial{" "}
+                  Start Free Trial{' '}
                   <span className="ml-1 tracking-normal text-pink-300 transition-transform group-hover:translate-x-0.5">
                     -&gt;
                   </span>
                 </span>
-              </a> */}
+              </a>
             </div>
           </div>
         </div>

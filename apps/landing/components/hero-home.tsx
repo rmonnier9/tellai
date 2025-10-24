@@ -7,7 +7,6 @@ import Avatar05 from '@/public/images/avatar-05.jpg';
 import Avatar06 from '@/public/images/avatar-06.jpg';
 import Image from 'next/image';
 import Logos from './logos';
-import WaitlistForm from './waitlist-form';
 
 export default function HeroHome() {
   return (
@@ -42,19 +41,19 @@ export default function HeroHome() {
                   data-aos="zoom-y-out"
                   data-aos-delay={450}
                 >
-                  <WaitlistForm />
-
-                  {/* <a
+                  <a
                     className="btn group mb-4 w-full bg-linear-to-t from-pink-600 to-pink-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
-                    href="#0"
+                    href="https://app.lovarank.com/auth/sign-in"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <span className="relative inline-flex items-center">
-                      Start Free Trial{" "}
+                      Get Started for Free{' '}
                       <span className="ml-1 tracking-normal text-pink-300 transition-transform group-hover:translate-x-0.5">
                         -&gt;
                       </span>
                     </span>
-                  </a> */}
+                  </a>
                   {/* <a
                     className="btn w-full bg-white text-gray-800 shadow-sm hover:bg-gray-50 sm:ml-4 sm:w-auto"
                     href="#0"

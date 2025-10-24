@@ -1,5 +1,4 @@
-import Link from "next/link";
-import Logo from "./logo";
+import Logo from './logo';
 
 export default function Header() {
   return (
@@ -67,21 +66,25 @@ export default function Header() {
 
           {/* Desktop sign in links */}
           <ul className="flex flex-1 items-center justify-end gap-3">
-            {/* <li>
-              <Link
-                href="/signin"
+            <li>
+              <a
+                href="https://app.lovarank.com/auth/sign-in"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn-sm bg-white text-gray-800 shadow-sm hover:bg-gray-50"
               >
                 Login
-              </Link>
-            </li> */}
+              </a>
+            </li>
             <li>
-              <Link
-                href="#cta"
+              <a
+                href="https://app.lovarank.com/auth/sign-in"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn-sm bg-pink-400 text-white shadow-sm hover:bg-pink-500"
               >
-                Get Early Access
-              </Link>
+                Start for Free
+              </a>
             </li>
           </ul>
 
