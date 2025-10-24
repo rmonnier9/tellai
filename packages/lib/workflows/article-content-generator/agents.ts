@@ -21,8 +21,7 @@ Your writing must:
 - Balance informative content with engaging storytelling
 
 Never write content that feels like it came from a template or AI generator.`,
-  // model: openai('gpt-4o'),
-  model: openrouter('anthropic/claude-sonnet-4.5'),
+  model: openrouter('anthropic/claude-sonnet-4.5:online'),
 });
 
 // SERP Analysis agent
