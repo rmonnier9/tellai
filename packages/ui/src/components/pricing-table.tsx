@@ -6,19 +6,19 @@ import useActiveProduct from '../hooks/use-active-product';
 import { useRewardful } from '../hooks/use-rewardful';
 
 const leftFeatures = [
-  '30 Articles a month generated and published on auto-pilot',
-  'Auto Keyword Research made for you hands-free',
-  'High DR Backlinks built for you on auto-pilot through our Backlink Exchange',
-  'Relevant YouTube videos integrated into articles',
-  'Unlimited AI Rewrites',
+  '30 premium articles created and published automatically each month',
+  'Intelligent keyword research handled seamlessly in the background',
+  'High-authority backlinks established automatically via our Link Network',
+  'Curated YouTube content seamlessly embedded in articles',
+  'Unlimited content revisions and improvements',
 ];
 
 const rightFeatures = [
-  'Unlimited Users in your Organization',
-  'Integrates with WordPress, Webflow, Shopify, Framer and many other platforms',
-  'AI Images generated in different styles',
-  'Articles generated in 150+ languages',
-  'Custom Features requests',
+  'Unlimited team members and collaborators',
+  'Seamless integration with WordPress, Webflow, Shopify, Framer and 50+ platforms',
+  'AI-powered visuals created in multiple artistic styles',
+  'Content generation across 150+ global languages',
+  'Priority custom development requests',
 ];
 
 interface PricingTableProps {
@@ -80,10 +80,10 @@ export default function Example({ initialProduct }: PricingTableProps) {
           <div className="p-8 sm:p-12 lg:w-1/3 lg:shrink-0">
             <div className="text-center lg:text-left">
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                All in One
+                Complete Solution
               </h2>
               <p className="text-primary-600 font-medium mb-8 dark:text-primary-400">
-                For ambitious entrepreneurs
+                Built for growing businesses
               </p>
 
               <div className="mb-8">
@@ -105,12 +105,12 @@ export default function Example({ initialProduct }: PricingTableProps) {
                 disabled={!productId}
                 className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Loading...' : 'Start 3-day Trial'}
+                {isLoading ? 'Loading...' : 'Begin Free Trial'}
               </button>
 
               <div className="text-center lg:text-left">
                 <p className="font-semibold text-gray-900 dark:text-white mb-1">
-                  Cancel anytime. No questions asked!
+                  Cancel anytime. No commitments!
                 </p>
                 {/* <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <span>$1 trial fee helps us ensure quality service.</span>
@@ -123,7 +123,7 @@ export default function Example({ initialProduct }: PricingTableProps) {
           {/* Right side - Features */}
           <div className="p-8 sm:p-12 lg:flex-1">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              What&apos;s included:
+              Everything you get:
             </h3>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
