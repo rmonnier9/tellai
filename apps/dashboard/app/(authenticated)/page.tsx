@@ -16,7 +16,7 @@ export default async function Page() {
   };
 
   if (!sessionWithOrgId.activeOrganizationId) {
-    redirect('/auth/sign-innnnn');
+    redirect('/auth/sign-in');
     return;
   }
 
