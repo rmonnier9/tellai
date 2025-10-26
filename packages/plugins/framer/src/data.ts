@@ -65,7 +65,6 @@ export async function getDataSource(apiKey: string, abortSignal?: AbortSignal): 
     const fields: ManagedCollectionFieldInput[] = [
         { id: "Image", name: "Image", type: "string" },
         { id: "Title", name: "Title", type: "string" },
-        { id: "Slug", name: "Slug", type: "string" },
         { id: "Meta Description", name: "Meta Description", type: "string" },
         { id: "Content", name: "Content", type: "formattedText" },
         { id: "CreatedAt", name: "CreatedAt", type: "date" },

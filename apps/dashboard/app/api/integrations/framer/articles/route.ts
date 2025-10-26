@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // CORS headers for Framer
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://framer.com/',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
 };
@@ -47,19 +47,7 @@ export async function GET(request: NextRequest) {
     const articles = await prisma.article.findMany({
       where: {
         productId: credential.productId!,
-        status: 'generated',
-        content: {
-          not: null,
-        },
-        title: {
-          not: null,
-        },
-        // Only get articles that haven't been published to this credential yet
-        publications: {
-          none: {
-            credentialId: credential.id,
-          },
-        },
+        status: 'published',
       },
       orderBy: {
         createdAt: 'desc',
@@ -70,25 +58,16 @@ export async function GET(request: NextRequest) {
     // Transform articles to the format expected by Framer plugin
     const transformedArticles = articles.map((article) => {
       return {
-        Title: article.title || article.keyword,
-        'Meta Description':
-          article.metaDescription ||
-          (article.content
-            ? article.content.substring(0, 160).replace(/\n/g, ' ')
-            : ''),
-        Content: article.content || '',
-        Image: article.featuredImageUrl || '',
+        Title: article.title,
+        'Meta Description': article.metaDescription,
+        Content: article.content,
+        Image: article.featuredImageUrl,
         CreatedAt: article.createdAt.toISOString().split('T')[0], // Format as YYYY-MM-DD
         Status: article.status === 'generated' ? 'Published' : 'Draft',
-        Slug: article.title
-          ? article.title
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/(^-|-$)/g, '')
-          : article.keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        Slug: article.slug,
       };
     });
-
+    console.log(transformedArticles);
     return NextResponse.json(
       {
         success: true,
