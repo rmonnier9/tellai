@@ -3,7 +3,6 @@ import "./App.css"
 import { framer, type ManagedCollection } from "framer-plugin"
 import { useEffect, useLayoutEffect, useState } from "react"
 import { ApiKeySetup } from "./ApiKeySetup.js"
-import { CreateCollection } from "./CreateCollection.js"
 import { type DataSource, getDataSource } from "./data.js"
 import { FieldMapping } from "./FieldMapping.js"
 
@@ -13,10 +12,10 @@ interface AppProps {
     previousSlugFieldId: string | null
 }
 
-type Step = "create-collection" | "api-key" | "field-mapping"
+type Step = "api-key" | "field-mapping"
 
 export function App({ collection, previousDataSourceId, previousSlugFieldId }: AppProps) {
-    const [step, setStep] = useState<Step>(previousDataSourceId ? "field-mapping" : "create-collection")
+    const [step, setStep] = useState<Step>(previousDataSourceId ? "field-mapping" : "api-key")
     const [apiKey, setApiKey] = useState<string>("")
     const [dataSource, setDataSource] = useState<DataSource | null>(null)
     const [isLoadingDataSource, setIsLoadingDataSource] = useState(Boolean(previousDataSourceId))
@@ -80,10 +79,6 @@ export function App({ collection, previousDataSourceId, previousSlugFieldId }: A
         return () => abortController.abort()
     }, [previousDataSourceId, collection])
 
-    const handleCollectionCreated = () => {
-        setStep("api-key")
-    }
-
     const handleApiKeySubmitted = async (key: string) => {
         setApiKey(key)
 
@@ -109,10 +104,6 @@ export function App({ collection, previousDataSourceId, previousSlugFieldId }: A
                 <div className="framer-spinner" />
             </main>
         )
-    }
-
-    if (step === "create-collection") {
-        return <CreateCollection onNext={handleCollectionCreated} />
     }
 
     if (step === "api-key") {
