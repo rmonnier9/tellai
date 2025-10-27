@@ -75,6 +75,7 @@ export async function publishArticle({ articleId }: { articleId: string }) {
             imageUrl: article.featuredImageUrl!,
             createdAt: article.createdAt.toISOString(),
             slug: article.slug!,
+            status: article.status,
           },
           {
             type: credential.type,

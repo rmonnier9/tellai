@@ -97,6 +97,7 @@ export const articleGeneration = async (job: Job) => {
               imageUrl: featuredImageUrl!,
               createdAt: article.createdAt.toISOString(),
               slug: article.slug!,
+              status: article.status,
             },
             {
               type: credential.type,

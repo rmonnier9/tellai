@@ -82,6 +82,7 @@ export async function publishToCredential({
         imageUrl: article.featuredImageUrl!,
         createdAt: article.createdAt.toISOString(),
         slug: article.slug!,
+        status: article.status,
       },
       {
         type: credential.type,

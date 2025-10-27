@@ -80,7 +80,6 @@ export async function createCredential(input: CreateCredentialInput) {
           username: wpData.username || '',
           applicationPassword: wpData.applicationPassword,
           authorId: wpData.authorId,
-          publishingStatus: wpData.publishingStatus,
         },
       };
       break;

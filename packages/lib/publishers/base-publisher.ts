@@ -12,6 +12,7 @@ export interface ArticleData {
   keyword: string;
   imageUrl: string;
   createdAt: string;
+  status: string;
 }
 
 export interface CredentialConfig {
