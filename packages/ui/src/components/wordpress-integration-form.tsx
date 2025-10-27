@@ -27,11 +27,19 @@ import {
   FormMessage,
 } from '@workspace/ui/components/form';
 import { Input } from '@workspace/ui/components/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@workspace/ui/components/select';
 
 import { createCredential } from '@workspace/lib/server-actions/create-credential';
 
 const formSchema = z.object({
   siteUrl: z.string().url('Please enter a valid WordPress URL'),
+  publishingStatus: z.enum(['publish', 'draft']),
 });
 
 export function WordPressIntegrationForm() {
@@ -43,6 +51,7 @@ export function WordPressIntegrationForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       siteUrl: '',
+      publishingStatus: 'publish',
     },
   });
 
@@ -77,6 +86,7 @@ export function WordPressIntegrationForm() {
           name: `${new URL(data.siteUrl).hostname}`,
           siteUrl: data.siteUrl,
           applicationPassword: apiKey,
+          publishingStatus: data.publishingStatus,
         },
       });
 
@@ -150,6 +160,41 @@ export function WordPressIntegrationForm() {
                     <FormDescription>
                       Enter your WordPress URL with https:// (e.g.,
                       https://example.com or https://example.com/blog).
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="publishingStatus"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-medium">
+                      Publishing Behavior{' '}
+                      <span className="text-destructive">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isSubmitting}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Publish Immediately" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="publish">
+                          Publish Immediately
+                        </SelectItem>
+                        <SelectItem value="draft">Save as Draft</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose whether articles are published immediately or saved
+                      as drafts.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
