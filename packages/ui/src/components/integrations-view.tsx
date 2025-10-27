@@ -235,19 +235,6 @@ export function IntegrationsView() {
                       Created{' '}
                       {new Date(credential.createdAt).toLocaleDateString()}
                     </span>
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs ${
-                        credential.config?.publishingStatus === 'published' ||
-                        credential.config?.publishingStatus === 'publish'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}
-                    >
-                      {credential.config?.publishingStatus === 'published' ||
-                      credential.config?.publishingStatus === 'publish'
-                        ? 'Auto-publish'
-                        : 'Save as draft'}
-                    </span>
                   </div>
                 </div>
               </Card>
