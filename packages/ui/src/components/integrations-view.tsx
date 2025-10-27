@@ -174,8 +174,8 @@ export function IntegrationsView() {
           // </Card>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {credentials.map((credential) => (
-              <Card key={credential.id} className="p-6">
-                <div className="flex items-start justify-between">
+              <Card key={credential.id} className="flex flex-col p-6 h-full">
+                <div className="flex items-start justify-between flex-1">
                   <div className="flex items-start gap-3">
                     <div className="bg-white flex h-12 w-12 items-center justify-center rounded-lg p-2 shadow-sm">
                       <Image
