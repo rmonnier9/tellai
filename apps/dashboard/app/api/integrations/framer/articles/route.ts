@@ -47,7 +47,6 @@ export async function GET(request: NextRequest) {
     const articles = await prisma.article.findMany({
       where: {
         productId: credential.productId!,
-        status: 'published',
       },
       orderBy: {
         createdAt: 'desc',
@@ -63,7 +62,7 @@ export async function GET(request: NextRequest) {
         Content: article.content,
         Image: article.featuredImageUrl,
         CreatedAt: article.createdAt.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        Status: article.status === 'generated' ? 'Published' : 'Draft',
+        Status: article.status,
         Slug: article.slug,
       };
     });
