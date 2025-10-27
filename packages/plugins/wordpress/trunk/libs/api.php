@@ -118,6 +118,13 @@ function lovarank_receive_article($request) {
     $title = sanitize_text_field($params['title'] ?? 'Untitled');
     $slug = sanitize_title($params['slug'] ?? $title);
     $created_at = !empty($params['created_at']) ? gmdate('Y-m-d H:i:s', strtotime($params['created_at'])) : current_time('mysql');
+    
+    // Get publishing status from request, default to 'draft'
+    $publishing_status = sanitize_text_field($params['publishing_status'] ?? 'draft'); 
+    $allowed_statuses = ['publish', 'draft'];
+    if (!in_array($publishing_status, $allowed_statuses)) {
+        $publishing_status = 'draft';
+    }   
 
     $table_name = $wpdb->prefix . 'lovarank_manage';
 
@@ -171,7 +178,7 @@ function lovarank_receive_article($request) {
     $post_id = wp_insert_post([
         'post_title'    => $title,
         'post_content'  => $sanitized_content,
-        'post_status'   => get_option('lovarank_post_as_draft', 'yes') === 'yes' ? 'draft' : 'publish',
+        'post_status'   => $publishing_status,
         'post_type'     => 'post',
         'post_name'     => $slug,
         'post_category' => $category_ids,

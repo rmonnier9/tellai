@@ -32,6 +32,8 @@ export class WordPressPublisher extends BasePublisher {
       // Convert markdown to HTML
       const htmlContent = markdownToHtml(article.content);
 
+      const publishingStatus = credential.config.publishingStatus || 'draft';
+
       const postData = {
         secret: apiKey,
         title: article.title,
@@ -40,6 +42,7 @@ export class WordPressPublisher extends BasePublisher {
         focus_keyword: article.keyword,
         slug: article.slug,
         image_url: article.imageUrl,
+        publishing_status: publishingStatus,
         // tags: [],
         // author: article.author,
         // category: article.category,

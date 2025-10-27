@@ -126,7 +126,7 @@ export const WordPressCredentialSchema = z.object({
   applicationPassword: z.string().min(1, 'Application password is required'),
   authorId: z.string().nullish(),
   username: z.string().nullish(),
-  publishingStatus: z.string().nullish(),
+  publishingStatus: z.enum(['publish', 'draft']),
 });
 
 export type WordPressCredentialSchema = z.infer<
