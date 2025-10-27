@@ -65,7 +65,7 @@ export async function publishArticle({ articleId }: { articleId: string }) {
     for (const credential of credentials) {
       const publisher = getPublisher(credential.type);
 
-      if (publisher) {
+      if (publisher && credential.type !== 'framer') {
         const publishResult = await publisher.publish(
           {
             title: article.title,

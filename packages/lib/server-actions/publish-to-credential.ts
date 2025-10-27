@@ -60,6 +60,10 @@ export async function publishToCredential({
       throw new Error('Integration not found');
     }
 
+    if (credential.type === 'framer') {
+      throw new Error('Framer is not supported for manual publishing');
+    }
+
     // Verify credential belongs to the same product
     if (credential.productId !== article.product.id) {
       throw new Error('Integration does not belong to this product');

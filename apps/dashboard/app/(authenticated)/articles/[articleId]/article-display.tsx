@@ -34,6 +34,7 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -469,7 +470,7 @@ export function ArticleDisplay({
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-2 shadow-sm">
-                          <img
+                          <Image
                             src={getIntegrationLogo(credential.type)}
                             alt={`${credential.type} logo`}
                             width={24}
@@ -483,60 +484,66 @@ export function ArticleDisplay({
                               credential.type.charAt(0).toUpperCase() +
                                 credential.type.slice(1)}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {credential.isPublished ? (
-                              <>
-                                Last published{' '}
-                                {credential.publication?.createdAt &&
-                                  new Date(
-                                    credential.publication.createdAt
-                                  ).toLocaleDateString()}
-                              </>
-                            ) : (
-                              'Not yet published'
-                            )}
-                          </p>
+                          {credential.type !== 'framer' && (
+                            <p className="text-xs text-muted-foreground">
+                              {credential.isPublished ? (
+                                <>
+                                  Last published{' '}
+                                  {credential.publication?.createdAt &&
+                                    new Date(
+                                      credential.publication.createdAt
+                                    ).toLocaleDateString()}
+                                </>
+                              ) : (
+                                'Not yet published'
+                              )}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {credential.isPublished &&
-                          credential.publication?.url && (
-                            <Button variant="ghost" size="sm" asChild>
-                              <a
-                                href={credential.publication.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          )}
-                        <Button
-                          variant={
-                            credential.isPublished ? 'outline' : 'default'
-                          }
-                          size="sm"
-                          onClick={() =>
-                            handlePublishToIntegration(
-                              credential.id,
-                              credential.name || credential.type
-                            )
-                          }
-                          disabled={publishingCredentials.has(credential.id)}
-                        >
-                          {publishingCredentials.has(credential.id) ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Publishing...
-                            </>
-                          ) : (
-                            <>
-                              <Send className="h-4 w-4 mr-2" />
-                              {credential.isPublished ? 'Republish' : 'Publish'}
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      {credential.type !== 'framer' && (
+                        <div className="flex items-center gap-2">
+                          {credential.isPublished &&
+                            credential.publication?.url && (
+                              <Button variant="ghost" size="sm" asChild>
+                                <a
+                                  href={credential.publication.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              </Button>
+                            )}
+                          <Button
+                            variant={
+                              credential.isPublished ? 'outline' : 'default'
+                            }
+                            size="sm"
+                            onClick={() =>
+                              handlePublishToIntegration(
+                                credential.id,
+                                credential.name || credential.type
+                              )
+                            }
+                            disabled={publishingCredentials.has(credential.id)}
+                          >
+                            {publishingCredentials.has(credential.id) ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Publishing...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="h-4 w-4 mr-2" />
+                                {credential.isPublished
+                                  ? 'Republish'
+                                  : 'Publish'}
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
