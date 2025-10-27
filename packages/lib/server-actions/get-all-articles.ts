@@ -28,7 +28,7 @@ export async function getAllArticles({ productId }: { productId: string }) {
       },
     },
     orderBy: {
-      createdAt: 'desc',
+      scheduledDate: 'desc',
     },
   });
 }

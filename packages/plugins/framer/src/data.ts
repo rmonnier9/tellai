@@ -6,6 +6,19 @@ import {
     type ManagedCollectionItemInput,
     type ProtectedMethod,
 } from "framer-plugin"
+import { marked } from "marked"
+
+function markdownToHtml(markdown: string): string {
+    // Convert markdown to HTML using marked library
+    return marked.parse(markdown, {
+        // This is needed for proper typing.
+        async: false,
+        // This adds support for tables and code blocks with language tags (```javascript ... ```).
+        gfm: true,
+        // This ensures single-line line breaks are preserved.
+        breaks: true,
+    })
+}
 
 export const PLUGIN_KEYS = {
     DATA_SOURCE_ID: "dataSourceId",
@@ -63,7 +76,7 @@ export async function getDataSource(apiKey: string, abortSignal?: AbortSignal): 
 
     // Define the fields structure for Framer
     const fields: ManagedCollectionFieldInput[] = [
-        { id: "Image", name: "Image", type: "string" },
+        { id: "Image", name: "Image", type: "image" },
         { id: "Title", name: "Title", type: "string" },
         { id: "Meta Description", name: "Meta Description", type: "string" },
         { id: "Content", name: "Content", type: "formattedText" },
@@ -82,11 +95,11 @@ export async function getDataSource(apiKey: string, abortSignal?: AbortSignal): 
             CreatedAt?: string
             Status?: string
         }) => ({
-            Image: { type: "string", value: article.Image || "" },
+            Image: { type: "image", value: article.Image || "" },
             Title: { type: "string", value: article.Title || "" },
             Slug: { type: "string", value: (article.Slug || "").substring(0, 64) }, // Limit to 64 chars for Framer ID
             "Meta Description": { type: "string", value: article["Meta Description"] || "" },
-            Content: { type: "formattedText", value: article.Content || "" },
+            Content: { type: "formattedText", value: markdownToHtml(article.Content || "") },
             CreatedAt: { type: "date", value: article.CreatedAt || new Date().toISOString().split("T")[0] },
             Status: { type: "string", value: article.Status || "Draft" },
         })
