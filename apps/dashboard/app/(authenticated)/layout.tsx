@@ -1,5 +1,6 @@
 import { ImpersonationLayout } from '@/components/impersonation-layout';
 import { auth } from '@workspace/auth/server';
+import { AnalyticsIdentify } from '@workspace/ui/components/analytics';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -16,5 +17,10 @@ export default async function AuthenticatedLayout({
     redirect('/auth/sign-in');
   }
 
-  return <ImpersonationLayout>{children}</ImpersonationLayout>;
+  return (
+    <ImpersonationLayout>
+      {children}
+      <AnalyticsIdentify />
+    </ImpersonationLayout>
+  );
 }
