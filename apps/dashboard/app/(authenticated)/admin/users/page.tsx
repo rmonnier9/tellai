@@ -1,3 +1,4 @@
+import { AdminProductManagement } from '@/components/admin-product-management';
 import { AdminUserImpersonation } from '@/components/admin-user-impersonation';
 import { AppSidebar } from '@/components/app-sidebar';
 import { auth } from '@workspace/auth/server';
@@ -70,7 +71,10 @@ export default async function AdminUsersPage() {
               </p>
             </div>
           </div>
-          <AdminUserImpersonation />
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminUserImpersonation />
+            <AdminProductManagement />
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
