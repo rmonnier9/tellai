@@ -1,4 +1,5 @@
 import { Toaster } from '@workspace/ui/components/sonner';
+import Analytics from '@workspace/ui/components/analytics';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
 import {
@@ -61,6 +62,7 @@ export default function RootLayout({
             gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID!}
           />
         )}
+        <Analytics />
       </body>
     </html>
   );
