@@ -138,6 +138,16 @@ export default function Footer({ border = false }: { border?: boolean }) {
                   {t('termsOfService')}
                 </Link>
               </li>
+              <li>
+                <a
+                  className="text-gray-600 transition hover:text-gray-900"
+                  href="https://lovarank.getrewardful.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('affiliate')}
+                </a>
+              </li>
             </ul>
           </div>
 
