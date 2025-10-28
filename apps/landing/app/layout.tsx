@@ -1,25 +1,25 @@
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
-import Script from "next/script";
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
+import { Bricolage_Grotesque, Inter } from 'next/font/google';
+import Script from 'next/script';
 
-import "./css/style.css";
+import './css/style.css';
 
 const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
 });
 
 const bricolageGrotesque = Bricolage_Grotesque({
-  subsets: ["latin"],
-  variable: "--font-bricolage",
-  display: "swap",
+  subsets: ['latin'],
+  variable: '--font-bricolage',
+  display: 'swap',
 });
 
 export const metadata = {
-  title: "Lovarank | AI-powered SEO that works while you sleep",
+  title: 'Lovarank | AI-powered SEO that works while you sleep',
   description:
-    "A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.",
+    'A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.',
 };
 
 export default function RootLayout({
@@ -40,7 +40,14 @@ export default function RootLayout({
           {`(function(w,r){w._rwq=r;w[r]=w[r]||function(){(w[r].q=w[r].q||[]).push(arguments)}})(window,'rewardful');`}
         </Script>
       </body>
-      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ""} />
+      {process.env.NEXT_PUBLIC_GA_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
+      )}
+      {process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID && (
+        <GoogleTagManager
+          gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID!}
+        />
+      )}
     </html>
   );
 }

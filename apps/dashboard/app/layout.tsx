@@ -1,4 +1,6 @@
 import { Toaster } from '@workspace/ui/components/sonner';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
+
 import {
   Bricolage_Grotesque,
   // Geist,
@@ -51,6 +53,14 @@ export default function RootLayout({
         <Script id="rewardful-queue" strategy="beforeInteractive">
           {`(function(w,r){w._rwq=r;w[r]=w[r]||function(){(w[r].q=w[r].q||[]).push(arguments)}})(window,'rewardful');`}
         </Script>
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
+        )}
+        {process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID && (
+          <GoogleTagManager
+            gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID!}
+          />
+        )}
       </body>
     </html>
   );
