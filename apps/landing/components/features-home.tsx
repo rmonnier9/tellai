@@ -6,8 +6,10 @@ import {
   RefreshCcwIcon,
   SquarePenIcon,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function FeaturesHome() {
+  const t = useTranslations('features');
   return (
     <section className="relative">
       <div
@@ -21,11 +23,9 @@ export default function FeaturesHome() {
           {/* Section header */}
           <div className="mx-auto max-w-3xl pb-12 text-center md:pb-14">
             <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-              Supercharge your SEO
+              {t('title')}
             </h2>
-            <p className="text-lg text-gray-700">
-              Setup once and let the AI do the rest.
-            </p>
+            <p className="text-lg text-gray-700">{t('subtitle')}</p>
           </div>
           {/* Illustration */}
           {/* <div
@@ -95,61 +95,55 @@ export default function FeaturesHome() {
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
                 <LanguagesIcon className="text-pink-500" />
-                <span>Keyword Discovery</span>
+                <span>{t('keywordDiscovery.title')}</span>
               </h3>
               <p className="text-[15px] text-gray-700">
-                Uncover hidden, low-competition keywords in your niche to
-                attract highly qualified traffic.
+                {t('keywordDiscovery.description')}
               </p>
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
                 <CogIcon className="text-pink-500" />
-                <span>SEO Optimization</span>
+                <span>{t('seoOptimization.title')}</span>
               </h3>
               <p className="text-[15px] text-gray-700">
-                Rank on Google with articles crafted to bring you traffic month
-                after month.
+                {t('seoOptimization.description')}
               </p>
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
                 <BotIcon className="text-pink-500" />
-                <span>AI Search Optimization</span>
+                <span>{t('aiSearchOptimization.title')}</span>
               </h3>
               <p className="text-[15px] text-gray-700">
-                Optimize your content to appear in ChatGPT, Perplexity, and
-                other AI-driven results, the new frontier of SEO.
+                {t('aiSearchOptimization.description')}
               </p>
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
                 <CalendarCheckIcon className="text-pink-500" />
-                <span>Content Calendar</span>
+                <span>{t('contentCalendar.title')}</span>
               </h3>
               <p className="text-[15px] text-gray-700">
-                Get a ready-to-go editorial plan with articles scheduled to
-                maximize visibility and consistency.
+                {t('contentCalendar.description')}
               </p>
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
                 <RefreshCcwIcon className="text-pink-500" />
-                <span>Sync with your favorite platform</span>
+                <span>{t('syncPlatform.title')}</span>
               </h3>
               <p className="text-[15px] text-gray-700">
-                Articles are automatically published to your blog - no
-                copy-paste, no manual work.
+                {t('syncPlatform.description')}
               </p>
             </article>
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium">
                 <SquarePenIcon className="text-pink-500" />
-                <span>Edit articles</span>
+                <span>{t('editArticles.title')}</span>
               </h3>
               <p className="text-[15px] text-gray-700">
-                Easily fine-tune your articles so every word supports your
-                vision and creates impactful content.
+                {t('editArticles.description')}
               </p>
             </article>
           </div>

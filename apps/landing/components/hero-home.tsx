@@ -5,10 +5,13 @@ import Avatar03 from '@/public/images/avatar-03.jpg';
 import Avatar04 from '@/public/images/avatar-04.jpg';
 import Avatar05 from '@/public/images/avatar-05.jpg';
 import Avatar06 from '@/public/images/avatar-06.jpg';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Logos from './logos';
 
 export default function HeroHome() {
+  const t = useTranslations('hero');
+  const tCommon = useTranslations('common');
   return (
     <section className="relative">
       <PageIllustration />
@@ -21,19 +24,15 @@ export default function HeroHome() {
               className="mb-6 border-y text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] md:text-6xl"
               data-aos="zoom-y-out"
               data-aos-delay={150}
-            >
-              The AI Agent that <br className="max-lg:hidden" />
-              Grows Your Organic Traffic
-            </h1>
+              dangerouslySetInnerHTML={{ __html: t('titleBreak') }}
+            />
             <div className="mx-auto max-w-3xl">
               <p
                 className="mb-8 text-lg text-gray-700"
                 data-aos="zoom-y-out"
                 data-aos-delay={300}
               >
-                Be discovered on Google and in AI search engines like ChatGPT
-                and Perplexity. Automatic keyword discovery, optimized articles,
-                daily publishing. More traffic. Zero effort.
+                {t('description')}
               </p>
               <div className="relative before:absolute before:inset-0 before:border-y before:[border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1]">
                 <div
@@ -48,7 +47,7 @@ export default function HeroHome() {
                     rel="noopener noreferrer"
                   >
                     <span className="relative inline-flex items-center">
-                      Get Started for Free{' '}
+                      {tCommon('getStarted')}{' '}
                       <span className="ml-1 tracking-normal text-pink-300 transition-transform group-hover:translate-x-0.5">
                         -&gt;
                       </span>
@@ -65,7 +64,7 @@ export default function HeroHome() {
             </div>
           </div>
           <p className="mb-2 text-center text-sm text-gray-600">
-            Join 50+ happy users
+            {t('joinUsers')}
           </p>
           <div
             className="mb-6 border-y [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1]"

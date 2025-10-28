@@ -1,5 +1,7 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 import Analytics from '@workspace/ui/components/analytics';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import { Bricolage_Grotesque, Inter } from 'next/font/google';
 import Script from 'next/script';
 
@@ -17,25 +19,45 @@ const bricolageGrotesque = Bricolage_Grotesque({
   display: 'swap',
 });
 
-export const metadata = {
-  title: 'Lovarank | AI-powered SEO that works while you sleep',
-  description:
-    'A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const resolvedParams = await params;
+  const messages = await getMessages();
 
-export default function RootLayout({
+  return {
+    title:
+      messages.hero?.metaTitle ||
+      'Lovarank | AI-powered SEO that works while you sleep',
+    description:
+      messages.hero?.metaDescription ||
+      'A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.',
+  };
+}
+
+export default async function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+
+  const messages = await getMessages();
+
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang={locale} className="scroll-smooth">
       <body
         className={`${inter.variable} ${bricolageGrotesque.variable} bg-gray-50 font-inter tracking-tight text-gray-900 antialiased`}
       >
-        <div className="flex min-h-screen flex-col overflow-hidden supports-[overflow:clip]:overflow-clip">
-          {children}
-        </div>
+        <NextIntlClientProvider messages={messages}>
+          <div className="flex min-h-screen flex-col overflow-hidden supports-[overflow:clip]:overflow-clip">
+            {children}
+          </div>
+        </NextIntlClientProvider>
         <Script src="https://r.wdfl.co/rw.js" data-rewardful="5770ad"></Script>
         <Script id="rewardful-queue" strategy="beforeInteractive">
           {`(function(w,r){w._rwq=r;w[r]=w[r]||function(){(w[r].q=w[r].q||[]).push(arguments)}})(window,'rewardful');`}
