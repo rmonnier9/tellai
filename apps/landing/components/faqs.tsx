@@ -14,7 +14,7 @@ export default function Faqs() {
           </div>
           <div className="mx-auto max-w-3xl">
             <div className="space-y-2">
-              {faqs.map((faq, index) => (
+              {faqs.map((faq: any, index: number) => (
                 <Accordion
                   key={index}
                   title={faq.question}

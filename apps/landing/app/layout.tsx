@@ -19,12 +19,7 @@ const bricolageGrotesque = Bricolage_Grotesque({
   display: 'swap',
 });
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const resolvedParams = await params;
+export async function generateMetadata() {
   const messages = await getMessages();
 
   return {
@@ -39,17 +34,13 @@ export async function generateMetadata({
 
 export default async function RootLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className="scroll-smooth">
+    <html className="scroll-smooth">
       <body
         className={`${inter.variable} ${bricolageGrotesque.variable} bg-gray-50 font-inter tracking-tight text-gray-900 antialiased`}
       >
