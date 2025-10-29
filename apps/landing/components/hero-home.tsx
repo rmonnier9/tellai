@@ -11,7 +11,6 @@ import Logos from './logos';
 
 export default function HeroHome() {
   const t = useTranslations('hero');
-  const tCommon = useTranslations('common');
   return (
     <section className="relative">
       <PageIllustration />
@@ -48,7 +47,7 @@ export default function HeroHome() {
                     rel="noopener noreferrer"
                   >
                     <span className="relative inline-flex items-center">
-                      {tCommon('getStarted')}{' '}
+                      {t('getStarted')}{' '}
                       <span className="ml-1 tracking-normal text-pink-300 transition-transform group-hover:translate-x-0.5">
                         -&gt;
                       </span>
