@@ -80,7 +80,7 @@ export default function Example({ initialProduct }: PricingTableProps) {
           <div className="p-8 sm:p-12 lg:w-1/3 lg:shrink-0">
             <div className="text-center lg:text-left">
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                Complete Solution
+                All in one
               </h2>
               <p className="text-primary-600 font-medium mb-8 dark:text-primary-400">
                 Built for growing businesses
@@ -105,7 +105,7 @@ export default function Example({ initialProduct }: PricingTableProps) {
                 disabled={!productId}
                 className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Loading...' : 'Begin Free Trial'}
+                {isLoading ? 'Loading...' : 'Start Free Trial'}
               </button>
 
               <div className="text-center lg:text-left">
