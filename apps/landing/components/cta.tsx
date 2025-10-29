@@ -4,7 +4,6 @@ import Image from 'next/image';
 
 export default function Cta() {
   const t = useTranslations('cta');
-  const tCommon = useTranslations('common');
   return (
     <section id="cta">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -38,7 +37,7 @@ export default function Cta() {
                 rel="noopener noreferrer"
               >
                 <span className="relative inline-flex items-center">
-                  {tCommon('startFreeTrial')}{' '}
+                  {t('startFreeTrial')}{' '}
                   <span className="ml-1 tracking-normal text-pink-300 transition-transform group-hover:translate-x-0.5">
                     -&gt;
                   </span>

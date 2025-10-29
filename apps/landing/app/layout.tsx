@@ -24,10 +24,10 @@ export async function generateMetadata() {
 
   return {
     title:
-      messages.common.metaTitle ||
+      messages.meta.metaTitle ||
       'Lovarank | AI-powered SEO that works while you sleep',
     description:
-      messages.common.metaDescription ||
+      messages.meta.metaDescription ||
       'A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.',
   };
 }
