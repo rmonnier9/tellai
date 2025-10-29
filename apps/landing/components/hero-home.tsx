@@ -24,8 +24,9 @@ export default function HeroHome() {
               className="mb-6 border-y text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] md:text-6xl"
               data-aos="zoom-y-out"
               data-aos-delay={150}
-              dangerouslySetInnerHTML={{ __html: t('titleBreak') }}
-            />
+            >
+              {t('title')}
+            </h1>
             <div className="mx-auto max-w-3xl">
               <p
                 className="mb-8 text-lg text-gray-700"
