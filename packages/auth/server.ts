@@ -12,6 +12,7 @@ import { EmailTemplate } from '@daveyplate/better-auth-ui/server';
 import { send } from '@workspace/emails';
 import { admin, magicLink, organization } from 'better-auth/plugins';
 import enqueueJob from '../lib/enqueue-job';
+import { trackUserRegistration } from '../lib/server-actions/track-user-registration';
 
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil',
@@ -280,7 +281,26 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
+  hooks: undefined,
   databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            console.log('TESTS_------------------_>', user);
+            await trackUserRegistration({
+              email: user.email,
+              name: user.name || user.email.split('@')[0]!,
+            });
+          } catch (error) {
+            console.error(
+              'Error tracking user registration in user hook:',
+              error
+            );
+          }
+        },
+      },
+    },
     session: {
       create: {
         before: async (session) => {

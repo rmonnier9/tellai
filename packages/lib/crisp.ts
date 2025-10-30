@@ -2,12 +2,12 @@
 const crispWebsiteId = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID!;
 const crispIdentifier = process.env.CRISP_IDENTIFIER!;
 const crispKey = process.env.CRISP_KEY!;
-const crispBaseUrl = "https://api.crisp.chat/v1";
+const crispBaseUrl = 'https://api.crisp.chat/v1';
 
 // Fonction utilitaire pour faire des appels API à Crisp
 async function crispApiCall(
   endpoint: string,
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = "GET",
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
   data?: any
 ) {
   const response = await fetch(`${crispBaseUrl}${endpoint}`, {
@@ -15,9 +15,9 @@ async function crispApiCall(
     headers: {
       Authorization: `Basic ${Buffer.from(
         `${crispIdentifier}:${crispKey}`
-      ).toString("base64")}`,
-      "X-Crisp-Tier": "plugin",
-      "Content-Type": "application/json",
+      ).toString('base64')}`,
+      'X-Crisp-Tier': 'plugin',
+      'Content-Type': 'application/json',
     },
     body: data ? JSON.stringify(data) : undefined,
   });
@@ -41,17 +41,17 @@ export async function createCrispProfile(
 ) {
   try {
     // Crée le profil
-    await crispApiCall(`/website/${crispWebsiteId}/people/profile/`, "POST", {
+    await crispApiCall(`/website/${crispWebsiteId}/people/profile/`, 'POST', {
       email,
       person: { nickname: person.nickname },
     });
 
     return { success: true };
   } catch (error) {
-    console.error("Error creating Crisp profile:", error);
+    console.error('Error creating Crisp profile:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -63,16 +63,16 @@ export async function triggerCrispEvent(email: string, name: string) {
   try {
     await crispApiCall(
       `/website/${crispWebsiteId}/people/events/${encodeURIComponent(email)}`,
-      "POST",
+      'POST',
       { text: name }
     );
 
     return { success: true };
   } catch (error) {
-    console.error("Error triggering Crisp event:", error);
+    console.error('Error triggering Crisp event:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -84,28 +84,28 @@ export async function handleWaitlistUser(email: string) {
   try {
     // Créer le profil utilisateur
     const profileResult = await createCrispProfile(email, {
-      nickname: email.split("@")[0], // Utiliser la partie avant @ comme nickname
+      nickname: email.split('@')[0]!, // Utiliser la partie avant @ comme nickname
     });
 
     if (!profileResult.success) {
-      console.error("Failed to create Crisp profile:", profileResult.error);
-      return { success: false, error: "Failed to create user profile" };
+      console.error('Failed to create Crisp profile:', profileResult.error);
+      return { success: false, error: 'Failed to create user profile' };
     }
 
     // Déclencher l'événement user:joined_waitlist
-    const eventResult = await triggerCrispEvent(email, "user:joined_waitlist");
+    const eventResult = await triggerCrispEvent(email, 'user:register');
 
     if (!eventResult.success) {
-      console.error("Failed to trigger Crisp event:", eventResult.error);
-      return { success: false, error: "Failed to trigger waitlist event" };
+      console.error('Failed to trigger Crisp event:', eventResult.error);
+      return { success: false, error: 'Failed to trigger waitlist event' };
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Error handling waitlist user:", error);
+    console.error('Error handling waitlist user:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }

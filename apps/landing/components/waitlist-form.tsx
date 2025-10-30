@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { submitWaitlist } from '../lib/actions';
 import {
   getUTMParametersWithFallback,
   storeUTMParameters,
@@ -44,26 +43,26 @@ export default function WaitlistForm() {
           try {
             setIsLoading(true);
 
-            const result = await submitWaitlist(email, utmParams);
+            //   const result = await submitWaitlist(email, utmParams);
 
-            if (result.success) {
-              setMessage({
-                type: 'success',
-                text: result.message || 'Successfully joined the waitlist!',
-              });
-              setEmail('');
-            } else {
-              setMessage({
-                type: 'error',
-                text: result.error || 'Something went wrong. Please try again.',
-              });
-            }
-          } catch (error) {
-            console.error(error);
-            setMessage({
-              type: 'error',
-              text: 'Something went wrong. Please try again.',
-            });
+            //   if (result.success) {
+            //     setMessage({
+            //       type: 'success',
+            //       text: result.message || 'Successfully joined the waitlist!',
+            //     });
+            //     setEmail('');
+            //   } else {
+            //     setMessage({
+            //       type: 'error',
+            //       text: result.error || 'Something went wrong. Please try again.',
+            //     });
+            //   }
+            // } catch (error) {
+            //   console.error(error);
+            //   setMessage({
+            //     type: 'error',
+            //     text: 'Something went wrong. Please try again.',
+            //   });
           } finally {
             setIsLoading(false);
           }
