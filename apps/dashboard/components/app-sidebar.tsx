@@ -9,6 +9,7 @@ import {
   Puzzle,
   Settings2,
   SquareTerminal,
+  Network,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -144,6 +145,13 @@ const data = {
       name: 'Linking Configuration',
       url: '/linking-configuration',
       icon: Link2,
+    },
+    {
+      name: 'Backlink Exchange',
+      url: '/',
+      icon: Network,
+      label: 'soon',
+      disabled: true,
     },
   ],
 };

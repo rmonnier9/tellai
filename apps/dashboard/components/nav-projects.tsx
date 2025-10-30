@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@workspace/ui/components/sidebar';
+import { Badge } from '@workspace/ui/components/badge';
 
 export function NavProjects({
   projects,
@@ -18,6 +19,8 @@ export function NavProjects({
     name: string;
     url: string;
     icon: LucideIcon;
+    label?: string;
+    disabled?: boolean;
   }[];
 }) {
   const pathname = usePathname();
@@ -29,9 +32,10 @@ export function NavProjects({
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild isActive={item.url === pathname}>
-              <Link href={item.url}>
+              <Link href={item?.disabled ? '#' : item.url}>
                 <item.icon />
-                <span>{item.name}</span>
+                <span className="whitespace-nowrap">{item.name}</span>
+                {item.label && <Badge variant="default">{item.label}</Badge>}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

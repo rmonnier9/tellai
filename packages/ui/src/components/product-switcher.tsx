@@ -61,7 +61,7 @@ export function ProductSwitcher({}: {}) {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg dark:bg-white/10 bg-black/10 text-sidebar-primary-foreground">
                 {/* <activeTeam.logo className="size-4" /> */}
                 <img
                   src={currentProductQuery?.data.logo!}
