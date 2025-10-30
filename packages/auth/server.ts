@@ -11,6 +11,7 @@ import Stripe from 'stripe';
 import { EmailTemplate } from '@daveyplate/better-auth-ui/server';
 import { send } from '@workspace/emails';
 import { admin, magicLink, organization } from 'better-auth/plugins';
+import { addCrispCustomerSegment } from '../lib/crisp';
 import enqueueJob from '../lib/enqueue-job';
 import { trackUserRegistration } from '../lib/server-actions/track-user-registration';
 
@@ -202,6 +203,28 @@ export const auth = betterAuth({
             jobType: 'content_planner',
             productId: subscription.referenceId,
           });
+
+          // Add the purchaser to Crisp "customer" segment
+          try {
+            const stripeCustomerId = subscription.stripeCustomerId;
+
+            if (stripeCustomerId) {
+              const purchaser = await prisma.user.findFirst({
+                where: { stripeCustomerId },
+                select: { email: true },
+              });
+
+              const purchaserEmail = purchaser?.email;
+              if (purchaserEmail) {
+                await addCrispCustomerSegment(purchaserEmail);
+              }
+            }
+          } catch (err) {
+            console.error(
+              'Failed to add Crisp customer segment on subscription complete:',
+              err
+            );
+          }
         },
         authorizeReference: async ({ user, referenceId, action }) => {
           const member = await prisma.member.findFirst({
