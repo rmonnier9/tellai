@@ -1,6 +1,7 @@
-import { Job } from '@workspace/db/prisma/generated/client';
-import { mastra } from '../mastra';
 import prisma from '@workspace/db/prisma/client';
+import { Job } from '@workspace/db/prisma/generated/client';
+import { ContentPlannerReadyEmail, send } from '@workspace/emails';
+import { mastra } from '../mastra';
 
 export const contentPlanner = async (job: Job) => {
   const productId = job.productId;
@@ -11,6 +12,17 @@ export const contentPlanner = async (job: Job) => {
 
   const product = await prisma.product.findUnique({
     where: { id: productId },
+    include: {
+      organization: {
+        include: {
+          members: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!product) {
@@ -60,5 +72,39 @@ export const contentPlanner = async (job: Job) => {
     });
 
     console.log(`✅ Saved ${articles.count} articles to database`);
+
+    // Send transactional email to all organization members with access
+    try {
+      const dashboardUrl =
+        process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://app.lovarank.com';
+      const recipientEmails = Array.from(
+        new Set(
+          (product.organization?.members || [])
+            .map((m) => m.user?.email)
+            .filter((e): e is string => !!e)
+        )
+      );
+
+      await Promise.all(
+        recipientEmails.map((to) =>
+          send({
+            from: `Lovarank <${process.env.EMAIL_FROM as string}>`,
+            to,
+            replyTo: 'support@lovarank.com',
+            subject: 'Your content plan is ready',
+            react: ContentPlannerReadyEmail({
+              productName: product.name,
+              articleCount: articles.count,
+              dashboardUrl,
+            }) as any,
+          })
+        )
+      );
+    } catch (emailError) {
+      console.error(
+        'Failed to send content planner notification emails:',
+        emailError
+      );
+    }
   }
 };
