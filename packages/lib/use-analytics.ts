@@ -1,5 +1,6 @@
 //import Mixpanel class from the SDK
 import Clarity from '@microsoft/clarity';
+import { sendGAEvent } from '@next/third-parties/google';
 
 // import * as Sentry from "@sentry/react-native";
 // import { Mixpanel } from "mixpanel-react-native";
@@ -30,19 +31,24 @@ export async function identify({ email, id }: { email?: string; id: string }) {
   if (process.env.NEXT_PUBLIC_CLARITY_ID) {
     Clarity.identify(id, undefined, undefined, email); // only custom-id is required
   }
+
+  if (process.env.NEXT_PUBLIC_GA_ID) {
+    (window as any)?.gtag?.('config', process.env.NEXT_PUBLIC_GA_ID, {
+      user_id: id,
+    });
+  }
 }
 
-export async function track(event: string, properties?: Record<string, any>) {
-  // if (process.env.EXPO_PUBLIC_MIXPANEL_TOKEN) {
-  //   try {
-  //     mixpanel.track(event, properties);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // }
-
+export async function track(
+  event: string,
+  properties?: Record<string, unknown>
+) {
   if (process.env.NEXT_PUBLIC_CLARITY_ID) {
     Clarity.event(event);
+  }
+
+  if (process.env.NEXT_PUBLIC_GA_ID) {
+    sendGAEvent('event', event, properties || {});
   }
 }
 

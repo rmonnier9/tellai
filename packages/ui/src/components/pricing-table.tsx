@@ -65,7 +65,7 @@ export default function Example({ initialProduct }: PricingTableProps) {
     await client.subscription.upgrade({
       plan: 'premium',
       cancelUrl: '/',
-      successUrl: '/',
+      successUrl: '/payment-success',
       referenceId: currentProductId,
       // annual: true, // Optional: upgrade to an annual plan
       // seats: 5, // Optional: for team plans
