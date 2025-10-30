@@ -8,7 +8,7 @@ const crispBaseUrl = 'https://api.crisp.chat/v1';
 async function crispApiCall(
   endpoint: string,
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
-  data?: any
+  data?: Record<string, unknown>
 ) {
   const response = await fetch(`${crispBaseUrl}${endpoint}`, {
     method,
@@ -75,6 +75,64 @@ export async function triggerCrispEvent(email: string, name: string) {
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
+}
+
+/**
+ * Ajoute un utilisateur à un segment Crisp (People)
+ */
+export async function addCrispUserToSegment(email: string, segment: string) {
+  try {
+    const encodedEmail = encodeURIComponent(email);
+    type CrispProfileResponse = { data?: { segments?: string[] } };
+
+    // 1) Try to fetch existing profile to preserve current segments
+    let existingSegments: string[] = [];
+    try {
+      const profile = (await crispApiCall(
+        `/website/${crispWebsiteId}/people/profile/${encodedEmail}`,
+        'GET'
+      )) as CrispProfileResponse;
+      const data = profile?.data;
+      if (Array.isArray(data?.segments)) {
+        existingSegments = data.segments as string[];
+      }
+    } catch (err) {
+      // If 404, we create the profile with the desired segment
+      const message = err instanceof Error ? err.message : '';
+      const isNotFound = message.includes('404');
+      if (!isNotFound) {
+        throw err;
+      }
+      await crispApiCall(`/website/${crispWebsiteId}/people/profile/`, 'POST', {
+        email,
+        segments: [segment],
+      });
+      return { success: true };
+    }
+
+    // 2) Merge and PATCH segments on existing profile
+    const merged = Array.from(new Set([...existingSegments, segment]));
+    await crispApiCall(
+      `/website/${crispWebsiteId}/people/profile/${encodedEmail}`,
+      'PATCH',
+      { segments: merged }
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error adding Crisp user to segment:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Ajoute l'utilisateur au segment "customer"
+ */
+export async function addCrispCustomerSegment(email: string) {
+  return addCrispUserToSegment(email, 'customer');
 }
 
 /**
