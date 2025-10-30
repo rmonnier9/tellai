@@ -46,15 +46,6 @@ export function ContentHistoryTable() {
     }));
   }, [articlesData]);
 
-  const filteredArticles = useMemo(() => {
-    // Filter for posted/published articles only
-    return articles.filter(
-      (article) =>
-        article.status === 'published' ||
-        (article.publications && article.publications.length > 0)
-    );
-  }, [articles]);
-
   const getStatusBadge = (article: Article) => {
     const hasPublications =
       article.publications && article.publications.length > 0;
@@ -155,7 +146,7 @@ export function ContentHistoryTable() {
 
   return (
     <ArticleTable
-      articles={filteredArticles as Article[]}
+      articles={articles as Article[]}
       getStatusBadge={getStatusBadge}
       getDifficultyBadge={getDifficultyBadge}
       formatDate={formatDate}

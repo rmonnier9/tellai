@@ -13,6 +13,9 @@ export async function getAllArticles({ productId }: { productId: string }) {
   return prisma.article.findMany({
     where: {
       productId: productId,
+      status: {
+        in: ['published', 'generated'],
+      },
     },
     include: {
       publications: {
