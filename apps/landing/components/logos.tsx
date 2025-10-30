@@ -1,13 +1,16 @@
 import Framer from '@/public/images/framer.svg';
 import Webflow from '@/public/images/webflow.svg';
 import Wordpress from '@/public/images/wordpress.svg';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 
 export default function Logos() {
+  const t = useTranslations('logos');
+
   return (
     <div className="md:py-8">
       <div className="mx-auto max-w-3xl pb-3 text-center md:pb-4">
-        <p className="text-lg text-gray-700">Native integration with</p>
+        <p className="text-lg text-gray-700">{t('nativeIntegrationWith')}</p>
       </div>
       <div>
         <div className="flex flex-wrap items-center justify-center text-gray-600">
