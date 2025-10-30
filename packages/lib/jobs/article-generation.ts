@@ -1,5 +1,6 @@
 import prisma from '@workspace/db/prisma/client';
 import type { Job, Publication } from '@workspace/db/prisma/generated/client';
+import { ArticleGeneratedEmail, send } from '@workspace/emails';
 import { mastra } from '../mastra';
 import { getPublisher } from '../publishers';
 
@@ -14,7 +15,15 @@ export const articleGeneration = async (job: Job) => {
   const article = await prisma.article.findUnique({
     where: { id: articleId },
     include: {
-      product: true,
+      product: {
+        include: {
+          organization: {
+            include: {
+              members: { include: { user: true } },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -71,6 +80,40 @@ export const articleGeneration = async (job: Job) => {
   console.log(
     `✅ Article content generated and saved for article ${articleId}`
   );
+
+  // Notify organization members that an article has been generated
+  try {
+    const dashboardUrl =
+      process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://app.lovarank.com';
+    const recipientEmails = Array.from(
+      new Set(
+        (article?.product?.organization?.members || [])
+          .map((m) => m.user?.email)
+          .filter((e): e is string => !!e)
+      )
+    );
+
+    await Promise.all(
+      recipientEmails.map((to) =>
+        send({
+          from: `Lovarank <${process.env.EMAIL_FROM as string}>`,
+          to,
+          replyTo: 'support@lovarank.com',
+          subject: 'New blog post generated',
+          react: ArticleGeneratedEmail({
+            productName: article?.product?.name,
+            articleTitle: updatedArticle.title,
+            dashboardUrl,
+          }) as any,
+        })
+      )
+    );
+  } catch (emailError) {
+    console.error(
+      'Failed to send article generated notification emails:',
+      emailError
+    );
+  }
 
   // Auto-publish if enabled
   const publications: Publication[] = [];
