@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
+import { purchase as purchaseMeta } from '@workspace/ui/components/meta';
 import {
   Card,
   CardContent,
@@ -22,6 +23,11 @@ export default function PaymentSuccessPage() {
 
       // Track the purchase event in Google Analytics
       track('purchase');
+
+      purchaseMeta({
+        currency: 'USD',
+        value: 99,
+      });
     };
 
     trackPurchase();

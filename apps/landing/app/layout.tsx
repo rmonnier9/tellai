@@ -1,4 +1,5 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
+import MetaPixel from '@workspace/ui/components/meta-pixel';
 import Analytics from '@workspace/ui/components/analytics';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
@@ -61,6 +62,9 @@ export default async function RootLayout({
           <GoogleTagManager
             gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID!}
           />
+        )}
+        {process.env.NEXT_PUBLIC_META_PIXEL_ID && (
+          <MetaPixel pixelId={process.env.NEXT_PUBLIC_META_PIXEL_ID!} />
         )}
         <Analytics />
       </body>
