@@ -179,10 +179,9 @@ Make sure the JSON is valid and properly formatted.`,
     };
 
     const { text } = await generateText({
-      // @ts-expect-error - LanguageModelV2 from @ai-sdk/openai is compatible at runtime
       model: openai('gpt-4o-mini'),
       temperature: 0.7,
-      maxTokens: 1500,
+      maxOutputTokens: 1500,
       messages: [prompt],
     });
 
