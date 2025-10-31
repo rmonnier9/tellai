@@ -70,52 +70,6 @@ export default function Footer({ border = false }: { border?: boolean }) {
               </li>
             </ul>
           </div> */}
-          {/* 
-          <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
-            <h3 className="text-sm font-medium">Company</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
-                >
-                  About us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
-                >
-                  Diversity & Inclusion
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
-                >
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
-                >
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
-                >
-                  Financial statements
-                </Link>
-              </li>
-            </ul>
-          </div> */}
 
           <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
             <h3 className="text-sm font-medium">{t('resources')}</h3>
@@ -139,12 +93,26 @@ export default function Footer({ border = false }: { border?: boolean }) {
                 </Link>
               </li>
               <li>
-                <a
+                <Link
                   className="text-gray-600 transition hover:text-gray-900"
                   href="/affiliate-program"
                 >
                   {t('affiliate')}
-                </a>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
+            <h3 className="text-sm font-medium">Free Tools</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  className="text-gray-600 transition hover:text-gray-900"
+                  href="/tools/blog-topic-finder"
+                >
+                  Blog Topic Finder
+                </Link>
               </li>
             </ul>
           </div>

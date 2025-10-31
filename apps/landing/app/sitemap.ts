@@ -7,7 +7,12 @@ const locales = ['en', 'fr'];
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lovarank.com';
 
 // Pages statiques principales (sans locale dans l'URL car mode 'as-needed')
-const staticPages = ['', '/privacy-policy', '/terms-of-service'];
+const staticPages = [
+  '',
+  '/privacy-policy',
+  '/terms-of-service',
+  '/tools/blog-topic-finder',
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const urls: MetadataRoute.Sitemap = [];
