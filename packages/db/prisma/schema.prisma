@@ -224,6 +224,13 @@ enum ListicleSubtype {
   examples
 }
 
+enum ContentLength {
+  short
+  medium
+  long
+  comprehensive
+}
+
 model Article {
   id        String  @id @default(cuid())
   productId String  @map("product_id")
@@ -237,6 +244,7 @@ model Article {
   type            ArticleType?
   guideSubtype    GuideSubtype?    @map("guide_subtype")
   listicleSubtype ListicleSubtype? @map("listicle_subtype")
+  contentLength   ContentLength?   @map("content_length")
 
   // SEO metrics from DataForSEO
   searchVolume      Int?    @map("search_volume")

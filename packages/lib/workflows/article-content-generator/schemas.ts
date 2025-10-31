@@ -14,8 +14,6 @@ export const CompetitiveBriefSchema = z.object({
     searchIntent: z.string(),
   }),
   competitiveAnalysis: z.object({
-    targetWordCountMin: z.number(),
-    targetWordCountMax: z.number(),
     topPages: z.array(
       z.object({
         url: z.string(),

@@ -4,7 +4,9 @@ import { enqueueJob } from '@workspace/lib/enqueue-job';
 import { addKeywordsManually } from '@workspace/lib/server-actions/add-keywords-manually';
 import { deleteArticle } from '@workspace/lib/server-actions/delete-article';
 import { updateArticleSchedule } from '@workspace/lib/server-actions/update-article-schedule';
+import { updateArticleSettings } from '@workspace/lib/server-actions/update-article-settings';
 import { AddKeywordsModal } from '@workspace/ui/components/add-keywords-modal';
+import { ArticleSettingsModal } from '@workspace/ui/components/article-settings-modal';
 import { Button } from '@workspace/ui/components/button';
 import {
   Card,
@@ -32,6 +34,7 @@ import {
   Eye,
   Loader2,
   Plus,
+  Settings,
   Sparkles,
   Trash2,
 } from 'lucide-react';
@@ -45,6 +48,7 @@ type Article = {
   type: 'guide' | 'listicle';
   guideSubtype: string | null;
   listicleSubtype: string | null;
+  contentLength: 'short' | 'medium' | 'long' | 'comprehensive' | null;
   searchVolume: number | null;
   keywordDifficulty: number | null;
   scheduledDate: Date;
@@ -91,6 +95,9 @@ export function ArticleCalendar() {
   );
   const [isAddKeywordsModalOpen, setIsAddKeywordsModalOpen] = useState(false);
   const [isSubmittingKeywords, setIsSubmittingKeywords] = useState(false);
+  const [selectedArticleForSettings, setSelectedArticleForSettings] =
+    useState<Article | null>(null);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // Convert article dates to Date objects (memoized)
   const articles = useMemo(() => {
@@ -257,6 +264,41 @@ export function ArticleCalendar() {
       );
     } finally {
       setIsSubmittingKeywords(false);
+    }
+  }
+
+  async function handleSaveArticleSettings(data: {
+    type: 'guide' | 'listicle' | null;
+    guideSubtype: 'how_to' | 'explainer' | 'comparison' | 'reference' | null;
+    listicleSubtype: 'round_up' | 'resources' | 'examples' | null;
+    contentLength: 'short' | 'medium' | 'long' | 'comprehensive' | null;
+  }) {
+    if (!selectedArticleForSettings) return;
+
+    setIsSavingSettings(true);
+    try {
+      const result = await updateArticleSettings({
+        articleId: selectedArticleForSettings.id,
+        ...data,
+      });
+
+      if (result.success) {
+        toast.success('Article settings updated successfully!');
+        setSelectedArticleForSettings(null);
+        // Revalidate SWR cache to get fresh data
+        await mutateArticles();
+      } else {
+        toast.error(result.error || 'Failed to update article settings');
+      }
+    } catch (error) {
+      console.error('Error updating article settings:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to update article settings'
+      );
+    } finally {
+      setIsSavingSettings(false);
     }
   }
 
@@ -467,6 +509,7 @@ export function ArticleCalendar() {
                 // Revalidate articles to show updated data
                 mutateArticles();
               }}
+              onOpenSettings={setSelectedArticleForSettings}
             />
           ))}
         </div>
@@ -486,6 +529,45 @@ export function ArticleCalendar() {
         onSubmit={handleAddKeywords}
         isSubmitting={isSubmittingKeywords}
       />
+
+      {/* Article Settings Modal */}
+      {selectedArticleForSettings && (
+        <ArticleSettingsModal
+          open={!!selectedArticleForSettings}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedArticleForSettings(null);
+            }
+          }}
+          article={{
+            id: selectedArticleForSettings.id,
+            keyword: selectedArticleForSettings.keyword,
+            type: selectedArticleForSettings.type as
+              | 'guide'
+              | 'listicle'
+              | null,
+            guideSubtype: selectedArticleForSettings.guideSubtype as
+              | 'how_to'
+              | 'explainer'
+              | 'comparison'
+              | 'reference'
+              | null,
+            listicleSubtype: selectedArticleForSettings.listicleSubtype as
+              | 'round_up'
+              | 'resources'
+              | 'examples'
+              | null,
+            contentLength: selectedArticleForSettings.contentLength as
+              | 'short'
+              | 'medium'
+              | 'long'
+              | 'comprehensive'
+              | null,
+          }}
+          onSave={handleSaveArticleSettings}
+          isSaving={isSavingSettings}
+        />
+      )}
     </DndContext>
   );
 }
@@ -497,6 +579,7 @@ function MonthCalendar({
   onDeleteArticle,
   articleJobIds,
   onJobComplete,
+  onOpenSettings,
 }: {
   month: {
     monthKey: string;
@@ -509,6 +592,7 @@ function MonthCalendar({
   onDeleteArticle: (articleId: string) => void;
   articleJobIds: Map<string, string>;
   onJobComplete: (articleId: string) => void;
+  onOpenSettings: (article: Article) => void;
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLDivElement>(null);
@@ -588,6 +672,7 @@ function MonthCalendar({
                 onDeleteArticle={onDeleteArticle}
                 articleJobIds={articleJobIds}
                 onJobComplete={onJobComplete}
+                onOpenSettings={onOpenSettings}
                 todayRef={isToday ? todayRef : undefined}
               />
             );
@@ -608,6 +693,7 @@ function DroppableDay({
   onDeleteArticle,
   articleJobIds,
   onJobComplete,
+  onOpenSettings,
   todayRef,
 }: {
   date: Date;
@@ -619,6 +705,7 @@ function DroppableDay({
   onDeleteArticle: (articleId: string) => void;
   articleJobIds: Map<string, string>;
   onJobComplete: (articleId: string) => void;
+  onOpenSettings: (article: Article) => void;
   todayRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   // Disable dropping if there are any generated or published articles on this day
@@ -682,6 +769,7 @@ function DroppableDay({
               onDelete={onDeleteArticle}
               jobId={articleJobIds.get(article.id)}
               onJobComplete={onJobComplete}
+              onOpenSettings={onOpenSettings}
             />
           ))
         )}
@@ -696,12 +784,14 @@ function ArticleCard({
   onDelete,
   jobId,
   onJobComplete,
+  onOpenSettings,
 }: {
   article: Article;
   onGenerate: (articleId: string) => void;
   onDelete: (articleId: string) => void;
   jobId?: string;
   onJobComplete: (articleId: string) => void;
+  onOpenSettings: (article: Article) => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   // Watch job status if there's an active job
@@ -776,18 +866,30 @@ function ArticleCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Delete button - only show on hover for pending articles */}
+      {/* Action buttons - only show on hover for pending articles */}
       {isHovered && article.status === 'pending' && !isGenerating && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(article.id);
-          }}
-          className="absolute top-1 right-1 p-1 rounded bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition-colors z-10"
-          title="Delete article"
-        >
-          <Trash2 className="h-3 w-3" />
-        </button>
+        <div className="absolute top-1 right-1 flex gap-1 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenSettings(article);
+            }}
+            className="p-1 rounded bg-neutral-500 text-white hover:bg-neutral-600 dark:bg-neutral-600 dark:hover:bg-neutral-700 transition-colors"
+            title="Article settings"
+          >
+            <Settings className="h-3 w-3" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(article.id);
+            }}
+            className="p-1 rounded bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition-colors"
+            title="Delete article"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        </div>
       )}
 
       <div

@@ -1,12 +1,7 @@
 import { createStep } from '@mastra/core/workflows';
 import { z } from 'zod';
-import {
-  WorkflowInputSchema,
-  CompetitiveBriefSchema,
-  ArticleContentSchema,
-  WorkflowDTO,
-} from './schemas';
 import { contentWriter } from './agents';
+import { WorkflowDTO } from './schemas';
 import { generateStructureGuidelines } from './structure-guidelines-helper';
 
 // Step 5: Generate article content with AI (now using competitive brief)
@@ -15,8 +10,7 @@ const generateContentStep = createStep({
   inputSchema: WorkflowDTO,
   outputSchema: WorkflowDTO,
   execute: async ({ inputData }) => {
-    const { articleId, article, product, competitiveBrief, existingArticles } =
-      inputData;
+    const { article, product, competitiveBrief, existingArticles } = inputData;
 
     // Generate dynamic structure guidelines based on competitive analysis
     const structureGuidelines = generateStructureGuidelines(
@@ -24,14 +18,57 @@ const generateContentStep = createStep({
       article!
     );
 
+    // Build article type and subtype info
+    const articleTypeInfo = article?.type
+      ? article.type === 'guide'
+        ? article.guideSubtype
+          ? `Guide: ${article.guideSubtype
+              .split('_')
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ')}`
+          : 'Guide'
+        : article.listicleSubtype
+          ? `Listicle: ${article.listicleSubtype
+              .split('_')
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ')}`
+          : 'Listicle'
+      : null;
+
+    // Map content length to word count ranges
+    const getWordCountRange = (
+      contentLength: string | null | undefined
+    ): { min: number; max: number } | null => {
+      switch (contentLength) {
+        case 'short':
+          return { min: 1200, max: 1600 };
+        case 'medium':
+          return { min: 1600, max: 2400 };
+        case 'long':
+          return { min: 2400, max: 3200 };
+        case 'comprehensive':
+          return { min: 3200, max: 4200 };
+        default:
+          return null;
+      }
+    };
+
+    const contentLengthRange = getWordCountRange(article?.contentLength);
+    const targetWordCount = contentLengthRange || { min: 1600, max: 2400 };
+
     // Build comprehensive prompt with competitive brief
     const prompt = `You are writing an SEO-optimized article that must sound completely natural and human-written.
 
 ## ARTICLE DETAILS
 
-**Target Keyword**: ${article?.keyword}
+**Target Keyword**: ${article?.keyword || 'N/A'}
 **Article Title**: ${article?.title || `[Generate an engaging, SEO-optimized title based on the keyword]`}
-**Article Type**: ${article?.type}${article?.guideSubtype ? ` (${article?.guideSubtype})` : ''}${article?.listicleSubtype ? ` (${article?.listicleSubtype})` : ''}
+${articleTypeInfo ? `**Article Type**: ${articleTypeInfo}` : article?.type ? `**Article Type**: ${article?.type}${article?.guideSubtype ? ` (${article?.guideSubtype})` : ''}${article?.listicleSubtype ? ` (${article?.listicleSubtype})` : ''}` : ''}
+${
+  contentLengthRange
+    ? `**Content Length**: ${article?.contentLength || ''} (Target: ${contentLengthRange.min}-${contentLengthRange.max} words)`
+    : `**Target Word Count**: ${targetWordCount.min}-${targetWordCount.max} words`
+}
 
 **SEO Metrics**:
 - Search Volume: ${article?.searchVolume || 'Unknown'}
@@ -54,7 +91,7 @@ ${
 }
 
 ### Competitive Insights
-- **Target Word Count**: ${competitiveBrief?.competitiveAnalysis.targetWordCountMin}-${competitiveBrief?.competitiveAnalysis.targetWordCountMax} words
+- **Target Word Count**: ${targetWordCount.min}-${targetWordCount.max} words${contentLengthRange ? ` (${article?.contentLength || ''} content length)` : ''}
 ${
   competitiveBrief?.competitiveAnalysis?.topPages &&
   competitiveBrief?.competitiveAnalysis?.topPages?.length > 0
@@ -254,7 +291,8 @@ Return the article with:
 Before finalizing, ensure:
 - [ ] Article sounds natural and human-written
 - [ ] Keyword is used naturally throughout
-- [ ] Structure matches the article type requirements
+- [ ] Structure matches the article type requirements${articleTypeInfo ? ` (${articleTypeInfo})` : ''}
+- [ ] Word count is within target range (${targetWordCount.min}-${targetWordCount.max} words)${contentLengthRange ? ` - ${article?.contentLength || ''} length` : ''}
 - [ ] Content is actionable and valuable
 - [ ] No AI clichés or formulaic language
 - [ ] Proper heading hierarchy

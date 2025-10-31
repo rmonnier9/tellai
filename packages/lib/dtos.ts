@@ -220,6 +220,9 @@ export const ArticleSchema = z.object({
     .enum(['how_to', 'explainer', 'comparison', 'reference'])
     .nullable(),
   listicleSubtype: z.enum(['round_up', 'resources', 'examples']).nullable(),
+  contentLength: z
+    .enum(['short', 'medium', 'long', 'comprehensive'])
+    .nullable(),
   searchVolume: z.number().nullable(),
   keywordDifficulty: z.number().nullable(),
   cpc: z.number().nullable(),

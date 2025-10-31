@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { CompetitiveBriefSchema } from './schemas';
 import { ArticleSchema } from '../../dtos';
+import { CompetitiveBriefSchema } from './schemas';
 
 type CompetitiveBrief = z.infer<typeof CompetitiveBriefSchema>;
 type ArticleData = {
@@ -28,12 +28,6 @@ function generateAdaptiveStructure(
   competitiveBrief: CompetitiveBrief,
   articleData: ArticleData
 ): string {
-  const avgWordCount = Math.round(
-    (competitiveBrief.competitiveAnalysis.targetWordCountMin +
-      competitiveBrief.competitiveAnalysis.targetWordCountMax) /
-      2
-  );
-
   return `
 ## ADAPTIVE CONTENT STRUCTURE (Based on SERP Analysis)
 
@@ -51,9 +45,8 @@ ${
     : '(No specific sections identified - use standard structure for this content type)'
 }
 
-### 2. TARGET LENGTH & DEPTH
+### 2. TARGET DEPTH & DENSITY
 
-- **Target Word Count**: ${competitiveBrief.competitiveAnalysis.targetWordCountMin}-${competitiveBrief.competitiveAnalysis.targetWordCountMax} words (aim for ~${avgWordCount} words)
 - **Depth Level**: Match or exceed the detail level of top-ranking content
 - **Content Density**: Provide substantial value in each section, not just filler
 

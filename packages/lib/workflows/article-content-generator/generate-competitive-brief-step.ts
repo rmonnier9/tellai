@@ -1,7 +1,7 @@
 import { createStep } from '@mastra/core/workflows';
 import { z } from 'zod';
-import { CompetitiveBriefSchema, WorkflowDTO } from './schemas';
 import { serpAnalyzer } from './agents';
+import { CompetitiveBriefSchema, WorkflowDTO } from './schemas';
 
 // Step 4: Generate Competitive Analysis Brief
 const generateCompetitiveBriefStep = createStep({
@@ -20,8 +20,6 @@ const generateCompetitiveBriefStep = createStep({
           searchIntent: 'informational',
         },
         competitiveAnalysis: {
-          targetWordCountMin: 1500,
-          targetWordCountMax: 2500,
           topPages: [],
           contentGaps: [],
           unansweredQuestions: [],
@@ -66,7 +64,6 @@ ${competitorContent
 ### Competitor ${idx + 1} - ${comp.title}
 - **URL**: ${comp.url}
 - **Meta Description**: ${comp.metaDescription}
-- **Word Count**: ${comp.wordCount}
 - **Heading Structure** (${comp.headings.length} total):
 ${comp.headings
   .slice(0, 15)
@@ -99,11 +96,6 @@ Create a comprehensive competitive brief that will guide the creation of content
 - "navigational" - User wants to find a specific resource
 
 ### 2. Competitive Analysis
-
-**Word Count Analysis**:
-- Minimum: [shortest article word count]
-- Maximum: [longest article word count]
-- Recommended: Aim for 10-20% more than the average
 
 **Top Pages Main Points**: For EACH competitor, identify 3-5 main points/topics they cover.
 
@@ -160,13 +152,6 @@ Examples:
 - "Include '[keyword]' in first 20 chars, mention [key benefit], add CTA, keep 150-160 chars"
 - Be specific about what to include
 
-**Schema Markup**: Choose the most appropriate type:
-- "Article" - standard article
-- "HowTo" - step-by-step guide
-- "FAQPage" - Q&A format
-- "Product" - product review/comparison
-- "VideoObject" - includes video
-
 **Header Hierarchy**: Describe the structure:
 - "H1 for title, 5-7 H2 sections, 2-3 H3 under each H2, avoid H4"
 - Be specific about the expected structure
@@ -185,9 +170,17 @@ Be thorough and specific. This brief will determine the success of the content.`
       output: CompetitiveBriefSchema,
     });
 
+    // Override word count with article's contentLength if set
+    const finalBrief = {
+      ...result.object,
+      competitiveAnalysis: {
+        ...result.object.competitiveAnalysis,
+      },
+    };
+
     return {
       ...inputData,
-      competitiveBrief: result.object,
+      competitiveBrief: finalBrief,
     };
   },
 });
