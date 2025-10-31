@@ -141,9 +141,7 @@ export default function Footer({ border = false }: { border?: boolean }) {
               <li>
                 <a
                   className="text-gray-600 transition hover:text-gray-900"
-                  href="https://lovarank.getrewardful.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/affiliate-program"
                 >
                   {t('affiliate')}
                 </a>
