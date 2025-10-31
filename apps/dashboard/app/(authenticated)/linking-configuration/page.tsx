@@ -2,7 +2,10 @@
 
 import { AppSidebar } from '@/components/app-sidebar';
 import { detectLinksFromSitemap } from '@workspace/lib/server-actions/detect-links';
-import { saveLinkingConfiguration } from '@workspace/lib/server-actions/linking-configuration';
+import {
+  getLinkingConfiguration,
+  saveLinkingConfiguration,
+} from '@workspace/lib/server-actions/linking-configuration';
 import { Alert, AlertDescription } from '@workspace/ui/components/alert';
 import {
   Breadcrumb,
@@ -30,7 +33,7 @@ import {
 } from '@workspace/ui/components/sidebar';
 import useActiveProduct from '@workspace/ui/hooks/use-active-product';
 import { CheckCircle2, Info, Link2, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface DetectedLink {
@@ -49,18 +52,42 @@ export default function LinkingConfigurationPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [detectedLinks, setDetectedLinks] = useState<DetectedLink[]>([]);
   const [totalUrls, setTotalUrls] = useState<number>(0);
+  // Fetch linking configuration on mount and when product changes
+  const fetchLinkingConfiguration = useCallback(async () => {
+    if (!product?.id) return;
+
+    try {
+      const result = await getLinkingConfiguration(product.id);
+
+      if (result.success && result.product) {
+        setLinkSource(
+          (result.product.linkSource as 'database' | 'sitemap') || 'sitemap'
+        );
+        setSitemapUrl(result.product.sitemapUrl || '');
+
+        if (
+          result.product.detectedLinks &&
+          Array.isArray(result.product.detectedLinks)
+        ) {
+          const links = result.product
+            .detectedLinks as unknown as DetectedLink[];
+          setDetectedLinks(links);
+          setTotalUrls(result.product.totalUrlsDetected || links.length);
+        } else {
+          setDetectedLinks([]);
+          setTotalUrls(0);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching linking configuration:', error);
+    }
+  }, [product?.id]);
 
   useEffect(() => {
-    if (product) {
-      setLinkSource(
-        (product.linkSource as 'database' | 'sitemap') || 'sitemap'
-      );
-      setSitemapUrl(product.sitemapUrl || '');
-      if (product.detectedLinks && Array.isArray(product.detectedLinks)) {
-        setDetectedLinks(product.detectedLinks as unknown as DetectedLink[]);
-      }
+    if (product?.id) {
+      fetchLinkingConfiguration();
     }
-  }, [product]);
+  }, [product?.id, fetchLinkingConfiguration]);
 
   const handleDetectLinks = async () => {
     if (!product?.id || !sitemapUrl) {
@@ -112,6 +139,9 @@ export default function LinkingConfigurationPage() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to save configuration');
       }
+
+      // Fetch the updated linking configuration after successful save
+      await fetchLinkingConfiguration();
 
       toast.success('Linking configuration saved successfully');
     } catch (error) {

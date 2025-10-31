@@ -163,6 +163,7 @@ export async function detectLinksFromSitemap(
       data: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         detectedLinks: detectedLinks as any,
+        totalUrlsDetected: urls.length,
       },
     });
 

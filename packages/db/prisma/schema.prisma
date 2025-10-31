@@ -174,8 +174,9 @@ model Product {
   competitors     String[] @default([])
 
   // Linking configuration
-  linkSource    String @default("sitemap") @map("link_source") // "database" or "sitemap"
-  detectedLinks Json?  @map("detected_links") // Cached links from sitemap
+  linkSource        String @default("sitemap") @map("link_source") // "database" or "sitemap"
+  detectedLinks     Json?  @map("detected_links") // Cached links from sitemap
+  totalUrlsDetected Int?   @map("total_urls_detected") // Total URLs found (may be more than detectedLinks.length)
 
   // Article preferences
   autoPublish         Boolean @default(true) @map("auto_publish")

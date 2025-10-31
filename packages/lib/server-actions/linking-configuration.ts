@@ -111,6 +111,7 @@ export async function getLinkingConfiguration(productId: string) {
         linkSource: true,
         sitemapUrl: true,
         detectedLinks: true,
+        totalUrlsDetected: true,
       },
     });
 
