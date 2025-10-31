@@ -56,13 +56,16 @@ export default function BlogTopicFinder() {
     const normalizedUrl = normalizeUrl(url);
 
     try {
-      const response = await fetch('/api/blog-topic-finder', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url: normalizedUrl }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_DASHBOARD_URL}/api/blog-topic-finder`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url: normalizedUrl }),
+        }
+      );
 
       if (!response.ok) {
         const data = await response.json();

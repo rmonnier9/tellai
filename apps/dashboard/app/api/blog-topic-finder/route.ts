@@ -21,6 +21,27 @@ interface PageData {
   language: string;
 }
 
+// CORS headers helper
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigins = [
+    'https://www.lovarank.com',
+    'https://lovarank.com',
+    'http://localhost:3001',
+  ] as const;
+
+  const defaultOrigin = allowedOrigins[0];
+  const isAllowedOrigin =
+    origin !== null &&
+    allowedOrigins.includes(origin as (typeof allowedOrigins)[number]);
+
+  return {
+    'Access-Control-Allow-Origin': isAllowedOrigin ? origin! : defaultOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+  };
+}
+
 // Extract content from a single page
 async function extractPageContent(url: string): Promise<PageData | null> {
   try {
@@ -48,7 +69,7 @@ async function extractPageContent(url: string): Promise<PageData | null> {
     // Extract body text from paragraphs (first 5 paragraphs)
     const bodyText = $('p')
       .slice(0, 5)
-      .map((_, el) => $(el).text().trim())
+      .map((_index: number, el: cheerio.Element) => $(el).text().trim())
       .get()
       .join(' ')
       .substring(0, 1000); // Limit to 1000 chars
@@ -94,7 +115,7 @@ async function findSitemapUrls(baseUrl: string): Promise<string[]> {
       const urls: string[] = [];
 
       // Extract URLs from sitemap
-      $('url loc').each((_, el) => {
+      $('url loc').each((_index: number, el: cheerio.Element) => {
         const url = $(el).text().trim();
         if (url && url.startsWith('http')) {
           urls.push(url);
@@ -102,7 +123,7 @@ async function findSitemapUrls(baseUrl: string): Promise<string[]> {
       });
 
       // Also check for sitemap index
-      $('sitemap loc').each((_, el) => {
+      $('sitemap loc').each((_index: number, el: cheerio.Element) => {
         const url = $(el).text().trim();
         if (url && url.startsWith('http')) {
           urls.push(url);
@@ -205,12 +226,28 @@ Make sure the JSON is valid and properly formatted.`,
   }
 }
 
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  const headers = getCorsHeaders(origin);
+
+  return new NextResponse(null, {
+    status: 204,
+    headers,
+  });
+}
+
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   try {
     const { url } = await request.json();
 
     if (!url || typeof url !== 'string') {
-      return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'URL is required' },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
     // Validate URL
@@ -225,7 +262,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json(
         { error: 'Invalid URL format' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -243,7 +280,10 @@ export async function POST(request: NextRequest) {
       if (cachedAnalysis && cachedAnalysis.ideas) {
         const cachedIdeas = cachedAnalysis.ideas as unknown as BlogIdea[];
         console.log(`Returning cached ideas for ${baseUrl}`);
-        return NextResponse.json({ ideas: cachedIdeas, cached: true });
+        return NextResponse.json(
+          { ideas: cachedIdeas, cached: true },
+          { headers: corsHeaders }
+        );
       }
     } catch (cacheError) {
       // Log error but continue with normal flow if cache check fails
@@ -267,7 +307,7 @@ export async function POST(request: NextRequest) {
     if (pageContents.length === 0) {
       return NextResponse.json(
         { error: 'Could not extract any content from the website' },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       );
     }
 
@@ -313,7 +353,7 @@ Content: ${allBodyText}`;
       console.error('Error saving URLs and ideas to database:', dbError);
     }
 
-    return NextResponse.json({ ideas });
+    return NextResponse.json({ ideas }, { headers: corsHeaders });
   } catch (error) {
     console.error('Error in blog-topic-finder API:', error);
     return NextResponse.json(
@@ -323,7 +363,7 @@ Content: ${allBodyText}`;
             ? error.message
             : 'An error occurred while generating blog ideas',
       },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
