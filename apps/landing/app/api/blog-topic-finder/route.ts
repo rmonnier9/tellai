@@ -1,4 +1,6 @@
 import { openai } from '@ai-sdk/openai';
+import prisma from '@workspace/db/prisma/client';
+import type { Prisma } from '@workspace/db/prisma/generated/client';
 import type { CoreMessage } from 'ai';
 import { generateText } from 'ai';
 import axios from 'axios';
@@ -216,12 +218,37 @@ export async function POST(request: NextRequest) {
     let baseUrl: string;
     try {
       const urlObj = new URL(url);
-      baseUrl = `${urlObj.protocol}//${urlObj.host}`;
+      // Normalize baseUrl (remove trailing slash, lowercase host)
+      baseUrl = `${urlObj.protocol}//${urlObj.host.toLowerCase()}`.replace(
+        /\/$/,
+        ''
+      );
     } catch {
       return NextResponse.json(
         { error: 'Invalid URL format' },
         { status: 400 }
       );
+    }
+
+    // Check cache for existing analysis
+    try {
+      const cachedAnalysis = await prisma.blogTopicFinderAnalysis.findFirst({
+        where: {
+          baseUrl,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      if (cachedAnalysis && cachedAnalysis.ideas) {
+        const cachedIdeas = cachedAnalysis.ideas as unknown as BlogIdea[];
+        console.log(`Returning cached ideas for ${baseUrl}`);
+        return NextResponse.json({ ideas: cachedIdeas, cached: true });
+      }
+    } catch (cacheError) {
+      // Log error but continue with normal flow if cache check fails
+      console.error('Error checking cache:', cacheError);
     }
 
     // Find URLs to analyze
@@ -271,6 +298,21 @@ Content: ${allBodyText}`;
 
     // Generate blog ideas
     const ideas = await generateBlogIdeas(websiteSummary, primaryLanguage);
+
+    // Save URLs and ideas to database
+    try {
+      await prisma.blogTopicFinderAnalysis.create({
+        data: {
+          baseUrl,
+          analyzedUrls: urlsToAnalyze,
+          ideas: ideas as unknown as Prisma.InputJsonValue,
+        },
+      });
+      console.log(`Saved analysis with ${ideas.length} ideas to database`);
+    } catch (dbError) {
+      // Log error but don't fail the request if DB save fails
+      console.error('Error saving URLs and ideas to database:', dbError);
+    }
 
     return NextResponse.json({ ideas });
   } catch (error) {

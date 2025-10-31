@@ -12,7 +12,7 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface BlogIdea {
   title: string;
@@ -25,6 +25,7 @@ export default function BlogTopicFinder() {
   const [loading, setLoading] = useState(false);
   const [ideas, setIdeas] = useState<BlogIdea[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const resultsRef = useRef<HTMLElement>(null);
 
   const normalizeUrl = (input: string): string => {
     const trimmed = input.trim();
@@ -80,6 +81,27 @@ export default function BlogTopicFinder() {
       setLoading(false);
     }
   };
+
+  // Scroll to results when ideas are generated
+  useEffect(() => {
+    if (ideas.length > 0 && resultsRef.current) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        if (resultsRef.current) {
+          const header = document.querySelector('header');
+          const headerHeight = header ? header.offsetHeight + 24 : 80; // Add extra padding
+          const elementPosition =
+            resultsRef.current.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - headerHeight;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth',
+          });
+        }
+      }, 100);
+    }
+  }, [ideas]);
 
   return (
     <>
@@ -184,7 +206,10 @@ export default function BlogTopicFinder() {
 
       {/* Results Section */}
       {ideas.length > 0 && (
-        <section className="relative bg-white pb-12 md:pb-20">
+        <section
+          ref={resultsRef}
+          className="relative bg-white pt-8 md:pt-12 pb-12 md:pb-20"
+        >
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="space-y-8" data-aos="fade-up">
               <div className="text-center">

@@ -7,6 +7,7 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@workspace/ui', '@workspace/db', '@workspace/lib'],
+  serverExternalPackages: ['pg', '@prisma/adapter-pg'],
   // Configure `pageExtensions` to include MDX files
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   // Optionally, add any other Next.js config below

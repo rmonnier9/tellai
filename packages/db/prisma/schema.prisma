@@ -352,3 +352,15 @@ enum CredentialType {
   wix
   framer
 }
+
+model BlogTopicFinderAnalysis {
+  id           String   @id @default(cuid())
+  baseUrl      String   @map("base_url")
+  analyzedUrls String[] @map("analyzed_urls")
+  ideas        Json
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([baseUrl])
+  @@index([createdAt])
+  @@map("blog_topic_finder_analysis")
+}
