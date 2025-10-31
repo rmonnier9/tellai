@@ -73,33 +73,36 @@ export const contentPlanner = async (job: Job) => {
 
     console.log(`✅ Saved ${articles.count} articles to database`);
 
-    // Send transactional email to all organization members with access
+    // Send transactional email to all organization members with access and email preferences enabled
     try {
       const dashboardUrl =
         process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://app.lovarank.com';
       const recipientEmails = Array.from(
         new Set(
           (product.organization?.members || [])
+            .filter((m) => m.user?.emailNotificationsContentPlanner !== false)
             .map((m) => m.user?.email)
             .filter((e): e is string => !!e)
         )
       );
 
-      await Promise.all(
-        recipientEmails.map((to) =>
-          send({
-            from: `Lovarank <${process.env.EMAIL_FROM as string}>`,
-            to,
-            replyTo: 'support@lovarank.com',
-            subject: 'Your content plan is ready',
-            react: ContentPlannerReadyEmail({
-              productName: product.name,
-              articleCount: articles.count,
-              dashboardUrl,
-            }) as any,
-          })
-        )
-      );
+      if (recipientEmails.length > 0) {
+        await Promise.all(
+          recipientEmails.map((to) =>
+            send({
+              from: `Lovarank <${process.env.EMAIL_FROM as string}>`,
+              to,
+              replyTo: 'support@lovarank.com',
+              subject: 'Your content plan is ready',
+              react: ContentPlannerReadyEmail({
+                productName: product.name,
+                articleCount: articles.count,
+                dashboardUrl,
+              }) as any,
+            })
+          )
+        );
+      }
     } catch (emailError) {
       console.error(
         'Failed to send content planner notification emails:',

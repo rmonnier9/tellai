@@ -33,6 +33,10 @@ model User {
   banReason  String?   @map("ban_reason")
   banExpires DateTime? @map("ban_expires")
 
+  // Email preferences
+  emailNotificationsContentPlanner   Boolean @default(true) @map("email_notifications_content_planner")
+  emailNotificationsArticleGenerated Boolean @default(true) @map("email_notifications_article_generated")
+
   sessions    Session[]
   accounts    Account[]
   members     Member[]

@@ -1,6 +1,7 @@
 'use client';
 
-import { ChevronsUpDown, CreditCard, LogOut } from 'lucide-react';
+import { ChevronsUpDown, CreditCard, LogOut, Mail } from 'lucide-react';
+import Link from 'next/link';
 
 import { client } from '@workspace/auth/client';
 import {
@@ -115,6 +116,12 @@ export function NavUser({
               <DropdownMenuItem onClick={handleManageSubscription}>
                 <CreditCard />
                 Manage Subscription
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings/email-preferences">
+                  <Mail />
+                  Email Preferences
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

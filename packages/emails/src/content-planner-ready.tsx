@@ -6,6 +6,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Section,
   Tailwind,
@@ -60,7 +61,14 @@ export function ContentPlannerReadyEmail(props: {
 
             <Text className="text-xs text-neutral-500">
               You are receiving this because you have access to this project in
-              Lovarank.
+              Lovarank.{' '}
+              <Link
+                href={`${dashboardUrl}/settings/email-preferences`}
+                className="text-neutral-500 underline"
+              >
+                Manage email preferences
+              </Link>
+              .
             </Text>
           </Container>
         </Body>

@@ -81,33 +81,36 @@ export const articleGeneration = async (job: Job) => {
     `✅ Article content generated and saved for article ${articleId}`
   );
 
-  // Notify organization members that an article has been generated
+  // Notify organization members that an article has been generated (only those with email preferences enabled)
   try {
     const dashboardUrl =
       process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://app.lovarank.com';
     const recipientEmails = Array.from(
       new Set(
         (article?.product?.organization?.members || [])
+          .filter((m) => m.user?.emailNotificationsArticleGenerated !== false)
           .map((m) => m.user?.email)
           .filter((e): e is string => !!e)
       )
     );
 
-    await Promise.all(
-      recipientEmails.map((to) =>
-        send({
-          from: `Lovarank <${process.env.EMAIL_FROM as string}>`,
-          to,
-          replyTo: 'support@lovarank.com',
-          subject: 'New blog post generated',
-          react: ArticleGeneratedEmail({
-            productName: article?.product?.name,
-            articleTitle: updatedArticle.title,
-            dashboardUrl,
-          }) as any,
-        })
-      )
-    );
+    if (recipientEmails.length > 0) {
+      await Promise.all(
+        recipientEmails.map((to) =>
+          send({
+            from: `Lovarank <${process.env.EMAIL_FROM as string}>`,
+            to,
+            replyTo: 'support@lovarank.com',
+            subject: 'New blog post generated',
+            react: ArticleGeneratedEmail({
+              productName: article?.product?.name,
+              articleTitle: updatedArticle.title,
+              dashboardUrl,
+            }) as any,
+          })
+        )
+      );
+    }
   } catch (emailError) {
     console.error(
       'Failed to send article generated notification emails:',
