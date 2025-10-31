@@ -47,6 +47,15 @@ export async function GET(request: NextRequest) {
     const articles = await prisma.article.findMany({
       where: {
         productId: credential.productId!,
+        status: {
+          in: ['published', 'generated'],
+        },
+        content: {
+          not: null,
+        },
+        title: {
+          not: null,
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -66,7 +75,7 @@ export async function GET(request: NextRequest) {
         Slug: article.slug,
       };
     });
-    console.log(transformedArticles);
+
     return NextResponse.json(
       {
         success: true,
