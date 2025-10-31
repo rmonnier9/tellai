@@ -36,7 +36,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Article = {
   id: string;
@@ -335,14 +335,19 @@ export function ArticleCalendar() {
     >
       <div className="space-y-6">
         {/* Page Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Post Calendar</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Post Calendar
+            </h1>
+            <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
               View and manage your scheduled articles for the next 60 days
             </p>
           </div>
-          <Button onClick={() => setIsAddKeywordsModalOpen(true)}>
+          <Button
+            onClick={() => setIsAddKeywordsModalOpen(true)}
+            className="w-full sm:w-auto"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Keywords
           </Button>
@@ -505,6 +510,32 @@ function MonthCalendar({
   articleJobIds: Map<string, string>;
   onJobComplete: (articleId: string) => void;
 }) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const todayRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to today's date on mount (only on mobile)
+  useEffect(() => {
+    if (
+      todayRef.current &&
+      scrollContainerRef.current &&
+      window.innerWidth < 768
+    ) {
+      const container = scrollContainerRef.current;
+      const todayElement = todayRef.current;
+
+      // Calculate scroll position to center today's date
+      const scrollPosition =
+        todayElement.offsetLeft -
+        container.clientWidth / 2 +
+        todayElement.clientWidth / 2;
+
+      container.scrollTo({
+        left: Math.max(0, scrollPosition),
+        behavior: 'smooth',
+      });
+    }
+  }, []);
+
   return (
     <Card>
       <CardHeader>
@@ -512,8 +543,11 @@ function MonthCalendar({
           {month.monthName} {month.year}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-7 gap-2">
+      <CardContent
+        ref={scrollContainerRef}
+        className="overflow-x-auto relative before:pointer-events-none before:absolute before:left-0 before:top-0 before:z-10 before:h-full before:w-8 before:bg-gradient-to-r before:from-background before:to-transparent before:opacity-0 before:transition-opacity after:pointer-events-none after:absolute after:right-0 after:top-0 after:z-10 after:h-full after:w-8 after:bg-gradient-to-l after:from-background after:to-transparent after:opacity-100 md:before:opacity-0 md:after:opacity-0"
+      >
+        <div className="grid grid-cols-7 gap-2 min-w-[1050px] md:min-w-0">
           {/* Day headers */}
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
             <div
@@ -554,6 +588,7 @@ function MonthCalendar({
                 onDeleteArticle={onDeleteArticle}
                 articleJobIds={articleJobIds}
                 onJobComplete={onJobComplete}
+                todayRef={isToday ? todayRef : undefined}
               />
             );
           })}
@@ -573,6 +608,7 @@ function DroppableDay({
   onDeleteArticle,
   articleJobIds,
   onJobComplete,
+  todayRef,
 }: {
   date: Date;
   dateKey: string;
@@ -583,6 +619,7 @@ function DroppableDay({
   onDeleteArticle: (articleId: string) => void;
   articleJobIds: Map<string, string>;
   onJobComplete: (articleId: string) => void;
+  todayRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   // Disable dropping if there are any generated or published articles on this day
   const hasNonPendingArticles = dayArticles.some(
@@ -595,11 +632,20 @@ function DroppableDay({
     disabled: hasNonPendingArticles,
   });
 
+  // Combine refs for droppable and today scroll target
+  const combinedRef = (node: HTMLDivElement | null) => {
+    setNodeRef(node);
+    if (todayRef && node) {
+      (todayRef as React.MutableRefObject<HTMLDivElement | null>).current =
+        node;
+    }
+  };
+
   return (
     <div
-      ref={setNodeRef}
+      ref={combinedRef}
       className={`
-        min-h-[120px] p-2 border rounded-lg transition-colors
+        min-h-[140px] md:min-h-[120px] p-2 border rounded-lg transition-colors
         ${isCurrentMonth ? 'bg-background' : 'bg-muted/30'}
         ${isToday ? 'border-primary border-2' : 'border-border'}
         ${isOver && !hasNonPendingArticles ? 'bg-primary/10 border-primary' : ''}
@@ -608,7 +654,7 @@ function DroppableDay({
     >
       <div className="flex items-center justify-between mb-2">
         <span
-          className={`text-sm font-medium ${
+          className={`text-sm md:text-sm font-medium ${
             isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
           } ${isToday ? 'text-primary font-bold' : ''}`}
         >
@@ -767,11 +813,13 @@ function ArticleCard({
         </p>
         {article.searchVolume !== null && (
           <div className="flex items-center gap-1 text-muted-foreground">
-            <span className="text-[10px]">Vol: {article.searchVolume}</span>
+            <span className="text-[10px] md:text-[10px]">
+              Vol: {article.searchVolume}
+            </span>
             {article.keywordDifficulty !== null && (
               <>
                 <span className="text-[10px]">•</span>
-                <span className="text-[10px]">
+                <span className="text-[10px] md:text-[10px]">
                   KD: {article.keywordDifficulty}
                 </span>
               </>
@@ -790,10 +838,10 @@ function ArticleCard({
               onGenerate(article.id);
             }}
             disabled={isGenerating}
-            className={`w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[10px] font-medium transition-colors ${
+            className={`w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-2 md:py-1.5 rounded text-[11px] md:text-[10px] font-medium transition-colors touch-manipulation ${
               isGenerating
                 ? 'bg-primary-100 text-primary-600 dark:bg-primary-950 dark:text-primary-400 cursor-not-allowed'
-                : 'bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 cursor-pointer'
+                : 'bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 cursor-pointer active:scale-95'
             }`}
           >
             {isGenerating ? (
@@ -815,7 +863,7 @@ function ArticleCard({
           <Link
             href={`/articles/${article.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-[10px] font-medium transition-colors bg-neutral-500 text-white hover:bg-neutral-600 dark:bg-neutral-600 dark:hover:bg-neutral-700"
+            className="w-full mt-2 flex items-center justify-center gap-1.5 px-2 py-2 md:py-1.5 rounded text-[11px] md:text-[10px] font-medium transition-colors touch-manipulation bg-neutral-500 text-white hover:bg-neutral-600 dark:bg-neutral-600 dark:hover:bg-neutral-700 active:scale-95"
           >
             <Eye className="h-3 w-3" />
             <span>View Article</span>

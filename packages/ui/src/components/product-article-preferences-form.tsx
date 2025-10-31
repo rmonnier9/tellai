@@ -194,19 +194,14 @@ export function ProductArticlePreferencesForm({
             <FormItem>
               <FormLabel>Image Style</FormLabel>
               <FormControl>
-                <div className="grid grid-cols-5 gap-3">
+                <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent hover:scrollbar-thumb-neutral-400 md:grid md:grid-cols-5 md:overflow-visible">
                   {IMAGE_STYLE_OPTIONS.map((style) => (
                     <button
                       key={style.value}
                       type="button"
                       onClick={() => field.onChange(style.value)}
-                      // className={`relative rounded-lg border-2 p-2 transition-all ${
-                      //   field.value === style.value
-                      //     ? 'border-violet-600 bg-violet-600/10 ring-2 ring-violet-600/20'
-                      //     : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
-                      // }`}
                       className={cn(
-                        `relative rounded-lg border-2 p-2 transition-all cursor-pointer`,
+                        `relative rounded-lg border-2 p-2 transition-all cursor-pointer flex-shrink-0 w-[140px] snap-start md:w-auto md:flex-shrink`,
                         {
                           'border-pink-600 bg-pink-600/10 ring-2 ring-pink-600/20':
                             field.value === style.value,
