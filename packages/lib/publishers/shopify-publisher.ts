@@ -40,32 +40,13 @@ export class ShopifyPublisher extends BasePublisher {
       // Convert markdown to HTML (simple conversion - you may want to use a library)
       const htmlContent = markdownToHtml(article.content);
 
-      // Shopify Admin API endpoint
-      const endpoint = `https://${sanitizedStoreName}.myshopify.com/admin/api/2024-01/graphql.json`;
-
-      // GraphQL mutation to create a blog post
-      const mutation = `
-        mutation createBlogArticle($article: ArticleCreateInput!) {
-          articleCreate(article: $article) {
-            article {
-              id
-              handle
-            }
-            userErrors {
-              field
-              message
-            }
-          }
-        }
-      `;
-
-      // Format blogId to Shopify GID format if it's just a number
-      let formattedBlogId = blogId;
-      if (blogId && !blogId.startsWith('gid://')) {
-        formattedBlogId = `gid://shopify/Blog/${blogId}`;
+      // Format blogId to extract numeric ID
+      let numericBlogId = blogId;
+      if (blogId && blogId.startsWith('gid://')) {
+        numericBlogId = blogId.replace('gid://shopify/Blog/', '');
       }
 
-      if (!formattedBlogId) {
+      if (!numericBlogId) {
         return {
           success: false,
           error:
@@ -73,16 +54,16 @@ export class ShopifyPublisher extends BasePublisher {
         };
       }
 
-      const variables = {
+      // Shopify Admin API REST endpoint
+      const endpoint = `https://${sanitizedStoreName}.myshopify.com/admin/api/2024-01/blogs/${numericBlogId}/articles.json`;
+
+      const articleData = {
         article: {
-          blogId: formattedBlogId,
           title: article.title,
-          body: htmlContent,
-          author: {
-            name: authorName,
-          },
-          isPublished: publishingStatus === 'published',
-          tags: [article.keyword],
+          body_html: htmlContent,
+          author: authorName,
+          published: publishingStatus === 'published',
+          tags: article.keyword,
         },
       };
 
@@ -92,7 +73,7 @@ export class ShopifyPublisher extends BasePublisher {
           'Content-Type': 'application/json',
           'X-Shopify-Access-Token': accessToken,
         },
-        body: JSON.stringify({ query: mutation, variables }),
+        body: JSON.stringify(articleData),
       });
 
       if (!response.ok) {
@@ -107,22 +88,14 @@ export class ShopifyPublisher extends BasePublisher {
       if (data.errors) {
         return {
           success: false,
-          error: data.errors[0]?.message || 'Shopify API error',
-        };
-      }
-
-      const result = data.data?.articleCreate;
-
-      if (result?.userErrors?.length > 0) {
-        return {
-          success: false,
-          error: result.userErrors[0].message,
+          error: data.errors || 'Shopify API error',
         };
       }
 
       // Construct the blog URL from the handle
-      const blogUrl = result?.article?.handle
-        ? `https://${sanitizedStoreName}.myshopify.com/blogs/news/${result.article.handle}`
+      const articleHandle = data.article?.handle;
+      const blogUrl = articleHandle
+        ? `https://${sanitizedStoreName}.myshopify.com/blogs/news/${articleHandle}`
         : undefined;
 
       return {

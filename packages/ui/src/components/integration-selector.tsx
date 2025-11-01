@@ -40,7 +40,7 @@ const integrations = [
     logo: '/images/shopify.svg',
     color: 'from-green-500/10 to-green-600/10',
     borderColor: 'hover:border-green-500/50',
-    available: false,
+    available: true,
   },
   {
     id: 'wix',
