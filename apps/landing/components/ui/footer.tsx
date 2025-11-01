@@ -24,55 +24,48 @@ export default function Footer({ border = false }: { border?: boolean }) {
               &copy; Lovarank.com - All rights reserved.
             </div>
           </div>
-          {/* 
+
           <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
-            <h3 className="text-sm font-medium">Product</h3>
+            <h3 className="text-sm font-medium">{t('resources')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
+                  href="/tools/blog-topic-finder"
                 >
-                  Features
+                  Blog Topic Finder
                 </Link>
               </li>
               <li>
                 <Link
                   className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
+                  href="https://help.lovarank.com/"
+                  aria-label="Help Center"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Integrations
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
-                >
-                  Pricing & Plans
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
-                >
-                  Changelog
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
-                >
-                  Our method
+                  {t('helpCenter')}
                 </Link>
               </li>
             </ul>
-          </div> */}
+          </div>
 
           <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
-            <h3 className="text-sm font-medium">{t('resources')}</h3>
+            <h3 className="text-sm font-medium">{t('company')}</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  className="text-gray-600 transition hover:text-gray-900"
+                  href="/affiliate-program"
+                >
+                  {t('affiliate')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
+            <h3 className="text-sm font-medium">{t('legal')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -90,28 +83,6 @@ export default function Footer({ border = false }: { border?: boolean }) {
                   locale="en"
                 >
                   {t('termsOfService')}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="/affiliate-program"
-                >
-                  {t('affiliate')}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
-            <h3 className="text-sm font-medium">Free Tools</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
-                  href="/tools/blog-topic-finder"
-                >
-                  Blog Topic Finder
                 </Link>
               </li>
             </ul>
