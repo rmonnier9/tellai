@@ -15,15 +15,7 @@ const integrations = [
     borderColor: 'hover:border-blue-500/50',
     available: true,
   },
-  {
-    id: 'notion',
-    name: 'Notion',
-    description: 'Sync with your Notion workspace',
-    logo: '/images/notion.svg',
-    color: 'from-gray-500/10 to-gray-600/10',
-    borderColor: 'hover:border-gray-500/50',
-    available: false,
-  },
+
   {
     id: 'webflow',
     name: 'Webflow',
@@ -41,6 +33,24 @@ const integrations = [
     color: 'from-green-500/10 to-green-600/10',
     borderColor: 'hover:border-green-500/50',
     available: true,
+  },
+  {
+    id: 'framer',
+    name: 'Framer',
+    description: 'Publish to your Framer site',
+    logo: '/images/framer.svg',
+    color: 'from-pink-500/10 to-pink-600/10',
+    borderColor: 'hover:border-pink-500/50',
+    available: true,
+  },
+  {
+    id: 'notion',
+    name: 'Notion',
+    description: 'Sync with your Notion workspace',
+    logo: '/images/notion.svg',
+    color: 'from-gray-500/10 to-gray-600/10',
+    borderColor: 'hover:border-gray-500/50',
+    available: false,
   },
   {
     id: 'wix',
@@ -68,15 +78,6 @@ const integrations = [
     color: 'from-purple-500/10 to-purple-600/10',
     borderColor: 'hover:border-purple-500/50',
     available: false,
-  },
-  {
-    id: 'framer',
-    name: 'Framer',
-    description: 'Publish to your Framer site',
-    logo: '/images/framer.svg',
-    color: 'from-pink-500/10 to-pink-600/10',
-    borderColor: 'hover:border-pink-500/50',
-    available: true,
   },
 ];
 
