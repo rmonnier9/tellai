@@ -4,7 +4,7 @@ Tags: content automation, ai blog, ai agent, ai content generator, ai seo
 Requires at least: 6.4  
 Tested up to: 6.8  
 Requires PHP: 8.0  
-Stable tag: 1.0.3  
+Stable tag: 1.0.6
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
@@ -64,6 +64,8 @@ Yes. You can choose whether articles are saved as drafts or published instantly.
 
 == Changelog ==
 
+= 1.0.6 =
+* fix version issue
 = 1.0.5 =
 * Added article publication setting (draft/publish)
 = 1.0.4 =
