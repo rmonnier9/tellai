@@ -44,6 +44,7 @@ export async function createCrispProfile(
     await crispApiCall(`/website/${crispWebsiteId}/people/profile/`, 'POST', {
       email,
       person: { nickname: person.nickname },
+      segments: ['user'],
     });
 
     return { success: true };

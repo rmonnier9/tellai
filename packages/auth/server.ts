@@ -41,8 +41,6 @@ const sendMagicLink = async (props: { email: string; url: string }) => {
       url: props.url,
     }),
   });
-
-  console.log('TESTS_------------------_>', tests);
 };
 
 export const auth = betterAuth({
@@ -310,7 +308,6 @@ export const auth = betterAuth({
       create: {
         after: async (user) => {
           try {
-            console.log('TESTS_------------------_>', user);
             await trackUserRegistration({
               email: user.email,
               name: user.name || user.email.split('@')[0]!,
