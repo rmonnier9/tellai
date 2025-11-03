@@ -22,14 +22,33 @@ const bricolageGrotesque = Bricolage_Grotesque({
 
 export async function generateMetadata() {
   const messages = await getMessages();
+  const title =
+    messages.meta.metaTitle ||
+    'Lovarank | AI-powered SEO that works while you sleep';
+  const description =
+    messages.meta.metaDescription ||
+    'A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.';
 
   return {
-    title:
-      messages.meta.metaTitle ||
-      'Lovarank | AI-powered SEO that works while you sleep',
-    description:
-      messages.meta.metaDescription ||
-      'A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.',
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      images: [
+        {
+          url: `/api/og`,
+        },
+      ],
+    },
+    alternates: {
+      canonical: '/',
+      languages: {
+        en: '/en',
+        fr: '/fr',
+      },
+    },
   };
 }
 
