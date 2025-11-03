@@ -30,6 +30,7 @@ export async function generateMetadata() {
     'A 100% automated growth engine: hidden keyword discovery, optimized articles, daily publishing.';
 
   return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_LANDING_PAGE_URL!),
     title,
     description,
     openGraph: {

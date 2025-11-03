@@ -1,46 +1,52 @@
 import BlogTopicFinder from '@/components/blog-topic-finder';
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 
-export const metadata: Metadata = {
-  title:
-    'Free Blog Topic Generator | AI-Powered SEO Blog Ideas Generator | Lovarank',
-  description:
-    'Generate unlimited SEO-optimized blog topics instantly with our free AI blog topic generator. Analyze any website and get personalized blog ideas with long-tail keywords. No sign-up required.',
-  keywords: [
-    'blog topic generator',
-    'blog ideas generator',
-    'free blog topic generator',
-    'blog topic finder',
-    'blog ideas tool',
-    'SEO blog topics',
-    'blog content ideas',
-    'article topic generator',
-    'blog post ideas',
-    'content ideas generator',
-    'blog topic suggestions',
-    'AI blog ideas',
-    'content planning tool',
-    'blog topic research',
-    'content ideation tool',
-    'keyword-based blog topics',
-  ],
-  openGraph: {
-    title: 'Free Blog Topic Generator | AI-Powered SEO Blog Ideas',
-    description:
-      'Generate unlimited SEO-optimized blog topics instantly. Analyze any website and get AI-powered blog ideas with long-tail keywords tailored to your content strategy.',
-    type: 'website',
-    url: 'https://lovarank.com/tools/blog-topic-finder',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Free Blog Topic Generator | AI-Powered SEO Blog Ideas',
-    description:
-      'Generate unlimited SEO-optimized blog topics instantly with our free AI blog topic generator. No sign-up required.',
-  },
-  alternates: {
-    canonical: '/tools/blog-topic-finder',
-  },
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata | undefined> {
+  const title =
+    'Free Blog Topic Generator | AI-Powered SEO Blog Ideas Generator | Lovarank';
+  const description =
+    'Generate unlimited SEO-optimized blog topics instantly with our free AI blog topic generator. Analyze any website and get personalized blog ideas with long-tail keywords. No sign-up required.';
+  const previousImages = (await parent).openGraph?.images || [];
+
+  return {
+    title,
+    description,
+    keywords: [
+      'blog topic generator',
+      'blog ideas generator',
+      'free blog topic generator',
+      'blog topic finder',
+      'blog ideas tool',
+      'SEO blog topics',
+      'blog content ideas',
+      'article topic generator',
+      'blog post ideas',
+      'content ideas generator',
+      'blog topic suggestions',
+      'AI blog ideas',
+      'content planning tool',
+      'blog topic research',
+      'content ideation tool',
+      'keyword-based blog topics',
+    ],
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      images: [...previousImages],
+    },
+    alternates: {
+      canonical: '/tools/blog-topic-finder',
+    },
+  };
+}
 
 const faqSchema = {
   '@context': 'https://schema.org',

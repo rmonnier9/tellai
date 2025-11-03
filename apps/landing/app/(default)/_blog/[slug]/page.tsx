@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import { getBlogPosts } from '@/components/mdx/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -8,11 +8,18 @@ import PostNav from './post-nav';
 import PageIllustration from '@/components/page-illustration';
 import Newsletter from '@/components/newsletter';
 
-export async function generateMetadata(props: {
+type Props = {
   params: Promise<{ slug: string }>;
-}): Promise<Metadata | undefined> {
-  const params = await props.params;
-  const post = getBlogPosts().find((post) => post.slug === params.slug);
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata | undefined> {
+  const { slug } = await params;
+  const post = getBlogPosts().find((post) => post.slug === slug);
+  const previousImages = (await parent).openGraph?.images || [];
 
   if (!post) {
     return;
@@ -23,6 +30,11 @@ export async function generateMetadata(props: {
   return {
     title,
     description,
+    openGraph: {
+      title,
+      description,
+      images: [...previousImages],
+    },
   };
 }
 
