@@ -2,6 +2,7 @@ import ToolPage from '@/components/tool-page';
 import { Metadata, ResolvingMetadata } from 'next';
 
 import { tools } from '@workspace/lib/data/tools';
+import { locales } from '@/i18n/routing';
 import { notFound } from 'next/navigation';
 
 // Generate FAQ schema from tool data
@@ -25,21 +26,16 @@ const generateFaqSchema = (toolId: string) => {
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 // Generate static params for all tools and locales at build time
 export async function generateStaticParams() {
-  // return locales.flatMap((locale) =>
-  //   tools.map((tool) => ({
-  //     locale,
-  //     slug: tool.id,
-  //   }))
-  // );
-
-  return tools.map((tool) => ({
-    slug: tool.id,
-  }));
+  return locales.flatMap((locale) =>
+    tools.map((tool) => ({
+      locale,
+      slug: tool.id,
+    }))
+  );
 }
 
 export async function generateMetadata(

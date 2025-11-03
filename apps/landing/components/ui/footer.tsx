@@ -2,6 +2,7 @@ import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '../language-switcher';
 import Logo from './logo';
+import { tools } from '@workspace/lib/data/tools';
 
 export default function Footer({ border = false }: { border?: boolean }) {
   const t = useTranslations('common');
@@ -31,14 +32,6 @@ export default function Footer({ border = false }: { border?: boolean }) {
               <li>
                 <Link
                   className="text-gray-600 transition hover:text-gray-900"
-                  href="/tools/blog-topic-finder"
-                >
-                  Blog Topic Finder
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="text-gray-600 transition hover:text-gray-900"
                   href="https://help.lovarank.com/"
                   aria-label="Help Center"
                   target="_blank"
@@ -47,6 +40,24 @@ export default function Footer({ border = false }: { border?: boolean }) {
                   {t('helpCenter')}
                 </Link>
               </li>
+              <li>
+                <Link
+                  className="text-gray-600 transition hover:text-gray-900"
+                  href="/tools/blog-topic-finder"
+                >
+                  Blog Topic Finder
+                </Link>
+              </li>
+              {tools.map((tool) => (
+                <li key={tool.id}>
+                  <Link
+                    className="text-gray-600 transition hover:text-gray-900"
+                    href={`/tools/${tool.id}`}
+                  >
+                    {tool.title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

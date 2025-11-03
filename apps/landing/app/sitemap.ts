@@ -1,3 +1,4 @@
+import { tools } from '@workspace/lib/data/tools';
 import { MetadataRoute } from 'next';
 
 // Liste des locales supportées
@@ -28,6 +29,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency: page === '' ? 'weekly' : 'monthly',
         priority: page === '' ? 1 : 0.5,
+      });
+    }
+
+    for (const tool of tools) {
+      urls.push({
+        url: `${baseUrl}/tools/${tool.id}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
       });
     }
   }

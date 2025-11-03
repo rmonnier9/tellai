@@ -8,14 +8,15 @@ const CTA = (props: Props) => {
     <div className="w-full bg-white py-12 md:py-24 ">
       <div className="px-6 md:px-12">
         <span className="inline-flex font-fun text-primary-400 text-3xl font-bold mb-4">
-          This is it!
+          Ready to start ranking?
         </span>
         <h2 className="text-3xl md:text-4xl font-bold  mb-4">
-          Ready to start ranking?
+          Rank higher without lifting a finger
         </h2>
         <p className="text-xl  mb-8 max-w-2xl  text-gray-600">
-          Join 1,000+ businesses automating their way to the top of Google,
-          ChatGPT and other AI search engines
+          The only AI agent that discovers hidden keywords, creates optimized
+          content, and publishes automatically. 1,000+ businesses already
+          ranking
         </p>
         <a
           href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
