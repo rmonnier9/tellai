@@ -14,13 +14,6 @@ import Script from 'next/script';
 import { Providers } from '@/components/providers';
 import '@workspace/ui/globals.css';
 
-export const metadata = {
-  title: {
-    template: '%s | Lovarank',
-    default: 'Lovarank',
-  },
-};
-
 const fontSans = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
@@ -35,6 +28,28 @@ const fontDisplay = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-display',
 });
+
+export async function generateMetadata() {
+  return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_LANDING_PAGE_URL!),
+    title: {
+      template: '%s | Lovarank',
+      default: 'Lovarank',
+    },
+    openGraph: {
+      type: 'website',
+      title: {
+        template: '%s | Lovarank',
+        default: 'Lovarank',
+      },
+      images: [
+        {
+          url: `/api/og`,
+        },
+      ],
+    },
+  };
+}
 
 export default function RootLayout({
   children,
