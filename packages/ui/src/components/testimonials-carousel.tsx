@@ -3,6 +3,8 @@
 import { TestimonialCard } from '@workspace/ui/components/testimonial-card';
 import { cn } from '@workspace/ui/lib/utils';
 
+import { testimonials as defaultTestimonials } from '@workspace/lib/data/testimonials';
+
 interface Testimonial {
   name: string;
   username?: string;
@@ -12,7 +14,7 @@ interface Testimonial {
 }
 
 interface TestimonialsCarouselProps {
-  testimonials: Testimonial[];
+  testimonials?: Testimonial[];
   speed?: number; // Speed in seconds, default 60
   title?: string;
   subtitle?: string;
@@ -21,7 +23,7 @@ interface TestimonialsCarouselProps {
 }
 
 export function TestimonialsCarousel({
-  testimonials,
+  testimonials = defaultTestimonials,
   speed = 60,
   title = 'Trusted by thousands',
   subtitle = 'See what our customers are saying',
@@ -132,9 +134,9 @@ export function TestimonialsCarousel({
       </div>
 
       {/* Hint text */}
-      <p className="mt-8 text-center text-xs text-muted-foreground italic">
+      {/* <p className="mt-8 text-center text-xs text-muted-foreground italic">
         Real testimonials from real customers
-      </p>
+      </p> */}
     </section>
   );
 }

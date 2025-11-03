@@ -3,7 +3,7 @@ import MetaPixel from '@workspace/ui/components/meta-pixel';
 import Analytics from '@workspace/ui/components/analytics';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { Bricolage_Grotesque, Inter } from 'next/font/google';
+import { Bricolage_Grotesque, Inter, Caveat } from 'next/font/google';
 import Script from 'next/script';
 
 import '@workspace/ui/globals.css';
@@ -18,6 +18,12 @@ const inter = Inter({
 const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-bricolage',
+  display: 'swap',
+});
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-caveat',
   display: 'swap',
 });
 
@@ -64,7 +70,7 @@ export default async function RootLayout({
   return (
     <html className="scroll-smooth">
       <body
-        className={`${inter.variable} ${bricolageGrotesque.variable} bg-gray-50 font-inter tracking-tight text-gray-900 antialiased`}
+        className={`${inter.variable} ${bricolageGrotesque.variable} ${caveat.variable} bg-gray-50 font-inter tracking-tight text-gray-900 antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
           <div className="flex min-h-screen flex-col overflow-hidden supports-[overflow:clip]:overflow-clip">

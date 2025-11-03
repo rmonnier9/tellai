@@ -5,6 +5,7 @@ import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
 import {
   Bricolage_Grotesque,
+  Caveat,
   // Geist,
   Geist_Mono,
   Inter,
@@ -27,6 +28,12 @@ const fontMono = Geist_Mono({
 const fontDisplay = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-display',
+});
+
+const fontFun = Caveat({
+  subsets: ['latin'],
+  variable: '--font-fun',
+  display: 'swap',
 });
 
 export async function generateMetadata() {
@@ -60,7 +67,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <link rel="icon" href="/images/lovarank-logo-icon-2.svg" sizes="any" />
       <body
-        className={`${fontSans.variable} ${fontMono.variable} ${fontDisplay.variable} font-sans antialiased `}
+        className={`${fontSans.variable} ${fontMono.variable} ${fontDisplay.variable} ${fontFun.variable} font-sans antialiased `}
       >
         <Providers>
           {children}
