@@ -6,6 +6,7 @@ import { getMessages } from 'next-intl/server';
 import { Bricolage_Grotesque, Inter } from 'next/font/google';
 import Script from 'next/script';
 
+import '@workspace/ui/globals.css';
 import './css/style.css';
 
 const inter = Inter({

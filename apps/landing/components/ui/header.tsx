@@ -70,9 +70,7 @@ export default function Header() {
           <ul className="flex flex-1 items-center justify-end gap-3">
             <li>
               <a
-                href="https://app.lovarank.com/auth/sign-in"
-                target="_blank"
-                rel="noopener noreferrer"
+                href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
                 className="btn-sm bg-white text-gray-800 shadow-sm hover:bg-gray-50"
               >
                 {t('login')}
@@ -80,9 +78,7 @@ export default function Header() {
             </li>
             <li>
               <a
-                href="https://app.lovarank.com/auth/sign-in"
-                target="_blank"
-                rel="noopener noreferrer"
+                href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
                 className="btn-sm bg-pink-400 text-white shadow-sm hover:bg-pink-500"
               >
                 {t('startForFree')}
