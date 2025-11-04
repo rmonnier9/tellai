@@ -209,6 +209,10 @@ export function ArticleDisplay({
     ),
   }));
 
+  const hasPublishableIntegration = credentials.some(
+    (cred) => cred.type !== 'framer'
+  );
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
@@ -421,25 +425,27 @@ export function ArticleDisplay({
                     </>
                   )}
                 </Button>
-                {article.status !== 'published' && article.content && (
-                  <Button
-                    onClick={handlePublish}
-                    disabled={isPublishing}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {isPublishing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Publishing...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Publish
-                      </>
-                    )}
-                  </Button>
-                )}
+                {article.status !== 'published' &&
+                  article.content &&
+                  hasPublishableIntegration && (
+                    <Button
+                      onClick={handlePublish}
+                      disabled={isPublishing}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {isPublishing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Publishing...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 mr-2" />
+                          Publish
+                        </>
+                      )}
+                    </Button>
+                  )}
               </>
             )}
             <div className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
@@ -497,6 +503,13 @@ export function ArticleDisplay({
                               ) : (
                                 'Not yet published'
                               )}
+                            </p>
+                          )}
+                          {credential.type === 'framer' && (
+                            <p className="text-xs text-muted-foreground">
+                              Publishing must be done from Framer. Click on the
+                              Sync button in the CMS collection created by the
+                              Lovarank plugin.
                             </p>
                           )}
                         </div>
