@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import Logo from './logo';
 
-export default function Header() {
+export default function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const t = useTranslations('common');
   return (
     <header className="fixed top-2 z-30 w-full md:top-6">
@@ -68,22 +68,35 @@ export default function Header() {
 
           {/* Desktop sign in links */}
           <ul className="flex flex-1 items-center justify-end gap-3">
-            <li>
-              <a
-                href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
-                className="btn-sm bg-white text-gray-800 shadow-sm hover:bg-gray-50"
-              >
-                {t('login')}
-              </a>
-            </li>
-            <li>
-              <a
-                href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
-                className="btn-sm bg-pink-400 text-white shadow-sm hover:bg-pink-500"
-              >
-                {t('startForFree')}
-              </a>
-            </li>
+            {isAuthenticated ? (
+              <li>
+                <a
+                  href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
+                  className="btn-sm bg-pink-400 text-white shadow-sm hover:bg-pink-500"
+                >
+                  {t('goToDashboard')}
+                </a>
+              </li>
+            ) : (
+              <>
+                <li>
+                  <a
+                    href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
+                    className="btn-sm bg-white text-gray-800 shadow-sm hover:bg-gray-50"
+                  >
+                    {t('login')}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
+                    className="btn-sm bg-pink-400 text-white shadow-sm hover:bg-pink-500"
+                  >
+                    {t('startForFree')}
+                  </a>
+                </li>
+              </>
+            )}
           </ul>
 
           {/* <MobileMenu /> */}
