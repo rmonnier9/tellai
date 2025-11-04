@@ -1,3 +1,4 @@
+import { AdminArticleGeneration } from '@/components/admin-article-generation';
 import { AdminProductManagement } from '@/components/admin-product-management';
 import { AdminUserImpersonation } from '@/components/admin-user-impersonation';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -74,6 +75,7 @@ export default async function AdminUsersPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <AdminUserImpersonation />
             <AdminProductManagement />
+            <AdminArticleGeneration />
           </div>
         </div>
       </SidebarInset>

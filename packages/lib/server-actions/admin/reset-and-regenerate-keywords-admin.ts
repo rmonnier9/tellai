@@ -1,8 +1,8 @@
 'use server';
 
 import prisma from '@workspace/db/prisma/client';
-import { enqueueJob } from '../enqueue-job';
-import getSession from '../get-session';
+import { enqueueJob } from '../../enqueue-job';
+import getSession from '../../get-session';
 
 const ADMIN_IDS =
   process.env.ADMIN_IDS?.split(',').map((id) => id.trim()) || [];
@@ -11,7 +11,7 @@ const ADMIN_IDS =
  * Admin-only action to delete all pending articles and trigger keyword regeneration
  * @param productId - The ID of the product to reset
  */
-export async function resetAndRegenerateKeywords(productId: string) {
+export async function resetAndRegenerateKeywordsAdmin(productId: string) {
   try {
     const session = await getSession();
 
@@ -80,4 +80,4 @@ export async function resetAndRegenerateKeywords(productId: string) {
   }
 }
 
-export default resetAndRegenerateKeywords;
+export default resetAndRegenerateKeywordsAdmin;

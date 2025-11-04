@@ -1,6 +1,6 @@
 'use client';
 
-import { resetAndRegenerateKeywords } from '@workspace/lib/server-actions/reset-and-regenerate-keywords';
+import { resetAndRegenerateKeywordsAdmin } from '@workspace/lib/server-actions/admin/reset-and-regenerate-keywords-admin';
 import { Alert, AlertDescription } from '@workspace/ui/components/alert';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -82,7 +82,7 @@ export function AdminProductManagement() {
 
     setIsResetting(true);
     try {
-      const result = await resetAndRegenerateKeywords(selectedProductId);
+      const result = await resetAndRegenerateKeywordsAdmin(selectedProductId);
 
       if (result.success) {
         toast.success(
