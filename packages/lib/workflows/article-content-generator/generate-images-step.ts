@@ -32,9 +32,18 @@ const generateImagesStep = createStep({
           } else {
             finalPrompt = `${finalPrompt}, professional minimal design`;
           }
+
+          // Add brand color to the prompt
+          // For brand-text style, emphasize using the brand color
+          if (imageStyle === 'brand-text') {
+            finalPrompt = `${finalPrompt}, using brand color ${brandColor}`;
+          } else {
+            // For other styles, add brand color as accent
+            finalPrompt = `${finalPrompt}, with brand color accents ${brandColor}`;
+          }
         } else {
-          // For diagrams, keep it simple
-          finalPrompt = `Simple diagram: ${finalPrompt}`;
+          // For diagrams, keep it simple but include brand color
+          finalPrompt = `Simple diagram: ${finalPrompt}, using brand color ${brandColor}`;
         }
 
         // Add custom style modifier if provided (keep it short)
