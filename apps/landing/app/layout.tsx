@@ -1,9 +1,10 @@
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
-import MetaPixel from '@workspace/ui/components/meta-pixel';
 import Analytics from '@workspace/ui/components/analytics';
+import CrispChat from '@workspace/ui/components/crisp-chat';
+import MetaPixel from '@workspace/ui/components/meta-pixel';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { Bricolage_Grotesque, Inter, Caveat } from 'next/font/google';
+import { Bricolage_Grotesque, Caveat, Inter } from 'next/font/google';
 import Script from 'next/script';
 
 import '@workspace/ui/globals.css';
@@ -92,6 +93,9 @@ export default async function RootLayout({
         )}
         {process.env.NEXT_PUBLIC_META_PIXEL_ID && (
           <MetaPixel pixelId={process.env.NEXT_PUBLIC_META_PIXEL_ID!} />
+        )}
+        {process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID && (
+          <CrispChat websiteId={process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID!} />
         )}
         <Analytics />
       </body>
