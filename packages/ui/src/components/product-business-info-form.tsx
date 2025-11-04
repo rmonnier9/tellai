@@ -8,13 +8,9 @@ import {
   FormMessage,
 } from '@workspace/ui/components/form';
 import { Input } from '@workspace/ui/components/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@workspace/ui/components/select';
+import { SearchableSelect } from '@workspace/ui/components/searchable-select';
+import { countries } from '@workspace/ui/lib/countries';
+import { languages } from '@workspace/ui/lib/languages';
 import { UseFormReturn } from 'react-hook-form';
 
 interface ProductBusinessInfoFormProps {
@@ -47,33 +43,19 @@ export function ProductBusinessInfoForm({
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>Language</FormLabel>
-              <Select
-                key={`language-${field.value}`}
-                onValueChange={field.onChange}
-                value={field.value}
-              >
-                <FormControl className="w-full">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="es">Spanish</SelectItem>
-                  <SelectItem value="fr">French</SelectItem>
-                  <SelectItem value="de">German</SelectItem>
-                  <SelectItem value="it">Italian</SelectItem>
-                  <SelectItem value="pt">Portuguese</SelectItem>
-                  <SelectItem value="nl">Dutch</SelectItem>
-                  <SelectItem value="pl">Polish</SelectItem>
-                  <SelectItem value="ru">Russian</SelectItem>
-                  <SelectItem value="ja">Japanese</SelectItem>
-                  <SelectItem value="ko">Korean</SelectItem>
-                  <SelectItem value="zh">Chinese</SelectItem>
-                  <SelectItem value="ar">Arabic</SelectItem>
-                  <SelectItem value="hi">Hindi</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <SearchableSelect
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Select language"
+                  searchPlaceholder="Search languages..."
+                  items={Object.entries(languages).map(([code, name]) => ({
+                    value: code,
+                    label: name,
+                  }))}
+                  className="w-full"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -85,42 +67,19 @@ export function ProductBusinessInfoForm({
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>Country</FormLabel>
-              <Select
-                key={`country-${field.value}`}
-                onValueChange={field.onChange}
-                value={field.value}
-              >
-                <FormControl className="w-full">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="US">United States</SelectItem>
-                  <SelectItem value="GB">United Kingdom</SelectItem>
-                  <SelectItem value="CA">Canada</SelectItem>
-                  <SelectItem value="AU">Australia</SelectItem>
-                  <SelectItem value="DE">Germany</SelectItem>
-                  <SelectItem value="FR">France</SelectItem>
-                  <SelectItem value="ES">Spain</SelectItem>
-                  <SelectItem value="IT">Italy</SelectItem>
-                  <SelectItem value="NL">Netherlands</SelectItem>
-                  <SelectItem value="SE">Sweden</SelectItem>
-                  <SelectItem value="NO">Norway</SelectItem>
-                  <SelectItem value="DK">Denmark</SelectItem>
-                  <SelectItem value="FI">Finland</SelectItem>
-                  <SelectItem value="PL">Poland</SelectItem>
-                  <SelectItem value="BR">Brazil</SelectItem>
-                  <SelectItem value="MX">Mexico</SelectItem>
-                  <SelectItem value="AR">Argentina</SelectItem>
-                  <SelectItem value="JP">Japan</SelectItem>
-                  <SelectItem value="KR">South Korea</SelectItem>
-                  <SelectItem value="CN">China</SelectItem>
-                  <SelectItem value="IN">India</SelectItem>
-                  <SelectItem value="SG">Singapore</SelectItem>
-                  <SelectItem value="NZ">New Zealand</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <SearchableSelect
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Select country"
+                  searchPlaceholder="Search countries..."
+                  items={countries.map((country) => ({
+                    value: country.code,
+                    label: country.name,
+                  }))}
+                  className="w-full"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
