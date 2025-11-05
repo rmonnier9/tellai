@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRef, useState } from "react";
-import { Transition } from "@headlessui/react";
+import { Transition } from '@headlessui/react';
+import { useRef, useState } from 'react';
 
 type DropdownProps = {
   children: React.ReactNode;
@@ -40,7 +40,7 @@ export default function Dropdown({ children, title }: DropdownProps) {
         aria-expanded={dropdownOpen}
         onClick={handleClick}
       >
-        <span className="sr-only">Show submenu for "{title}"</span>
+        <span className="sr-only">Show submenu for “{title}“</span>
         <svg
           className="fill-gray-400"
           xmlns="http://www.w3.org/2000/svg"

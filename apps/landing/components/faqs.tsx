@@ -14,16 +14,21 @@ export default function Faqs() {
           </div>
           <div className="mx-auto max-w-3xl">
             <div className="space-y-2">
-              {faqs.map((faq: any, index: number) => (
-                <Accordion
-                  key={index}
-                  title={faq.question}
-                  id={`faqs-${index}`}
-                  active={faq.active}
-                >
-                  {faq.answer}
-                </Accordion>
-              ))}
+              {faqs.map(
+                (
+                  faq: { question: string; answer: string; active: boolean },
+                  index: number
+                ) => (
+                  <Accordion
+                    key={index}
+                    title={faq.question}
+                    id={`faqs-${index}`}
+                    active={faq.active}
+                  >
+                    {faq.answer}
+                  </Accordion>
+                )
+              )}
             </div>
           </div>
         </div>
