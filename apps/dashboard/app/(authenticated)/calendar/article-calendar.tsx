@@ -155,8 +155,10 @@ export function ArticleCalendar() {
     const targetDateString = over.id as string;
 
     // Parse the target date (YYYY-MM-DD format)
+    // Create date at UTC midnight to avoid timezone conversion issues
+    // Using UTC ensures the date doesn't shift when serialized to ISO string
     const [year, month, day] = targetDateString.split('-').map(Number);
-    const targetDate = new Date(year!, month! - 1, day!);
+    const targetDate = new Date(Date.UTC(year!, month! - 1, day!, 0, 0, 0, 0));
 
     // Find the article being dragged
     const draggedArticle = articles.find((a) => a.id === articleId);

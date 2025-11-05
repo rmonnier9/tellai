@@ -19,9 +19,9 @@ export async function updateArticleSchedule({
   }
 
   try {
-    // Normalize the date to start of day
+    // Normalize the date to start of day in UTC to avoid timezone issues
     const normalizedDate = new Date(newDate);
-    normalizedDate.setHours(0, 0, 0, 0);
+    normalizedDate.setUTCHours(0, 0, 0, 0);
 
     // Check if the article exists and is pending
     const article = await prisma.article.findUnique({
