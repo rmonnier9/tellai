@@ -1,7 +1,8 @@
-import { Toaster } from '@workspace/ui/components/sonner';
-import MetaPixel from '@workspace/ui/components/meta-pixel';
-import Analytics from '@workspace/ui/components/analytics';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
+import Analytics from '@workspace/ui/components/analytics';
+import CrispChat from '@workspace/ui/components/crisp-chat';
+import MetaPixel from '@workspace/ui/components/meta-pixel';
+import { Toaster } from '@workspace/ui/components/sonner';
 
 import {
   Bricolage_Grotesque,
@@ -87,6 +88,9 @@ export default function RootLayout({
         )}
         {process.env.NEXT_PUBLIC_META_PIXEL_ID && (
           <MetaPixel pixelId={process.env.NEXT_PUBLIC_META_PIXEL_ID!} />
+        )}
+        {process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID && (
+          <CrispChat websiteId={process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID!} />
         )}
         <Analytics />
       </body>
