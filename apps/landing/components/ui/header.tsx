@@ -1,8 +1,40 @@
 import { useTranslations } from 'next-intl';
 import Logo from './logo';
+import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@workspace/ui/components/dropdown-menu';
+import { Menu } from 'lucide-react';
 
-export default function Header({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
+export default function Header({
+  isAuthenticated = false,
+}: {
+  isAuthenticated?: boolean;
+}) {
   const t = useTranslations('common');
+
+  const links = [
+    {
+      href: '/#how-it-works',
+      label: 'How It Works',
+    },
+    {
+      href: '/#writing-examples',
+      label: 'Writing Examples',
+    },
+    {
+      href: '/#pricing',
+      label: 'Pricing',
+    },
+    {
+      href: '/blog',
+      label: 'Blog',
+    },
+  ];
+
   return (
     <header className="fixed top-2 z-30 w-full md:top-6">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -13,93 +45,60 @@ export default function Header({ isAuthenticated = false }: { isAuthenticated?: 
 
           <nav className="hidden md:flex md:grow">
             <ul className="flex grow flex-wrap items-center justify-center gap-4 text-sm lg:gap-8">
-              {/* <li className="px-3 py-1">
-                <Link
-                  href="/pricing"
-                  className="flex items-center text-gray-700 transition hover:text-gray-900"
-                >
-                  Pricing
-                </Link>
-              </li>
-              <li className="px-3 py-1">
-                <Link
-                  href="/customers"
-                  className="flex items-center text-gray-700 transition hover:text-gray-900"
-                >
-                  Customers
-                </Link>
-              </li>
-              <li className="px-3 py-1">
-                <Link
-                  href="/blog"
-                  className="flex items-center text-gray-700 transition hover:text-gray-900"
-                >
-                  Blog
-                </Link>
-              </li>
-              <li className="px-3 py-1">
-                <Link
-                  href="/documentation"
-                  className="flex items-center text-gray-700 transition hover:text-gray-900"
-                >
-                  Docs
-                </Link>
-              </li>
-              <Dropdown title="Extra">
-                <li>
+              {links.map((link) => (
+                <li className="px-3 py-1" key={link.href}>
                   <Link
-                    href="/support"
-                    className="flex rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+                    href={link.href}
+                    className="flex items-center text-gray-700 transition hover:text-gray-900"
                   >
-                    Support center
+                    {link.label}
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/apps"
-                    className="flex rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Apps
-                  </Link>
-                </li>
-              </Dropdown> */}
+              ))}
             </ul>
           </nav>
 
           {/* Desktop sign in links */}
           <ul className="flex flex-1 items-center justify-end gap-3">
-            {isAuthenticated ? (
-              <li>
-                <a
-                  href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
-                  className="btn-sm bg-pink-400 text-white shadow-sm hover:bg-pink-500"
-                >
-                  {t('goToDashboard')}
-                </a>
-              </li>
-            ) : (
-              <>
-                <li>
-                  <a
-                    href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
-                    className="btn-sm bg-white text-gray-800 shadow-sm hover:bg-gray-50"
-                  >
-                    {t('login')}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
-                    className="btn-sm bg-pink-400 text-white shadow-sm hover:bg-pink-500"
-                  >
-                    {t('startForFree')}
-                  </a>
-                </li>
-              </>
-            )}
+            <li>
+              <a
+                href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
+                className="hidden lg:flex btn-sm bg-white text-gray-800 shadow-sm hover:bg-gray-50"
+              >
+                {t('login')}
+              </a>
+            </li>
+            <li>
+              <a
+                href={process.env.NEXT_PUBLIC_DASHBOARD_URL}
+                className="btn-sm bg-pink-400 text-white shadow-sm hover:bg-pink-500"
+              >
+                {t('startForFree')}
+              </a>
+            </li>
           </ul>
 
-          {/* <MobileMenu /> */}
+          {/* Mobile Menu */}
+          <div className="flex md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors">
+                <Menu className="w-5 h-5 text-gray-700" />
+                <span className="sr-only">Open menu</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {links.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                      href={link.href}
+                      className="flex items-center w-full px-2 py-2 text-sm"
+                    >
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </header>
