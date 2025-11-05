@@ -9,11 +9,7 @@ import {
 } from '@workspace/ui/components/dropdown-menu';
 import { Menu } from 'lucide-react';
 
-export default function Header({
-  isAuthenticated = false,
-}: {
-  isAuthenticated?: boolean;
-}) {
+export default function Header() {
   const t = useTranslations('common');
 
   const links = [
