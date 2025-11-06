@@ -1012,6 +1012,18 @@ export default function Home() {
           {/* CTA Section */}
           <CTA />
 
+          <div className="flex justify-center items-center py-12">
+            <a
+              href="https://theresanaiforthat.com/ai/lovarank/?ref=featured&v=915251"
+              target="_blank"
+              rel="nofollow noreferrer"
+            >
+              <img
+                width="300"
+                src="https://media.theresanaiforthat.com/featured-on-taaft.png?width=600"
+              />
+            </a>
+          </div>
           <SectionDivider />
         </div>
       </div>
