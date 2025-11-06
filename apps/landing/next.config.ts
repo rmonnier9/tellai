@@ -22,6 +22,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async headers() {
+    const h = [
+      { key: 'X-Forwarded-Host', value: 'www.lovarank.com' },
+      { key: 'X-Forwarded-Proto', value: 'https' },
+    ];
+    return [
+      { source: '/blog', headers: h },
+      { source: '/blog/:path*', headers: h },
+    ];
+  },
 };
 
 export default withNextIntl(withMDX(nextConfig));
