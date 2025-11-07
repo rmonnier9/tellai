@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from '@workspace/ui/components/form';
 import { Input } from '@workspace/ui/components/input';
-import { Copy, ExternalLink } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -78,8 +78,7 @@ export function FramerIntegrationForm() {
         <div>
           <h1 className="text-2xl font-bold">Framer Integration</h1>
           <p className="text-muted-foreground mt-2">
-            Connect your Framer website to automatically sync articles from
-            Lovarank.
+            Connect your Framer website to sync articles from Lovarank.
           </p>
         </div>
 
@@ -141,26 +140,20 @@ export function FramerIntegrationForm() {
                   <li>Copy the API key above by clicking the copy button</li>
                   <li>Open your Framer project and go to CMS Collections</li>
                   <li>
-                    Click "Add Plugin" and select "Lovarank" from the plugin
+                    Click “Add Plugin“ and select “Lovarank“ from the plugin
                     library
                   </li>
                   <li>Paste your API key when prompted</li>
                   <li>
-                    Select which fields to sync and click "Import Articles"
+                    Select which fields to sync and click “Import Articles“
                   </li>
                 </ol>
               </div>
 
               <div className="pt-4 border-t">
-                <a
-                  href="https://www.framer.com/help/plugins/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
-                >
-                  Learn more about Framer Plugins
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                Note: Publishing must then be done from Framer. Whenever you
+                want to publish the new articles, click on the Sync button in
+                the CMS collection created by the Lovarank plugin.
               </div>
             </div>
 
