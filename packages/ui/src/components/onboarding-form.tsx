@@ -484,7 +484,10 @@ export function OnboardingForm() {
                     </p>
                   </div>
 
-                  <ProductArticlePreferencesForm form={form} />
+                  <ProductArticlePreferencesForm
+                    form={form}
+                    hideWatermarkOption={true}
+                  />
                 </div>
               </Card>
             )}

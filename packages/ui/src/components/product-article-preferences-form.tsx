@@ -29,11 +29,17 @@ import { UseFormReturn } from 'react-hook-form';
 
 interface ProductArticlePreferencesFormProps {
   form: UseFormReturn<any>;
+  subscriptionStatus?: string | null;
+  hideWatermarkOption?: boolean;
 }
 
 export function ProductArticlePreferencesForm({
   form,
+  subscriptionStatus,
+  hideWatermarkOption = false,
 }: ProductArticlePreferencesFormProps) {
+  // Check if user is paying (active subscription, not trialing)
+  const isPayingUser = subscriptionStatus === 'active';
   return (
     <div className="space-y-8">
       {/* Content & SEO Section */}
@@ -368,6 +374,45 @@ export function ProductArticlePreferencesForm({
             </FormItem>
           )}
         />
+
+        {/* Remove Watermark Toggle - Premium Only (hidden during onboarding) */}
+        {!hideWatermarkOption && (
+          <FormField
+            control={form.control}
+            name="removeWatermark"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5 flex-1">
+                  <div className="flex items-center gap-2">
+                    <FormLabel>Remove Lovarank Branding</FormLabel>
+                    {!isPayingUser && (
+                      <span className="inline-flex items-center rounded-md bg-pink-50 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10">
+                        Premium
+                      </span>
+                    )}
+                  </div>
+                  <FormDescription>
+                    Remove &quot;Article created with Lovarank&quot; from
+                    article footers.
+                    {!isPayingUser && (
+                      <span className="block mt-1 text-pink-600">
+                        Available for paying subscribers only (not during
+                        trial).
+                      </span>
+                    )}
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={!isPayingUser}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
       </div>
     </div>
   );

@@ -318,13 +318,19 @@ Now write an exceptional, SEO-optimized article that will rank well and provide 
         }),
       });
 
+      // Only add watermark if the product setting allows it (not removeWatermark)
+      const shouldAddWatermark = !product?.removeWatermark;
       const watermark = `*Article created using [Lovarank](https://www.lovarank.com/ "Lovarank - The AI agent that grows your organic traffic")*`;
+
+      const contentWithOptionalWatermark = shouldAddWatermark
+        ? `${result.object.content}\n\n${watermark}`
+        : result.object.content;
 
       return {
         ...inputData,
         articleContent: {
           title: result.object.title,
-          content: `${result.object.content}\n\n${watermark}`,
+          content: contentWithOptionalWatermark,
           metaDescription: result.object.metaDescription,
           slug: result.object.slug,
         },

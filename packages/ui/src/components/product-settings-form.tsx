@@ -41,6 +41,12 @@ interface ProductSettingsFormProps {
     includeCallToAction?: boolean;
     includeInfographics?: boolean;
     includeEmojis?: boolean;
+    removeWatermark?: boolean;
+    subscription?: {
+      status?: string | null;
+      trialStart?: Date | null;
+      trialEnd?: Date | null;
+    } | null;
   };
 }
 
@@ -70,6 +76,7 @@ export function ProductSettingsForm({ product }: ProductSettingsFormProps) {
       includeCallToAction: true,
       includeInfographics: true,
       includeEmojis: true,
+      removeWatermark: false,
     },
   });
 
@@ -97,6 +104,7 @@ export function ProductSettingsForm({ product }: ProductSettingsFormProps) {
         includeCallToAction: product.includeCallToAction ?? true,
         includeInfographics: product.includeInfographics ?? true,
         includeEmojis: product.includeEmojis ?? true,
+        removeWatermark: product.removeWatermark ?? false,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -197,7 +205,10 @@ export function ProductSettingsForm({ product }: ProductSettingsFormProps) {
                   Set your default article configuration
                 </p>
               </div>
-              <ProductArticlePreferencesForm form={form} />
+              <ProductArticlePreferencesForm
+                form={form}
+                subscriptionStatus={product?.subscription?.status}
+              />
             </div>
           </Card>
 

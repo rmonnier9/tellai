@@ -189,6 +189,7 @@ model Product {
   includeCallToAction Boolean @default(true) @map("include_call_to_action")
   includeInfographics Boolean @default(true) @map("include_infographics")
   includeEmojis       Boolean @default(true) @map("include_emojis")
+  removeWatermark     Boolean @default(false) @map("remove_watermark")
 
   subscriptionId String?       @unique @map("subscription_id")
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id])

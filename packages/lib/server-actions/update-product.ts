@@ -51,6 +51,19 @@ export async function updateProduct(
     const sitemapUrlChanged =
       validatedData.sitemapUrl !== existingProduct.sitemapUrl;
 
+    // Get subscription status to check if user can remove watermark
+    const productWithSubscription = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { subscription: true },
+    });
+
+    // Only allow removeWatermark if subscription is active (not trialing)
+    const canRemoveWatermark =
+      productWithSubscription?.subscription?.status === 'active';
+
+    const removeWatermark =
+      canRemoveWatermark && (validatedData.removeWatermark ?? false);
+
     // Update the product in the database
     const product = await prisma.product.update({
       where: {
@@ -80,6 +93,7 @@ export async function updateProduct(
         includeCallToAction: validatedData.includeCallToAction,
         includeInfographics: validatedData.includeInfographics,
         includeEmojis: validatedData.includeEmojis,
+        removeWatermark: removeWatermark,
       },
     });
 

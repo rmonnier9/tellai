@@ -104,6 +104,7 @@ export const UpdateProductSchema = z.object({
   includeCallToAction: z.boolean(),
   includeInfographics: z.boolean(),
   includeEmojis: z.boolean(),
+  removeWatermark: z.boolean().optional(),
 });
 
 export type UpdateProductSchema = z.infer<typeof UpdateProductSchema>;
@@ -201,6 +202,7 @@ export const ProductSchema = z.object({
   includeCallToAction: z.boolean(),
   includeInfographics: z.boolean(),
   includeEmojis: z.boolean(),
+  removeWatermark: z.boolean(),
   subscriptionId: z.string().nullable(),
   organizationId: z.string(),
   competitors: z.array(z.string()),

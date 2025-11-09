@@ -63,6 +63,7 @@ export async function completeOnboarding(data: OnboardingProductSchema) {
         includeCallToAction: validatedData.includeCallToAction,
         includeInfographics: validatedData.includeInfographics,
         includeEmojis: validatedData.includeEmojis,
+        removeWatermark: false,
         organization: {
           connect: {
             id: sessionWithOrgId.activeOrganizationId,
