@@ -68,7 +68,11 @@ export function SearchableSelect({
   return (
     <Select
       value={value}
-      onValueChange={onValueChange}
+      onValueChange={(newValue) => {
+        if (newValue && onValueChange) {
+          onValueChange(newValue);
+        }
+      }}
       open={open}
       onOpenChange={setOpen}
       disabled={disabled}
